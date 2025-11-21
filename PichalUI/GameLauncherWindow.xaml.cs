@@ -184,6 +184,12 @@ namespace PichalUI
         InfoInputHandler infoInputHandler;
         private PlayStationController? _controller;
 
+        // NOVO: Token para cancelar animações de scroll antigas
+        private CancellationTokenSource? _scrollCts;
+
+        // NOVO: Flag para saber se estamos a carregar
+        private bool isLoading = false;
+
         // Dados
         List<GameEntry> games = new List<GameEntry>();
         List<GameEntry> storeGames = new List<GameEntry>();
@@ -545,6 +551,8 @@ namespace PichalUI
 
         async Task RescanGamesAsync()
         {
+            if (isLoading) return; // Evita spam de F5
+            SetLoading(true, "A procurar jogos...");
             Dispatcher.Invoke(() => StatusLabel.Text = "A procurar jogos...");
             try
             {
@@ -569,6 +577,11 @@ namespace PichalUI
                 games = found;
                 PopulateGamesPanel();
 
+                if (games.Any(g => !string.IsNullOrEmpty(g.SteamAppId) && g.Cover == null))
+                {
+                    SetLoading(true, "A transferir capas...");
+                }
+
                 _ = Task.Run(async () =>
                 {
                     foreach (var g in games)
@@ -587,7 +600,14 @@ namespace PichalUI
                     await Dispatcher.InvokeAsync(() => GamesListBox.Items.Refresh());
                 });
             }
-            catch (Exception ex) { Dispatcher.Invoke(() => StatusLabel.Text = "Erro scan: " + ex.Message); }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() => StatusLabel.Text = "Erro scan: " + ex.Message);
+            }
+            finally
+            {
+                SetLoading(false);
+            }
         }
 
         List<GameEntry> ScanSteamLibraries()
@@ -850,6 +870,8 @@ namespace PichalUI
 
         async Task ConnectSteamFlowAsync()
         {
+            SetLoading(true, "A ligar à Steam...");
+
             try
             {
                 string? key = null;
@@ -880,8 +902,25 @@ namespace PichalUI
                     await FetchAndShowFriendsAsync();
                     await Dispatcher.InvokeAsync(() => PopulateGamesPanel());
                 });
+
+                // Quando chegares à parte de buscar dados:
+                SetLoading(true, "A transferir biblioteca Steam...");
+
+                // A parte pesada:
+                await FetchSteamDataForAllGamesAsync();
+                await FetchAndShowFriendsAsync();
+
+                await Dispatcher.InvokeAsync(() => PopulateGamesPanel());
             }
-            catch (Exception ex) { await Dispatcher.InvokeAsync(() => MessageBox.Show(this, "Erro connect: " + ex.Message)); }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() => MessageBox.Show(this, "Erro connect: " + ex.Message));
+            }
+            finally
+            {
+                // IMPORTANTE: Desbloqueia UI aconteça o que acontecer
+                SetLoading(false);
+            }
         }
 
         async Task<string?> DoOpenIdViaExternalBrowserAsync(int timeoutSeconds = 120)
@@ -1156,6 +1195,7 @@ namespace PichalUI
 
         private void GameLauncherWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (isLoading) { e.Handled = true; return; } // BLOQUEIA TUDO SE ESTIVER A CARREGAR
             if (Keyboard.FocusedElement is TextBox) return;
             bool handled = false;
             switch (e.Key)
@@ -1178,6 +1218,8 @@ namespace PichalUI
 
         void XinputTimer_Tick(object? sender, EventArgs e)
         {
+            if (isLoading) return; // BLOQUEIA COMANDO
+            
             if (!XInputNative.GetState(0, out var st)) { xInputPrevState = st; return; }
             var now = DateTime.UtcNow;
             if ((now - lastNav).TotalMilliseconds < 150) return;
@@ -1220,8 +1262,6 @@ namespace PichalUI
             if (listBox == null || item == null) return;
 
             var container = listBox.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
-
-            // Se não encontrar o container, tenta forçar scroll para o trazer à vista primeiro
             if (container == null)
             {
                 listBox.UpdateLayout();
@@ -1235,52 +1275,64 @@ namespace PichalUI
                 var scrollViewer = GetScrollViewer(listBox);
                 if (scrollViewer != null)
                 {
-                    // Calcula a posição relativa do item dentro do ScrollViewer
+                    // CANCELA A ANIMAÇÃO ANTERIOR SE EXISTIR
+                    _scrollCts?.Cancel();
+                    _scrollCts = new CancellationTokenSource();
+                    var token = _scrollCts.Token;
+
                     Point relativePoint = container.TransformToAncestor(scrollViewer).Transform(new Point(0, 0));
-
                     double currentOffset = scrollViewer.HorizontalOffset;
-
-                    // Math: Onde estou + Onde o item está - Metade do Ecrã + Metade do Item
                     double targetOffset = currentOffset + relativePoint.X - (scrollViewer.ViewportWidth / 2) + (container.ActualWidth / 2);
 
-                    // Impede scroll para valores negativos (antes do inicio da lista)
                     if (targetOffset < 0) targetOffset = 0;
-
-                    // Impede scroll para além do máximo (opcional, o WPF trata disto, mas fica mais limpo)
                     if (targetOffset > scrollViewer.ScrollableWidth) targetOffset = scrollViewer.ScrollableWidth;
 
-                    _ = AnimateScroll(scrollViewer, targetOffset);
+                    // Passa o token para a animação
+                    _ = AnimateScroll(scrollViewer, targetOffset, token);
                 }
             }
         }
-        private async Task AnimateScroll(ScrollViewer scroll, double targetOffset)
+
+        // Método Atualizado com CancellationToken
+        private async Task AnimateScroll(ScrollViewer scroll, double targetOffset, CancellationToken token)
         {
             double current = scroll.HorizontalOffset;
             double diff = targetOffset - current;
 
-            // Se a distância for muito pequena, não anima, apenas salta
             if (Math.Abs(diff) < 1)
             {
                 scroll.ScrollToHorizontalOffset(targetOffset);
                 return;
             }
 
-            // Animação manual (suave)
-            int steps = 30; // Quantidade de frames da animação
+            int steps = 15; // Reduzi passos para ser mais reativo (menos "lag" visual)
             for (int i = 1; i <= steps; i++)
             {
-                // Fórmula matemática "Ease Out" para o movimento começar rápido e travar suavemente
+                // Se entretanto carregaste noutra tecla, PÁRA esta animação imediatamente
+                if (token.IsCancellationRequested) return;
+
                 double t = (double)i / steps;
                 double ease = 1 - Math.Pow(1 - t, 3);
 
                 scroll.ScrollToHorizontalOffset(current + (diff * ease));
-
-                // Espera um pouco para criar o efeito de vídeo (aprox 60fps)
-                await Task.Delay(10);
+                await Task.Delay(10); // ~60fps
             }
 
-            // Garante que no final fica exatamente na posição certa
-            scroll.ScrollToHorizontalOffset(targetOffset);
+            if (!token.IsCancellationRequested)
+                scroll.ScrollToHorizontalOffset(targetOffset);
+        }
+
+        void SetLoading(bool loading, string message = "A carregar...")
+        {
+            isLoading = loading;
+            Dispatcher.Invoke(() =>
+            {
+                if (LoadingOverlay != null)
+                {
+                    LoadingOverlay.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
+                    if (LoadingText != null) LoadingText.Text = message;
+                }
+            });
         }
 
         // --- XINPUT NATIVE CLASS ---
