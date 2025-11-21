@@ -1,0 +1,5 @@
+publish/
+*.exe
+bin/
+obj/
+*.rar
