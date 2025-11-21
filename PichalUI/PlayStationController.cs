@@ -1,43 +1,41 @@
 using System;
 using System.Linq;
-using System.Threading;
 using DualSenseAPI;
 using DualSenseAPI.State;
 
-public class PlayStationController
+namespace PichalUI
 {
-     private DualSense _ds;
-    private bool _running = false;
-
-    public event Action<DualSenseInputState>? StateChanged;
-
-    public bool Start()
+    public class PlayStationController
     {
-        _ds = DualSense.EnumerateControllers().FirstOrDefault();
-        if (_ds == null) return false;
+        private DualSense? _ds; // Nullable
+        private bool _running = false;
 
-        _ds.Acquire();
-        _ds.OnStatePolled += Ds_OnStatePolled;
+        public event Action<DualSenseInputState>? StateChanged;
 
-        _ds.BeginPolling(8);
-        _running = true;
-        return true;
-    }
+        public bool Start()
+        {
+            // FirstOrDefault pode retornar null
+            _ds = DualSense.EnumerateControllers().FirstOrDefault();
+            
+            if (_ds == null) return false;
 
-    private void Ds_OnStatePolled(DualSense ds)
-    {
-        // envia o estado para o XAML.cs
-        StateChanged?.Invoke(ds.InputState);
-    }
+            _ds.Acquire();
+            _ds.OnStatePolled += Ds_OnStatePolled;
+            _ds.BeginPolling(8);
+            _running = true;
+            return true;
+        }
 
-    public void Stop()
-    {
-        if (!_running) return;
+        private void Ds_OnStatePolled(DualSense ds)
+        {
+            StateChanged?.Invoke(ds.InputState);
+        }
 
-        _running = false;
-
-        try { _ds.EndPolling(); } catch { }
-        try { _ds.OnStatePolled -= Ds_OnStatePolled; } catch { }
-        try { _ds.Release(); } catch { }
+        public void Stop()
+        {
+            if (!_running || _ds == null) return;
+            _running = false;
+            try { _ds.EndPolling(); _ds.Release(); } catch { }
+        }
     }
 }
