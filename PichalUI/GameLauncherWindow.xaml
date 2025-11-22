@@ -15,6 +15,13 @@
         Closed="Window_Closed">
 
     <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush"
+                         Color="#FF4758"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush"
+                         Color="White"/>
+        <SolidColorBrush x:Key="PanelBackgroundBrush"
+                         Color="#D9101010"/>
+
         <Style TargetType="Button">
             <Setter Property="FocusVisualStyle"
                     Value="{x:Null}"/>
@@ -23,10 +30,180 @@
             <Setter Property="FocusVisualStyle"
                     Value="{x:Null}"/>
         </Style>
+
+        <Style x:Key="SettingsButtonStyle"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="#33FFFFFF"/>
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="FontSize"
+                    Value="14"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+            <Setter Property="Padding"
+                    Value="15,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#55FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground"
+                                        Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernSlider"
+               TargetType="Slider">
+            <Setter Property="IsSnapToTickEnabled"
+                    Value="True"/>
+            <Setter Property="TickFrequency"
+                    Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid VerticalAlignment="Center">
+                            <Border Name="TrackBackground"
+                                    Background="#33FFFFFF"
+                                    Height="4"
+                                    CornerRadius="2"
+                                    VerticalAlignment="Center"/>
+                            <Canvas Name="PART_SelectionRange"/>
+                            <Track Name="PART_Track">
+                                <Track.Thumb>
+                                    <Thumb Width="20"
+                                           Height="20">
+                                        <Thumb.Template>
+                                            <ControlTemplate>
+                                                <Border Background="White"
+                                                        CornerRadius="10"
+                                                        BorderThickness="0">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="4"
+                                                                          Opacity="0.5"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ToggleSwitch"
+               TargetType="CheckBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid>
+                            <Border x:Name="Back"
+                                    Width="50"
+                                    Height="26"
+                                    CornerRadius="13"
+                                    Background="#444"/>
+                            <Ellipse x:Name="Dot"
+                                     Width="20"
+                                     Height="20"
+                                     Fill="White"
+                                     HorizontalAlignment="Left"
+                                     Margin="3,0,0,0">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="4"
+                                                      Opacity="0.3"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked"
+                                     Value="True">
+                                <Setter TargetName="Back"
+                                        Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Dot"
+                                        Property="HorizontalAlignment"
+                                        Value="Right"/>
+                                <Setter TargetName="Dot"
+                                        Property="Margin"
+                                        Value="0,0,3,0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SettingsTabStyle"
+               TargetType="RadioButton">
+            <Setter Property="Foreground"
+                    Value="Gray"/>
+            <Setter Property="FontSize"
+                    Value="18"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Background="Transparent">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       VerticalAlignment="Center"
+                                       Margin="20,0"/>
+                            <Rectangle x:Name="Indicator"
+                                       Width="4"
+                                       HorizontalAlignment="Left"
+                                       Fill="Transparent"
+                                       RadiusX="2"
+                                       RadiusY="2"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked"
+                                     Value="True">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Setter Property="FontWeight"
+                                        Value="Bold"/>
+                                <Setter TargetName="Indicator"
+                                        Property="Fill"
+                                        Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused"
+                                     Value="True">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
-        <Border>
+        <Border x:Name="MainBackground">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,2"
                                      EndPoint="1,2">
@@ -72,6 +249,22 @@
                             Margin="6"
                             Width="0"
                             Visibility="Collapsed"/>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock x:Name="ClockTime"
+                                   Text="12:00"
+                                   Foreground="White"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="ClockDate"
+                                   Text="Sáb, 22 Nov"
+                                   Foreground="LightGray"
+                                   FontSize="12"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
                     <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 Margin="16,0">
@@ -119,11 +312,12 @@
                                FontSize="22"
                                Text="Friends"
                                FontWeight="Bold"
-                               Foreground="#FF776464"
+                               Foreground="Gray"
                                VerticalAlignment="Center"
                                Margin="16,6"
                                Grid.Column="1"/>
-                    <TextBlock FontSize="22"
+                    <TextBlock x:Name="SettingMenu"
+                               FontSize="22"
                                Text="Settings"
                                FontWeight="Bold"
                                Foreground="Gray"
@@ -346,6 +540,315 @@
             </Border>
 
             <Border Grid.Row="3"
+                    x:Name="SettingsMenu"
+                    Visibility="Collapsed"
+                    Padding="0"
+                    Background="Transparent">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Definições"
+                               Foreground="White"
+                               FontSize="42"
+                               FontWeight="Bold"
+                               VerticalAlignment="Top"
+                               Margin="40,0,0,0"/>
+
+                    <StackPanel x:Name="SettingsCategories"
+                                Grid.Column="0"
+                                Margin="40,60,0,0">
+                        <RadioButton x:Name="BtnTabGeneral"
+                                     Content="Geral"
+                                     IsChecked="True"
+                                     Style="{StaticResource SettingsTabStyle}"
+                                     Height="50"
+                                     Checked="Tab_Checked"
+                                     Click="Category_Click"/>
+
+                        <RadioButton x:Name="BtnTabSystem"
+                                     Content="Sistema"
+                                     Style="{StaticResource SettingsTabStyle}"
+                                     Height="50"
+                                     Checked="Tab_Checked"
+                                     Click="Category_Click"/>
+
+                        <RadioButton x:Name="BtnTabPersonalization"
+                                     Content="Personalização"
+                                     Style="{StaticResource SettingsTabStyle}"
+                                     Height="50"
+                                     Checked="Tab_Checked"
+                                     Click="Category_Click"/>
+                    </StackPanel>
+
+                    <Border Grid.Column="1"
+                            Background="#D9101010"
+                            CornerRadius="16,0,0,16"
+                            Margin="20,0,0,20"
+                            Padding="40">
+                        <Grid x:Name="SettingsContentArea">
+
+                            <StackPanel x:Name="TabGeneral"
+                                        Visibility="Visible">
+                                <TextBlock Text="Áudio e Geral"
+                                           Foreground="#FF4758"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,20"/>
+
+                                <Grid Margin="0,0,0,30">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Volume Principal"
+                                                   Foreground="White"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock Text="Ajusta o volume do sistema"
+                                                   Foreground="Gray"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+                                    <Slider x:Name="VolumeSlider"
+                                            Grid.Column="1"
+                                            Style="{StaticResource ModernSlider}"
+                                            Minimum="0"
+                                            Maximum="100"
+                                            Value="50"
+                                            ValueChanged="VolumeSlider_ValueChanged"
+                                            Focusable="True"/>
+                                    <TextBlock Text="{Binding ElementName=VolumeSlider, Path=Value, StringFormat={}{0:0}}"
+                                               Grid.Column="2"
+                                               Foreground="White"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Contador de FPS"
+                                                   Foreground="White"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock Text="Mostrar frames por segundo"
+                                                   Foreground="Gray"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="ToggleFPS"
+                                              Grid.Column="1"
+                                              Style="{StaticResource ToggleSwitch}"
+                                              Focusable="True"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel x:Name="TabSystem"
+                                        Visibility="Collapsed">
+                                <TextBlock Text="Conectividade"
+                                           Foreground="#FF4758"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,20"/>
+
+                                <Grid Margin="0,0,0,30">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Rede Wi-Fi"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="WifiStatusText"
+                                                   Text="Clique para escolher uma rede"
+                                                   Foreground="Gray"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                    <Border Grid.Column="1"
+                                            CornerRadius="4"
+                                            Padding="15,5"
+                                            x:Name="BtnWifiBorder">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background"
+                                                        Value="#33FFFFFF"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=BtnWifiReal, Path=IsFocused}"
+                                                                 Value="True">
+                                                        <Setter Property="Background"
+                                                                Value="{DynamicResource AccentBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="Configurar >"
+                                                   Foreground="White"
+                                                   FontWeight="Bold"/>
+                                    </Border>
+
+                                    <Button x:Name="BtnWifiReal"
+                                            Click="OpenWifiModal_Click"
+                                            Grid.ColumnSpan="2"
+                                            Opacity="0"
+                                            Focusable="True"/>
+                                </Grid>
+
+                                <TextBlock Text="Ecrã"
+                                           Foreground="#FF4758"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,20"/>
+                                <Grid>
+                                    <StackPanel>
+                                        <TextBlock Text="Resolução"
+                                                   Foreground="White"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="MonitorInfoText"
+                                                   Text="Detetando..."
+                                                   Foreground="Gray"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel x:Name="TabPersonalization"
+                                        Visibility="Collapsed">
+                                <TextBlock Text="Temas"
+                                           Foreground="#FF4758"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,20"/>
+                                <Button Content="Pichal Red (Original)"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Click="BtnThemeRed_Click"
+                                        Style="{StaticResource SettingsButtonStyle}"/>
+                                <Button Content="Deep Blue"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Click="BtnThemeBlue_Click"
+                                        Style="{StaticResource SettingsButtonStyle}"/>
+                                <Button Content="OLED Black"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Click="BtnThemeDark_Click"
+                                        Style="{StaticResource SettingsButtonStyle}"/>
+                                <Button Content="Pichalnovense"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Click="BtnThemePichal_Click"
+                                        Style="{StaticResource SettingsButtonStyle}"/>
+                            </StackPanel>
+
+                        </Grid>
+                    </Border>
+
+                    <Grid x:Name="WifiSelectorModal"
+                          Grid.ColumnSpan="2"
+                          Background="#F2000000"
+                          Visibility="Collapsed">
+                        <Border Width="500"
+                                Height="600"
+                                Background="#1A1A1A"
+                                CornerRadius="12"
+                                BorderBrush="#333"
+                                BorderThickness="1">
+                            <Grid Margin="30">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Selecionar Rede"
+                                           Foreground="White"
+                                           FontSize="28"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,20"/>
+
+                                <ListBox x:Name="WifiListBox"
+                                         Grid.Row="1"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="Padding"
+                                                    Value="10"/>
+                                            <Setter Property="Margin"
+                                                    Value="0,0,0,5"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <Border x:Name="Bd"
+                                                                Background="#22FFFFFF"
+                                                                CornerRadius="6"
+                                                                Padding="15">
+                                                            <Grid>
+                                                                <TextBlock Text="{Binding SSID}"
+                                                                           Foreground="White"
+                                                                           FontWeight="Bold"
+                                                                           FontSize="16"/>
+                                                                <TextBlock Text="{Binding SignalStrength}"
+                                                                           Foreground="Gray"
+                                                                           HorizontalAlignment="Right"/>
+                                                            </Grid>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsSelected"
+                                                                     Value="True">
+                                                                <Setter TargetName="Bd"
+                                                                        Property="Background"
+                                                                        Value="#FF4758"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                </ListBox>
+
+                                <StackPanel Grid.Row="2"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Right"
+                                            Margin="0,20,0,0">
+                                    <Button Content="Cancelar"
+                                            Click="CloseWifiModal_Click"
+                                            Width="100"
+                                            Height="40"
+                                            Background="Transparent"
+                                            Foreground="White"
+                                            Margin="0,0,10,0"/>
+                                    <Button Content="Ligar"
+                                            Click="ConnectWifi_Click"
+                                            Width="120"
+                                            Height="40"
+                                            Background="#FF4758"
+                                            Foreground="White"
+                                            FontWeight="Bold">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius"
+                                                        Value="6"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+
+            <Border Grid.Row="3"
                     x:Name="InfoArea"
                     Background="Transparent"
                     Padding="0"
@@ -395,7 +898,7 @@
                     <Border Grid.Row="1"
                             CornerRadius="16"
                             Margin="0,0,0,20"
-                            Background="#B44B111B"
+                            Background="#801D1D1D"
                             Padding="20">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -522,68 +1025,52 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="15"/>
                     </Grid.ColumnDefinitions>
-                    <ListBox
-                        x:Name="FriendListBox"
-                        Width="Auto"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                        VirtualizingStackPanel.IsVirtualizing="True"
-                        VirtualizingStackPanel.VirtualizationMode="Recycling"
-                        KeyboardNavigation.TabNavigation="Local"
-                        SelectionMode="Single"
-                        Grid.Column="1"
-                        HorizontalAlignment="Left"
-                        Padding="0">
+
+                    <ListBox x:Name="FriendListBox"
+                             Width="Auto"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                             VirtualizingStackPanel.IsVirtualizing="True"
+                             VirtualizingStackPanel.VirtualizationMode="Recycling"
+                             KeyboardNavigation.TabNavigation="Local"
+                             SelectionMode="Single"
+                             Grid.Column="1"
+                             HorizontalAlignment="Left"
+                             Padding="0"
+                             Margin="3">
+
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
-                                <!-- remove o focus adorner padrão (ESTA MERDA NÃO FUNCIONA AQUI CRL FODASSE!!!! App.xaml -> Solução) -->
                                 <Setter Property="FocusVisualStyle"
                                         Value="{x:Null}"/>
-                                <!-- remove o highlight do tab/focus na template abaixo -->
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource TextPrimaryBrush}"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="ListBoxItem">
                                             <Border x:Name="Bd"
                                                     Background="Transparent"
                                                     Padding="2"
-                                                    CornerRadius="2"
+                                                    CornerRadius="5"
                                                     SnapsToDevicePixels="True">
                                                 <ContentPresenter VerticalAlignment="Center"/>
                                             </Border>
-
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsSelected"
                                                          Value="True">
                                                     <Setter TargetName="Bd"
-                                                            Property="Background">
-                                                        <Setter.Value>
-                                                            <LinearGradientBrush StartPoint="0,2"
-                                                                                 EndPoint="1,0">
-                                                                <GradientStop Color="#FF4758"
-                                                                              Offset="0"/>
-                                                                <GradientStop Color="#FFF1A0A8"
-                                                                              Offset="0.5"/>
-                                                                <GradientStop Color="#FFFF3348"
-                                                                              Offset="1.0"/>
-                                                            </LinearGradientBrush>
-                                                        </Setter.Value>
-                                                    </Setter>
+                                                            Property="Background"
+                                                            Value="{DynamicResource AccentBrush}"/>
+                                                    <Setter Property="FontWeight"
+                                                            Value="Bold"/>
                                                 </Trigger>
+
                                                 <Trigger Property="IsMouseOver"
                                                          Value="True">
                                                     <Setter TargetName="Bd"
                                                             Property="Background"
-                                                            Value="#FF4758"/>
-                                                </Trigger>
-                                                <Trigger Property="IsFocused"
-                                                         Value="True">
-                                                    <Setter TargetName="Bd"
-                                                            Property="BorderBrush"
-                                                            Value="Transparent"/>
-                                                    <Setter TargetName="Bd"
-                                                            Property="BorderThickness"
-                                                            Value="0"/>
+                                                            Value="#33FFFFFF"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -595,31 +1082,237 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="8"
-                                        CornerRadius="2"
-                                        Background="#240E12"
-                                        Width="400">
+                                        CornerRadius="4"
+                                        Width="400"
+                                        Margin="0,0,0,0"
+                                        Background="{DynamicResource PanelBackgroundBrush}">
                                     <DockPanel>
                                         <Grid Width="40"
                                               Height="40"
-                                              Margin="0,0,8,0"
+                                              Margin="0,0,12,0"
                                               VerticalAlignment="Center">
                                             <Image Source="{Binding AvatarFull}"
-                                                   Stretch="UniformToFill"/>
+                                                   Stretch="UniformToFill">
+                                                <Image.Clip>
+                                                    <RectangleGeometry Rect="0,0,40,40"
+                                                                       RadiusX="4"
+                                                                       RadiusY="4"/>
+                                                </Image.Clip>
+                                            </Image>
+                                            <Ellipse Width="10"
+                                                     Height="10"
+                                                     HorizontalAlignment="Right"
+                                                     VerticalAlignment="Bottom"
+                                                     Fill="{Binding StatusColor}"
+                                                     Stroke="{DynamicResource PanelBackgroundBrush}"
+                                                     StrokeThickness="1"/>
                                         </Grid>
 
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="{Binding PersonaName}"
-                                                       FontWeight="Bold"
-                                                       Foreground="White"/>
-                                            <TextBlock Text="{Binding SteamId}"
+                                                       FontSize="14"/>
+                                            <TextBlock Text="{Binding StatusText}"
                                                        FontSize="11"
-                                                       Foreground="LightGray"/>
+                                                       Opacity="0.7"/>
                                         </StackPanel>
                                     </DockPanel>
                                 </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+
+                    <Border Grid.Column="2"
+                            Background="#FF0E0E0E"
+                            CornerRadius="12"
+                            Margin="10,3,3,3"
+                            ClipToBounds="True">
+                        <Grid>
+                            <TextBlock Text="Seleciona um amigo"
+                                    Foreground="Gray"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="16">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility"
+                                                Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=FriendListBox, Path=SelectedIndex}"
+                                                    Value="-1">
+                                                <Setter Property="Visibility"
+                                                        Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <Grid DataContext="{Binding ElementName=FriendListBox, Path=SelectedItem}">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility"
+                                                Value="Visible"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=FriendListBox, Path=SelectedIndex}"
+                                                    Value="-1">
+                                                <Setter Property="Visibility"
+                                                        Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+
+                                <Image Source="{Binding GameCoverUrl}"
+                                        Stretch="UniformToFill"
+                                        Opacity="0.3"
+                                        Visibility="{Binding GameCoverVisibility}">
+                                    <Image.Effect>
+                                        <BlurEffect Radius="40"/>
+                                    </Image.Effect>
+                                </Image>
+
+                                <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                                        Margin="25">
+                                    <StackPanel>
+
+                                        <StackPanel Orientation="Horizontal"
+                                                Margin="0,0,0,30">
+                                            <Border CornerRadius="50"
+                                                    Width="100"
+                                                    Height="100"
+                                                    Margin="0,0,0,0">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="{Binding StatusColor.Color}"
+                                                            BlurRadius="20"
+                                                            ShadowDepth="0"
+                                                            Opacity="0.7"/>
+                                                </Border.Effect>
+                                                <Image Source="{Binding AvatarFull}"
+                                                        Stretch="UniformToFill">
+                                                    <Image.Clip>
+                                                        <EllipseGeometry Center="50,50"
+                                                                RadiusX="35"
+                                                                RadiusY="35"/>
+                                                    </Image.Clip>
+                                                </Image>
+                                            </Border>
+
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding PersonaName}"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           FontSize="32"
+                                                           FontWeight="Bold"
+                                                           Margin="0,0,40,0"/>
+
+                                                <Border Background="{Binding StatusColor}"
+                                                        CornerRadius="4"
+                                                        HorizontalAlignment="Left"
+                                                        Padding="8,2"
+                                                        Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding StatusText}"
+                                                            Foreground="Black"
+                                                            FontWeight="Bold"
+                                                            FontSize="12"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <StackPanel Visibility="{Binding GameCoverVisibility}"
+                                                Margin="0,0,0,30">
+                                            <TextBlock Text="A JOGAR AGORA"
+                                                    Foreground="Gray"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    Margin="0,0,0,10"/>
+
+                                            <Border Background="#33FFFFFF"
+                                                    CornerRadius="8"
+                                                    Padding="0">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Image Source="{Binding GameCoverUrl}"
+                                                            Width="80"
+                                                            Height="120"
+                                                            Stretch="UniformToFill"
+                                                            Margin="0">
+                                                        <Image.Clip>
+                                                            <RectangleGeometry Rect="0,0,80,120"
+                                                                    RadiusX="8"
+                                                                    RadiusY="8"/>
+                                                        </Image.Clip>
+                                                    </Image>
+
+                                                    <StackPanel Grid.Column="1"
+                                                            VerticalAlignment="Center"
+                                                            Margin="15,0">
+                                                        <TextBlock Text="{Binding GameExtraInfo}"
+                                                                Foreground="White"
+                                                                FontSize="20"
+                                                                FontWeight="Bold"
+                                                                TextWrapping="Wrap"/>
+                                                        <TextBlock Text="Na Steam"
+                                                                Foreground="{DynamicResource AccentBrush}"
+                                                                Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <TextBlock Text="DETALHES DA CONTA"
+                                                Foreground="Gray"
+                                                FontSize="12"
+                                                FontWeight="Bold"
+                                                Margin="0,0,0,10"/>
+                                        <Border Background="#11FFFFFF"
+                                                CornerRadius="8"
+                                                Padding="15">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,10">
+                                                    <TextBlock Text="Steam ID"
+                                                            Foreground="Gray"/>
+                                                    <TextBlock Text="{Binding SteamId}"
+                                                            Foreground="White"
+                                                            HorizontalAlignment="Right"
+                                                            FontWeight="SemiBold"/>
+                                                </Grid>
+                                                <Grid>
+                                                    <TextBlock Text="Link Perfil"
+                                                            Foreground="Gray"/>
+                                                    <TextBlock Text="Public"
+                                                            Foreground="White"
+                                                            HorizontalAlignment="Right"
+                                                            FontWeight="SemiBold"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Button Content="Ver Perfil Completo"
+                                                Height="50"
+                                                Margin="0,30,0,0"
+                                                Background="{DynamicResource AccentBrush}"
+                                                Foreground="Black"
+                                                FontWeight="Bold"
+                                                FontSize="16"
+                                                BorderThickness="0"
+                                                Command="{Binding DataContext.OpenFriendProfileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding ProfileUrl}">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius"
+                                                            Value="8"/>
+                                                </Style>
+                                            </Button.Resources>
+                                        </Button>
+
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Grid>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -652,11 +1345,11 @@
         </Grid>
 
         <Grid x:Name="LoadingOverlay"
-                Grid.RowSpan="5"
-                Background="#D9000000"
-                Visibility="Collapsed">
+              Grid.RowSpan="5"
+              Background="#D9000000"
+              Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center"
-                    HorizontalAlignment="Center">
+                        HorizontalAlignment="Center">
                 <TextBlock x:Name="LoadingText"
                            Text="A carregar..."
                            Foreground="White"

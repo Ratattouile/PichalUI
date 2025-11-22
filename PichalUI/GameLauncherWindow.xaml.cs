@@ -23,6 +23,7 @@ using System.Net.Sockets;
 using DualSenseAPI;
 using DualSenseAPI.State;
 using System.Windows.Media.Animation;
+using System.Xml;
 
 namespace PichalUI
 {
@@ -50,9 +51,41 @@ namespace PichalUI
     public class PlayerSummary
     {
         public string SteamId { get; set; } = "";
-        public string PersonaName { get; set; } = "";
+        public string PersonaName { get; set; } = "Unknown";
         public string AvatarFull { get; set; } = "";
         public string ProfileUrl { get; set; } = "";
+        public int PersonaState { get; set; } = 0;
+        public string GameExtraInfo { get; set; } = "";
+
+        public string GameId { get; set; } = "";
+
+        public string StatusText => !string.IsNullOrEmpty(GameExtraInfo) ? $"A jogar: {GameExtraInfo}" : (PersonaState > 0 ? "Online" : "Offline");
+
+        public SolidColorBrush StatusColor
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(GameExtraInfo)) return Brushes.LightGreen;
+                if (PersonaState > 0) return Brushes.SkyBlue;
+                return Brushes.Gray;
+            }
+        }
+
+        public string GameCoverUrl
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(GameId) && GameId != "0")
+                {
+                    // URL oficial da Steam para capas de biblioteca (600x900)
+                    return $"https://cdn.cloudflare.steamstatic.com/steam/apps/{GameId}/library_600x900.jpg";
+                }
+                return ""; // Retorna vazio se não estiver a jogar
+            }
+        }
+
+        // Propriedade para controlar se mostramos a imagem do jogo ou não
+        public Visibility GameCoverVisibility => !string.IsNullOrEmpty(GameId) && GameId != "0" ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // --- COMANDOS ---
@@ -174,20 +207,245 @@ namespace PichalUI
         public void EnterAtStart() { focusZone = 0; FocusZone(); }
     }
 
+    public class SettingsInputHandler : IInputHandler
+    {
+        readonly GameLauncherWindow w;
+        public SettingsInputHandler(GameLauncherWindow window) { w = window; }
+
+        public void OnUp()
+        {
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible)
+            {
+                MoveListFocus(w.WifiListBox, -1);
+                return;
+            }
+            // Move foco genericamente para cima
+            var element = Keyboard.FocusedElement as UIElement;
+            element?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Up));
+        }
+
+        public void OnDown()
+        {
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible)
+            {
+                MoveListFocus(w.WifiListBox, 1);
+                return;
+            }
+            // Move foco genericamente para baixo
+            var element = Keyboard.FocusedElement as UIElement;
+            element?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Down));
+        }
+
+        public void OnLeft()
+        {
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible) return;
+
+            // Se estiver num Slider, deixa o slider usar a esquerda
+            if (Keyboard.FocusedElement is Slider) return;
+
+            // Se estamos no conteúdo (direita), vamos para as categorias (esquerda)
+            if (IsFocusOnContent())
+            {
+                // Foca a categoria que está selecionada
+                if (w.BtnTabGeneral.IsChecked == true) w.BtnTabGeneral.Focus();
+                else if (w.BtnTabSystem.IsChecked == true) w.BtnTabSystem.Focus();
+                else w.BtnTabPersonalization.Focus();
+            }
+        }
+
+        public void OnRight()
+        {
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible) return;
+            if (Keyboard.FocusedElement is Slider) return;
+
+            // Se estamos nas categorias (esquerda), vamos para o conteúdo (direita)
+            if (!IsFocusOnContent())
+            {
+                FocusContent();
+            }
+        }
+
+        public void OnAccept()
+        {
+            // Dispara clique em botões ou checkboxes
+            if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase btn)
+            {
+                btn.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+            }
+            // Se for a lista Wi-Fi, dispara conexão
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible)
+            {
+                // Simula clique no botão "Ligar" se estivermos na lista
+                w.ConnectWifi_Click(null, null);
+            }
+        }
+
+        public void OnCancel()
+        {
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible)
+            {
+                w.CloseWifiModal_Click(null, null);
+            }
+            else
+            {
+                // Se estivermos nas settings, volta à Home
+                w.currentInputHandler?.OnCancel(); // (Isto depende da tua lógica global)
+            }
+        }
+
+        // --- HELPERS ---
+        bool IsFocusOnContent()
+        {
+            var focused = Keyboard.FocusedElement as DependencyObject;
+            // Verifica se o elemento focado está dentro do painel da direita
+            return FindParent<Panel>(focused, "SettingsContentArea") != null;
+        }
+
+        void FocusContent()
+        {
+            // Verifica qual aba está visível e foca o 1º elemento interativo
+            if (w.TabGeneral.Visibility == Visibility.Visible)
+            {
+                w.VolumeSlider.Focus();
+            }
+            else if (w.TabSystem.Visibility == Visibility.Visible)
+            {
+                // Procura o botão invisível do Wi-Fi
+                if (w.BtnWifiReal != null) w.BtnWifiReal.Focus();
+            }
+            else if (w.TabPersonalization.Visibility == Visibility.Visible)
+            {
+                // Foca o primeiro botão de tema (Red)
+                // Como estão dentro de um StackPanel, temos de ir buscá-lo
+                var btn = FindChild<Button>(w.TabPersonalization);
+                btn?.Focus();
+            }
+        }
+
+        void MoveListFocus(ListBox lb, int dir)
+        {
+            if (lb.Items.Count == 0) return;
+            int next = Math.Clamp(lb.SelectedIndex + dir, 0, lb.Items.Count - 1);
+            lb.SelectedIndex = next;
+            lb.ScrollIntoView(lb.SelectedItem);
+        }
+
+        // Busca parent por nome
+        T? FindParent<T>(DependencyObject child, string name) where T : FrameworkElement
+        {
+            while (child != null)
+            {
+                if (child is T t && t.Name == name) return t;
+                child = VisualTreeHelper.GetParent(child);
+            }
+            return null;
+        }
+
+        // Busca primeiro child de um tipo
+        T? FindChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t) return t;
+                var res = FindChild<T>(child);
+                if (res != null) return res;
+            }
+            return null;
+        }
+    }
+
+    public static class WifiScanner
+    {
+        // Executa comandos de terminal invisíveis
+        public static List<WifiNetwork> ScanNetworks()
+        {
+            var list = new List<WifiNetwork>();
+            try
+            {
+                var proc = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = "wlan show networks mode=bssid",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+                proc.Start();
+                string output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+
+                // Parse simples do texto que o CMD devolve
+                var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                string currentSSID = "";
+
+                foreach (var line in lines)
+                {
+                    var l = line.Trim();
+                    if (l.StartsWith("SSID") && l.Contains(":"))
+                    {
+                        currentSSID = l.Split(new[] { ':' }, 2)[1].Trim();
+                    }
+                    else if (l.StartsWith("Signal") && !string.IsNullOrEmpty(currentSSID))
+                    {
+                        var signal = l.Split(':')[1].Trim();
+                        // Evita duplicados
+                        if (!list.Any(n => n.SSID == currentSSID))
+                        {
+                            list.Add(new WifiNetwork { SSID = currentSSID, SignalStrength = signal });
+                        }
+                        currentSSID = "";
+                    }
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public static void Connect(string ssid, string password = "")
+        {
+            // Nota: Ligar via netsh requer um perfil XML.
+            // Para simplificar sem criar XMLs complexos, vamos apenas abrir o painel nativo
+            // se a rede não for conhecida, ou tentar conectar se já for.
+            var proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "netsh",
+                    Arguments = $"wlan connect name=\"{ssid}\"",
+                    UseShellExecute = true,
+                    CreateNoWindow = true
+                }
+            };
+            proc.Start();
+        }
+    }
+
+    public class WifiNetwork
+    {
+        public string SSID { get; set; } = "";
+        public string SignalStrength { get; set; } = "";
+    }
+
+
     // --- JANELA PRINCIPAL ---
     public partial class GameLauncherWindow : Window
     {
         // Inputs
-        IInputHandler currentInputHandler;
+        public IInputHandler currentInputHandler;
         GamesInputHandler gamesInputHandler;
         FriendsInputHandler friendsInputHandler;
         InfoInputHandler infoInputHandler;
+        SettingsInputHandler settingsInputHandler;
+
         private PlayStationController? _controller;
 
-        // NOVO: Token para cancelar animações de scroll antigas
         private CancellationTokenSource? _scrollCts;
 
-        // NOVO: Flag para saber se estamos a carregar
         private bool isLoading = false;
 
         // Dados
@@ -222,6 +480,12 @@ namespace PichalUI
         public int currentIndex = 0;
         public bool isFriendMenu = false;
 
+        // --- FULLSCREEN VARS ---
+        bool isFullScreen = false;
+        WindowState prevState;
+        WindowStyle prevStyle;
+        Rect prevBounds;
+
         // Comando para abrir perfil
         public ICommand OpenFriendProfileCommand => new RelayCommand<string>(url =>
         {
@@ -231,9 +495,18 @@ namespace PichalUI
             }
         });
 
+
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, IntPtr dwExtraInfo);
+        const int VK_VOLUME_MUTE = 0xAD;
+        const int VK_VOLUME_DOWN = 0xAE;
+        const int VK_VOLUME_UP = 0xAF;
+
         public GameLauncherWindow()
         {
             InitializeComponent();
+
+            ToggleFullscreen();
 
             // 1. Configurar diretorias
             configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PichalnovenseUI");
@@ -246,6 +519,7 @@ namespace PichalUI
             gamesInputHandler = new GamesInputHandler(this);
             friendsInputHandler = new FriendsInputHandler(this);
             infoInputHandler = new InfoInputHandler(this);
+            settingsInputHandler = new SettingsInputHandler(this);
             currentInputHandler = gamesInputHandler;
 
             // 3. Ligar Eventos UI
@@ -308,6 +582,14 @@ namespace PichalUI
 
             // 7. Teste vibração (feedback tátil inicial)
             VibrateFor(0, 20000, 20000, 500);
+
+            DispatcherTimer clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            clockTimer.Tick += (s, e) =>
+            {
+                ClockTime.Text = DateTime.Now.ToString("HH:mm");
+                ClockDate.Text = DateTime.Now.ToString("ddd, dd MMM");
+            };
+            clockTimer.Start();
         }
 
         // --- NAVEGAÇÃO ENTRE VISTAS ---
@@ -336,11 +618,21 @@ namespace PichalUI
 
         void UpdateViewVisibility()
         {
+            Carousel.Visibility = Visibility.Collapsed;
+            InfoArea.Visibility = Visibility.Collapsed;
+            FriendMenu.Visibility = Visibility.Collapsed;
+            SettingsMenu.Visibility = Visibility.Collapsed;
+
+            // Cores do menu de topo
+            BannerText.Foreground = Brushes.Gray;
+            FriendsMenu.Foreground = Brushes.Gray;
+            SettingMenu.Foreground = Brushes.Gray;
+
             if (currentIndex == 0) // Home
             {
                 Carousel.Visibility = Visibility.Visible;
                 InfoArea.Visibility = Visibility.Visible;
-                FriendMenu.Visibility = Visibility.Collapsed;
+                BannerText.Foreground = Brushes.White;
 
                 isFriendMenu = false;
                 currentInputHandler = gamesInputHandler;
@@ -348,13 +640,34 @@ namespace PichalUI
             }
             else if (currentIndex == 1) // Friends
             {
-                Carousel.Visibility = Visibility.Collapsed;
-                InfoArea.Visibility = Visibility.Collapsed;
                 FriendMenu.Visibility = Visibility.Visible;
+                FriendsMenu.Foreground = Brushes.White;
 
                 isFriendMenu = true;
                 currentInputHandler = friendsInputHandler;
                 FriendListBox.Focus();
+                if (FriendListBox.SelectedIndex < 0 && FriendListBox.HasItems)
+                {
+                    FriendListBox.SelectedIndex = 0; // Seleciona o primeiro automaticamente
+                }
+            }
+            else if (currentIndex == 2) // Settings
+            {
+                SettingsMenu.Visibility = Visibility.Visible;
+                SettingMenu.Foreground = Brushes.White;
+                currentInputHandler = settingsInputHandler;
+                isFriendMenu = false;
+
+                /*Dispatcher.BeginInvoke(() =>
+                {
+                    if (SettingsListPanel.Children.Count > 0)
+                        (SettingsListPanel.Children[0] as Control)?.Focus();
+                }, DispatcherPriority.Input);*/
+
+                LoadMonitorInfo(); // <--- Carrega a info do monitor
+
+                // Foca o Slider de Volume por defeito
+                VolumeSlider.Focus();
             }
         }
 
@@ -747,7 +1060,6 @@ namespace PichalUI
                         var ach = await GetPlayerAchievementsAsync(connectedSteamId, appid);
                         if (ach != null) g.Achievements = ach;
 
-                        // 3. Achievements (Cálculo da Percentagem) - NOVO
                         int totalAchievements = await GetTotalAchievementsCount(appid);
                         if (totalAchievements > 0 && g.Achievements.Count > 0)
                         {
@@ -797,10 +1109,13 @@ namespace PichalUI
                         {
                             summaries.Add(new PlayerSummary
                             {
-                                SteamId = p.GetProperty("steamid").GetString()!,
-                                PersonaName = p.GetProperty("personaname").GetString()!,
-                                AvatarFull = p.GetProperty("avatarfull").GetString()!,
-                                ProfileUrl = p.GetProperty("profileurl").GetString()!
+                                SteamId = p.TryGetProperty("steamid", out var sid) ? sid.GetString() ?? "" : "",
+                                PersonaName = p.TryGetProperty("personaname", out var pn) ? pn.GetString() ?? "Unknown" : "Unknown",
+                                AvatarFull = p.TryGetProperty("avatarfull", out var af) ? af.GetString() ?? "" : "",
+                                ProfileUrl = p.TryGetProperty("profileurl", out var pu) ? pu.GetString() ?? "" : "",
+                                PersonaState = p.TryGetProperty("personastate", out var ps) ? ps.GetInt32() : 0,
+                                GameExtraInfo = p.TryGetProperty("gameextrainfo", out var ge) ? ge.GetString() ?? "" : "",
+                                GameId = p.TryGetProperty("gameid", out var gid) ? gid.GetString() ?? "0" : "0"
                             });
                         }
                     }
@@ -1026,9 +1341,89 @@ namespace PichalUI
 
         string? PromptForText(string title, string prompt, string def)
         {
-            return Microsoft.VisualBasic.Interaction.InputBox(prompt, title, def);
-        }
+            // Cria uma janela WPF personalizada e moderna via código
+            var w = new Window
+            {
+                Title = title,
+                Width = 450,
+                Height = 200,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.NoResize,
+                Background = new SolidColorBrush(Color.FromRgb(30, 30, 30)), // Fundo Escuro
+                Owner = this,
+                WindowStyle = WindowStyle.ToolWindow
+            };
 
+            var stack = new StackPanel { Margin = new Thickness(20) };
+
+            var lbl = new TextBlock
+            {
+                Text = prompt,
+                Foreground = Brushes.LightGray,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10),
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            var txt = new TextBox
+            {
+                Text = def,
+                Height = 35,
+                FontSize = 14,
+                Padding = new Thickness(5),
+                Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                VerticalContentAlignment = VerticalAlignment.Center
+            };
+
+            var btnPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(0, 20, 0, 0)
+            };
+
+            var btnOk = new Button
+            {
+                Content = "OK",
+                Width = 90,
+                Height = 30,
+                IsDefault = true, // Enter ativa o botão
+                Margin = new Thickness(10, 0, 0, 0),
+                Background = new SolidColorBrush(Color.FromRgb(0, 120, 215)), // Azul destaque
+                Foreground = Brushes.White,
+                FontWeight = FontWeights.Bold
+            };
+
+            var btnCancel = new Button
+            {
+                Content = "Cancelar",
+                Width = 90,
+                Height = 30,
+                IsCancel = true, // ESC ativa o botão
+                Background = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                Foreground = Brushes.White
+            };
+
+            btnOk.Click += (s, e) => { w.DialogResult = true; w.Close(); };
+            btnCancel.Click += (s, e) => { w.DialogResult = false; w.Close(); };
+
+            btnPanel.Children.Add(btnCancel);
+            btnPanel.Children.Add(btnOk);
+
+            stack.Children.Add(lbl);
+            stack.Children.Add(txt);
+            stack.Children.Add(btnPanel);
+
+            w.Content = stack;
+
+            // Foca a caixa de texto automaticamente ao abrir
+            w.Loaded += (s, e) => txt.Focus();
+
+            var res = w.ShowDialog();
+            return res == true ? txt.Text : null;
+        }
         List<ImageSource> TryGetLocalSteamScreenshots(string steamId64, int appid)
         {
             var res = new List<ImageSource>();
@@ -1200,6 +1595,7 @@ namespace PichalUI
             bool handled = false;
             switch (e.Key)
             {
+                case Key.F11: ToggleFullscreen(); handled = true; break;
                 case Key.Left: currentInputHandler?.OnLeft(); handled = true; break;
                 case Key.Right: currentInputHandler?.OnRight(); handled = true; break;
                 case Key.Up: currentInputHandler?.OnUp(); handled = true; break;
@@ -1219,7 +1615,7 @@ namespace PichalUI
         void XinputTimer_Tick(object? sender, EventArgs e)
         {
             if (isLoading) return; // BLOQUEIA COMANDO
-            
+
             if (!XInputNative.GetState(0, out var st)) { xInputPrevState = st; return; }
             var now = DateTime.UtcNow;
             if ((now - lastNav).TotalMilliseconds < 150) return;
@@ -1333,6 +1729,241 @@ namespace PichalUI
                     if (LoadingText != null) LoadingText.Text = message;
                 }
             });
+        }
+
+        public void ToggleFullscreen()
+        {
+            if (!isFullScreen)
+            {
+                // 1. Guarda o estado atual (para podermos voltar atrás)
+                prevState = this.WindowState;
+                prevStyle = this.WindowStyle;
+                prevBounds = new Rect(this.Left, this.Top, this.Width, this.Height);
+
+                // 2. Aplica o Fullscreen
+                this.WindowStyle = WindowStyle.None; // Remove a barra de título
+                this.WindowState = WindowState.Maximized; // Ocupa o ecrã todo
+                this.Topmost = true; // Fica por cima da barra de tarefas
+                isFullScreen = true;
+            }
+            else
+            {
+                // 3. Restaura o estado original
+                this.Topmost = false;
+                this.WindowStyle = prevStyle;
+                this.WindowState = prevState;
+                this.Left = prevBounds.X;
+                this.Top = prevBounds.Y;
+                this.Width = prevBounds.Width;
+                this.Height = prevBounds.Height;
+                isFullScreen = false;
+            }
+
+
+        }
+
+        // --- DEFINIÇÕES DE SISTEMA ---
+        private void OpenSystemSettings(string uri)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            }
+            catch { MessageBox.Show("Não foi possível abrir as definições."); }
+        }
+
+        private void BtnSysWifi_Click(object sender, RoutedEventArgs e) => OpenSystemSettings("ms-settings:network-wifi");
+        private void BtnSysDisplay_Click(object sender, RoutedEventArgs e) => OpenSystemSettings("ms-settings:display");
+        private void BtnSysBluetooth_Click(object sender, RoutedEventArgs e) => OpenSystemSettings("ms-settings:bluetooth");
+
+        public void ChangeSystemVolume(bool up)
+        {
+            // Simula a tecla de volume do teclado
+            keybd_event((byte)(up ? VK_VOLUME_UP : VK_VOLUME_DOWN), 0, 0, IntPtr.Zero);
+            // Toca um som de feedback (opcional)
+            System.Media.SystemSounds.Beep.Play();
+        }
+
+        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            // Apenas executa se o user estiver a mexer (Evita loops)
+            if (!VolumeSlider.IsFocused) return;
+
+            // Diferença entre valor antigo e novo
+            double diff = e.NewValue - e.OldValue;
+
+            // Se a mudança for significativa, envia teclas
+            if (Math.Abs(diff) >= 5) // TickFrequency
+            {
+                bool up = diff > 0;
+                // Envia a tecla de volume
+                keybd_event((byte)(up ? VK_VOLUME_UP : VK_VOLUME_DOWN), 0, 0, IntPtr.Zero);
+
+                // Toca som de feedback "Plim"
+                System.Media.SystemSounds.Exclamation.Play();
+            }
+        }
+
+        // 2. WI-FI TOGGLE
+        private void ToggleWifi_Checked(object sender, RoutedEventArgs e)
+        {
+            // Opção de segurança se o nome falhar
+            var wifiText = this.FindName("WifiStatusText") as TextBlock;
+            if (wifiText != null) wifiText.Text = "Ativado";
+        }
+
+        private void ToggleWifi_Unchecked(object sender, RoutedEventArgs e)
+        {
+            var wifiText = this.FindName("WifiStatusText") as TextBlock;
+            if (wifiText != null) wifiText.Text = "Desativado";
+        }
+
+        // 3. MONITOR INFO
+        void LoadMonitorInfo()
+        {
+            // Obtém a resolução do ecrã principal
+            double w = SystemParameters.PrimaryScreenWidth;
+            double h = SystemParameters.PrimaryScreenHeight;
+            if (MonitorInfoText != null)
+            {
+                MonitorInfoText.Text = $"{w} x {h}";
+            }
+        }
+
+        // Evento disparado ao clicar ou selecionar uma RadioButton
+        private void Tab_Checked(object sender, RoutedEventArgs e)
+        {
+            // Garante que só corremos isto se a UI estiver carregada
+            if (TabGeneral == null) return;
+
+            TabGeneral.Visibility = Visibility.Collapsed;
+            TabSystem.Visibility = Visibility.Collapsed;
+            TabPersonalization.Visibility = Visibility.Collapsed;
+
+            if (BtnTabGeneral.IsChecked == true) TabGeneral.Visibility = Visibility.Visible;
+            if (BtnTabSystem.IsChecked == true) TabSystem.Visibility = Visibility.Visible;
+            if (BtnTabPersonalization.IsChecked == true) TabPersonalization.Visibility = Visibility.Visible;
+            if (SettingsMenu.Visibility == Visibility.Visible)
+            {
+                // Pequeno delay para o visual atualizar
+                Dispatcher.BeginInvoke(() => settingsInputHandler?.OnRight(), DispatcherPriority.Input);
+            }
+        }
+
+        // Para garantir que o clique com o rato também ativa a aba
+        private void Category_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is RadioButton rb) rb.IsChecked = true;
+        }
+
+
+        // --- LÓGICA DE WI-FI (Simulada mas Funcional na UI) ---
+
+        private async void OpenWifiModal_Click(object sender, RoutedEventArgs e)
+        {
+            WifiSelectorModal.Visibility = Visibility.Visible;
+            WifiStatusText.Text = "A procurar redes...";
+
+            // Executa o scan real em background
+            var nets = await Task.Run(() => WifiScanner.ScanNetworks());
+
+            WifiListBox.ItemsSource = nets;
+            WifiStatusText.Text = $"{nets.Count} redes encontradas.";
+
+            // Foca a lista
+            WifiListBox.Focus();
+            if (WifiListBox.Items.Count > 0) WifiListBox.SelectedIndex = 0;
+        }
+
+        public void ConnectWifi_Click(object sender, RoutedEventArgs e)
+        {
+            if (WifiListBox.SelectedItem is WifiNetwork net)
+            {
+                WifiStatusText.Text = $"A ligar a {net.SSID}...";
+                // Tenta ligar (funciona se a rede já estiver salva no Windows)
+                WifiScanner.Connect(net.SSID);
+
+                // Fecha o modal
+                CloseWifiModal_Click(null, null);
+            }
+        }
+
+        public void CloseWifiModal_Click(object sender, RoutedEventArgs e)
+        {
+            WifiSelectorModal.Visibility = Visibility.Collapsed;
+            // Devolve o foco ao botão de abrir wi-fi
+            BtnTabSystem.Focus(); // Ou foca o painel direito
+        }
+
+        // --- TEMAS / BACKGROUND ---
+        void ApplyThemeColors(Color accent, Color textSecondary, Color bgStart, Color bgEnd, Color panelBg)
+        {
+            // 1. Atualiza o Background (Gradiente)
+            var brush = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+            brush.GradientStops.Add(new GradientStop(bgStart, 0.0)); // Offset ajustado para suavidade
+            brush.GradientStops.Add(new GradientStop(bgEnd, 0.8));
+            MainBackground.Background = brush;
+
+            // Atualiza os Recursos Dinâmicos
+            this.Resources.Remove("AccentBrush");
+            this.Resources.Remove("PanelBackgroundBrush");
+
+            this.Resources.Add("AccentBrush", new SolidColorBrush(accent));
+            this.Resources.Add("PanelBackgroundBrush", new SolidColorBrush(panelBg));
+
+        }
+
+        private void BtnThemeRed_Click(object sender, RoutedEventArgs e)
+        {
+            // DEFAULT/ORIGINAL (Igual ao XAML inicial)
+            var accent = (Color)ColorConverter.ConvertFromString("#FF4758");
+            var bgStart = (Color)ColorConverter.ConvertFromString("#1A0A0D"); // Cor escura do topo
+            var bgEnd = (Color)ColorConverter.ConvertFromString("#A81826");   // Cor viva do fundo
+            var pnl = (Color)ColorConverter.ConvertFromString("#D9101010");
+
+            ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl);
+        }
+
+        private void BtnThemeBlue_Click(object sender, RoutedEventArgs e)
+        {
+            // DEEP BLUE (PlayStation Vibes)
+            var accent = (Color)ColorConverter.ConvertFromString("#00A8E8");
+            var bgStart = (Color)ColorConverter.ConvertFromString("#000814");
+            var bgEnd = (Color)ColorConverter.ConvertFromString("#003566");
+            var pnl = (Color)ColorConverter.ConvertFromString("#D9051020");
+
+            ApplyThemeColors(accent, Colors.LightBlue, bgStart, bgEnd, pnl);
+        }
+
+        private void BtnThemeDark_Click(object sender, RoutedEventArgs e)
+        {
+            // OLED BLACK
+            var accent = Colors.White;
+            var bgStart = Colors.Black;
+            var bgEnd = (Color)ColorConverter.ConvertFromString("#111111");
+            var pnl = (Color)ColorConverter.ConvertFromString("#E6000000");
+
+            ApplyThemeColors(accent, Colors.DarkGray, bgStart, bgEnd, pnl);
+        }
+
+        private void BtnThemePichal_Click(object sender, RoutedEventArgs e)
+        {
+            var accent = (Color)ColorConverter.ConvertFromString("#FFFFC20E");
+
+            // Preto com tom esverdeado (Fundo Topo)
+            var bgStart = (Color)ColorConverter.ConvertFromString("#FF004D25");
+
+            // Amarelo/Dourado Escuro (Fundo Base)
+            var bgEnd = (Color)ColorConverter.ConvertFromString("#FF020F05");
+
+            // Painel Verde Tropa escuro (Semi-transparente)
+            var pnl = (Color)ColorConverter.ConvertFromString("#E60A2610");
+
+            // Se a tua função ApplyThemeColors pede 5 argumentos (como no teu código colado):
+            // Usei uma cor de texto secundária amarela/dourada clara.
+            var textSecondary = (Color)ColorConverter.ConvertFromString("#FFD4AF37");
+
+            ApplyThemeColors(accent, textSecondary, bgStart, bgEnd, pnl);
         }
 
         // --- XINPUT NATIVE CLASS ---
