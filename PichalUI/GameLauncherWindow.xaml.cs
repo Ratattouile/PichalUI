@@ -48,6 +48,14 @@ namespace PichalUI
         public string StoreId { get; set; } = "";
     }
 
+    public class FriendGameInfo
+    {
+        public string Name { get; set; } = "";
+        public string AppId { get; set; } = "";
+        public string CoverUrl => $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/library_600x900.jpg";
+        public string Playtime2Weeks { get; set; } = ""; // Ex: "4.5 hrs"
+    }
+
     public class PlayerSummary
     {
         public string SteamId { get; set; } = "";
@@ -86,6 +94,21 @@ namespace PichalUI
 
         // Propriedade para controlar se mostramos a imagem do jogo ou não
         public Visibility GameCoverVisibility => !string.IsNullOrEmpty(GameId) && GameId != "0" ? Visibility.Visible : Visibility.Collapsed;
+
+        private string _mutualFriendsText = "A calcular...";
+        public string MutualFriendsText
+        {
+            get => _mutualFriendsText;
+            set { _mutualFriendsText = value; OnPropertyChanged("MutualFriendsText"); }
+        }
+
+        // Lista de jogos recentes (Observable para a UI atualizar sozinha)
+        public System.Collections.ObjectModel.ObservableCollection<FriendGameInfo> RecentGames { get; set; }
+            = new System.Collections.ObjectModel.ObservableCollection<FriendGameInfo>();
+
+        // Boilerplate para a UI saber que os dados mudaram
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
 
     // --- COMANDOS ---
@@ -163,54 +186,178 @@ namespace PichalUI
     public class InfoInputHandler : IInputHandler
     {
         readonly GameLauncherWindow w;
-        // 0=Start, 1=Install, 2=Achievs, 3=Feed, 4=Screenshots
-        private int focusZone = 0;
+
+        // 0 = Botões Topo (Jogar)
+        // 1 = Achievements (Esq) - Vertical
+        // 2 = News (Meio) - Texto
+        // 3 = Screenshots (Dir) - Horizontal
+        private int currentZone = 0;
 
         public InfoInputHandler(GameLauncherWindow window) { w = window; }
+
+        public void EnterAtStart()
+        {
+            currentZone = 0;
+            FocusZone();
+        }
 
         void FocusZone()
         {
             w.Dispatcher.InvokeAsync(() =>
             {
-                switch (focusZone)
+                // Garante que as seleções existem para feedback visual
+                if (w.Info_AchievementsList.Items.Count > 0 && w.Info_AchievementsList.SelectedIndex < 0)
+                    w.Info_AchievementsList.SelectedIndex = 0;
+
+                if (w.Info_Screenshots.Items.Count > 0 && w.Info_Screenshots.SelectedIndex < 0)
+                    w.Info_Screenshots.SelectedIndex = 0;
+
+                switch (currentZone)
                 {
-                    case 0: w.StartBtn?.Focus(); break;
-                    case 1: w.InstallBtn?.Focus(); break;
-                    case 2:
-                        if (w.Info_AchievementsList != null)
-                        {
-                            w.Info_AchievementsList.Focus();
-                            if (w.Info_AchievementsList.Items.Count > 0 && w.Info_AchievementsList.SelectedIndex < 0)
-                                w.Info_AchievementsList.SelectedIndex = 0;
-                        }
-                        break;
-                    case 3: w.Info_Feed?.Focus(); break;
-                    case 4: w.Info_Screenshots?.Focus(); break;
+                    case 0: w.StartBtn.Focus(); break;
+                    case 1: w.Info_AchievementsList.Focus(); break;
+                    case 2: w.Info_Feed.Focus(); break;
+                    case 3: w.Info_Screenshots.Focus(); break;
                 }
-            });
+            }, DispatcherPriority.Input);
         }
 
-        public void OnLeft() { if (focusZone > 0) { focusZone--; FocusZone(); } }
-        public void OnRight() { if (focusZone < 4) { focusZone++; FocusZone(); } } // Max é 4 agora
         public void OnUp()
         {
-            if (focusZone == 0 || focusZone == 1) w.SwitchToGamesFromInfo();
-            else { focusZone--; FocusZone(); }
+            if (currentZone == 0)
+            {
+                // Sair para o Carrossel
+                w.SwitchToGamesFromInfo();
+            }
+            else if (currentZone == 1) // Achievements
+            {
+                // Se estiver no topo da lista, sobe para o botão Jogar
+                if (w.Info_AchievementsList.SelectedIndex <= 0)
+                {
+                    currentZone = 0;
+                    FocusZone();
+                }
+                else
+                {
+                    MoveListFocus(w.Info_AchievementsList, -1);
+                }
+            }
+            else
+            {
+                // News e Screenshots sobem sempre para o botão Jogar
+                currentZone = 0;
+                FocusZone();
+            }
         }
-        public void OnDown() { if (focusZone < 4) { focusZone++; FocusZone(); } }
+
+        public void OnDown()
+        {
+            if (currentZone == 0)
+            {
+                currentZone = 1; // Desce para Achievements por defeito
+                FocusZone();
+            }
+            else if (currentZone == 1) // Achievements
+            {
+                MoveListFocus(w.Info_AchievementsList, 1);
+            }
+            // News e Screenshots não fazem nada no Down (ou podes fazer scroll no texto)
+        }
+
+        public void OnLeft()
+        {
+            if (currentZone == 0) return;
+
+            if (currentZone == 1)
+            {
+                // Já estamos na esquerda, não faz nada
+                return;
+            }
+            else if (currentZone == 2) // News
+            {
+                currentZone = 1; // Vai para Achievements
+                FocusZone();
+            }
+            else if (currentZone == 3) // Screenshots (Horizontal)
+            {
+                // Lógica Inteligente:
+                // Se estiver no primeiro item, SALTA para News.
+                // Senão, navega para o item anterior.
+                if (w.Info_Screenshots.SelectedIndex <= 0)
+                {
+                    currentZone = 2;
+                    FocusZone();
+                }
+                else
+                {
+                    MoveListFocus(w.Info_Screenshots, -1);
+                }
+            }
+        }
+
+        public void OnRight()
+        {
+            if (currentZone == 0) return;
+
+            if (currentZone == 1) // Achievements (Vertical)
+            {
+                // SALTO FORÇADO: Direita sai sempre da lista vertical
+                currentZone = 2;
+                FocusZone();
+            }
+            else if (currentZone == 2) // News
+            {
+                currentZone = 3;
+                FocusZone();
+            }
+            else if (currentZone == 3) // Screenshots (Horizontal)
+            {
+                // Navega nos itens da lista
+                MoveListFocus(w.Info_Screenshots, 1);
+            }
+        }
+
         public void OnAccept()
         {
-            var focused = Keyboard.FocusedElement as FrameworkElement;
-            if (focused is Button btn) btn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            if (currentZone == 0) w.LaunchSelected();
+            // Adiciona aqui lógica para abrir Screenshots/Achievements em grande se quiseres
         }
-        public void OnCancel() => w.SwitchToGamesFromInfo();
-        public void EnterAtStart() { focusZone = 0; FocusZone(); }
-    }
 
+        public void OnCancel()
+        {
+            w.SwitchToGamesFromInfo();
+        }
+
+        void MoveListFocus(ListBox lb, int direction)
+        {
+            if (lb.Items.Count == 0) return;
+            int next = Math.Clamp(lb.SelectedIndex + direction, 0, lb.Items.Count - 1);
+            lb.SelectedIndex = next;
+            lb.ScrollIntoView(lb.SelectedItem);
+        }
+    }
     public class SettingsInputHandler : IInputHandler
     {
         readonly GameLauncherWindow w;
-        public SettingsInputHandler(GameLauncherWindow window) { w = window; }
+
+        // Estado da Navegação
+        private bool inContentArea = false; // false = Esquerda (Menu), true = Direita (Conteúdo)
+        private int categoryIndex = 0;      // Qual aba estamos (0, 1, 2)
+        private int contentIndex = 0;       // Qual item da direita estamos
+
+        public SettingsInputHandler(GameLauncherWindow window)
+        {
+            w = window;
+        }
+
+        // Chamado quando entras nas Settings
+        public void Reset()
+        {
+            inContentArea = false;
+            categoryIndex = 0;
+            contentIndex = 0;
+            UpdateFocus();
+        }
 
         public void OnUp()
         {
@@ -219,9 +366,23 @@ namespace PichalUI
                 MoveListFocus(w.WifiListBox, -1);
                 return;
             }
-            // Move foco genericamente para cima
-            var element = Keyboard.FocusedElement as UIElement;
-            element?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Up));
+
+            if (!inContentArea) // Menu Esquerdo
+            {
+                if (categoryIndex > 0)
+                {
+                    categoryIndex--;
+                    UpdateTabSelection();
+                }
+            }
+            else // Conteúdo Direito
+            {
+                if (contentIndex > 0)
+                {
+                    contentIndex--;
+                    UpdateFocus();
+                }
+            }
         }
 
         public void OnDown()
@@ -231,53 +392,84 @@ namespace PichalUI
                 MoveListFocus(w.WifiListBox, 1);
                 return;
             }
-            // Move foco genericamente para baixo
-            var element = Keyboard.FocusedElement as UIElement;
-            element?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Down));
-        }
 
-        public void OnLeft()
-        {
-            if (w.WifiSelectorModal.Visibility == Visibility.Visible) return;
-
-            // Se estiver num Slider, deixa o slider usar a esquerda
-            if (Keyboard.FocusedElement is Slider) return;
-
-            // Se estamos no conteúdo (direita), vamos para as categorias (esquerda)
-            if (IsFocusOnContent())
+            if (!inContentArea) // Menu Esquerdo
             {
-                // Foca a categoria que está selecionada
-                if (w.BtnTabGeneral.IsChecked == true) w.BtnTabGeneral.Focus();
-                else if (w.BtnTabSystem.IsChecked == true) w.BtnTabSystem.Focus();
-                else w.BtnTabPersonalization.Focus();
+                // Temos 3 categorias fixas
+                if (categoryIndex < 2)
+                {
+                    categoryIndex++;
+                    UpdateTabSelection();
+                }
+            }
+            else // Conteúdo Direito
+            {
+                int maxItems = GetCurrentContentCount() - 1;
+                if (contentIndex < maxItems)
+                {
+                    contentIndex++;
+                    UpdateFocus();
+                }
             }
         }
 
         public void OnRight()
         {
             if (w.WifiSelectorModal.Visibility == Visibility.Visible) return;
-            if (Keyboard.FocusedElement is Slider) return;
 
-            // Se estamos nas categorias (esquerda), vamos para o conteúdo (direita)
-            if (!IsFocusOnContent())
+            // Se estamos na esquerda, vamos para a direita
+            if (!inContentArea)
             {
-                FocusContent();
+                inContentArea = true;
+                contentIndex = 0; // Começa sempre no topo ao entrar
+                UpdateFocus();
+            }
+            else
+            {
+                // Se já estamos na direita, e for um Slider, aumenta valor
+                if (GetFocusedElement() is Slider slider)
+                {
+                    slider.Value += slider.TickFrequency;
+                }
+            }
+        }
+
+        public void OnLeft()
+        {
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible) return;
+
+            if (inContentArea)
+            {
+                // Se for Slider, diminui valor...
+                if (GetFocusedElement() is Slider slider && slider.Value > slider.Minimum)
+                {
+                    slider.Value -= slider.TickFrequency;
+                    return; // Não sai do slider se estiver a diminuir
+                }
+
+                // ...senão, volta para o menu da esquerda
+                inContentArea = false;
+                UpdateFocus(); // Foca a categoria atual
             }
         }
 
         public void OnAccept()
         {
-            // Dispara clique em botões ou checkboxes
-            if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase btn)
+            if (w.WifiSelectorModal.Visibility == Visibility.Visible)
+            {
+                w.ConnectWifi_Click(null, null);
+                return;
+            }
+
+            var element = GetFocusedElement();
+
+            // Aciona Botões, Checkboxes e RadioButtons
+            if (element is System.Windows.Controls.Primitives.ButtonBase btn)
             {
                 btn.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
             }
-            // Se for a lista Wi-Fi, dispara conexão
-            if (w.WifiSelectorModal.Visibility == Visibility.Visible)
-            {
-                // Simula clique no botão "Ligar" se estivermos na lista
-                w.ConnectWifi_Click(null, null);
-            }
+
+            // Se for Slider, não faz nada (ou podia alternar modo de edição)
         }
 
         public void OnCancel()
@@ -286,41 +478,106 @@ namespace PichalUI
             {
                 w.CloseWifiModal_Click(null, null);
             }
+            else if (inContentArea)
+            {
+                // Se estiver na direita, volta para a esquerda
+                inContentArea = false;
+                UpdateFocus();
+            }
             else
             {
-                // Se estivermos nas settings, volta à Home
-                w.currentInputHandler?.OnCancel(); // (Isto depende da tua lógica global)
+                // Se estiver na esquerda, sai das settings
+                w.currentInputHandler = null; // Volta ao anterior ou Home
+                w.SwapViewRight(); // Ou outra lógica de sair
             }
         }
 
-        // --- HELPERS ---
-        bool IsFocusOnContent()
+        // --- HELPERS DE LÓGICA ---
+
+        // Muda a aba visualmente e atualiza o conteúdo
+        void UpdateTabSelection()
         {
-            var focused = Keyboard.FocusedElement as DependencyObject;
-            // Verifica se o elemento focado está dentro do painel da direita
-            return FindParent<Panel>(focused, "SettingsContentArea") != null;
+            if (categoryIndex == 0) w.BtnTabGeneral.IsChecked = true;
+            else if (categoryIndex == 1) w.BtnTabSystem.IsChecked = true;
+            else if (categoryIndex == 2) w.BtnTabPersonalization.IsChecked = true;
+
+            // Força atualização visual imediata
+            w.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
         }
 
-        void FocusContent()
+        // Aplica o foco real no elemento certo
+        void UpdateFocus()
         {
-            // Verifica qual aba está visível e foca o 1º elemento interativo
-            if (w.TabGeneral.Visibility == Visibility.Visible)
+            if (!inContentArea)
             {
-                w.VolumeSlider.Focus();
+                // Foca o botão da categoria certa
+                if (categoryIndex == 0) w.BtnTabGeneral.Focus();
+                else if (categoryIndex == 1) w.BtnTabSystem.Focus();
+                else if (categoryIndex == 2) w.BtnTabPersonalization.Focus();
             }
-            else if (w.TabSystem.Visibility == Visibility.Visible)
+            else
             {
-                // Procura o botão invisível do Wi-Fi
-                if (w.BtnWifiReal != null) w.BtnWifiReal.Focus();
-            }
-            else if (w.TabPersonalization.Visibility == Visibility.Visible)
-            {
-                // Foca o primeiro botão de tema (Red)
-                // Como estão dentro de um StackPanel, temos de ir buscá-lo
-                var btn = FindChild<Button>(w.TabPersonalization);
-                btn?.Focus();
+                // Foca o elemento dentro do painel ativo
+                var panel = GetCurrentPanel();
+                if (panel != null)
+                {
+                    var controls = GetFocusableControls(panel);
+                    if (controls.Count > contentIndex)
+                    {
+                        controls[contentIndex].Focus();
+                    }
+                }
             }
         }
+
+        // Obtém o painel visível
+        Panel? GetCurrentPanel()
+        {
+            if (w.TabGeneral.Visibility == Visibility.Visible) return w.TabGeneral;
+            if (w.TabSystem.Visibility == Visibility.Visible) return w.TabSystem;
+            if (w.TabPersonalization.Visibility == Visibility.Visible) return w.TabPersonalization;
+            return null;
+        }
+
+        // Encontra todos os botões/sliders/checkboxes dentro do painel
+        List<Control> GetFocusableControls(Panel parent)
+        {
+            var list = new List<Control>();
+            foreach (var child in GetLogicalChildren(parent))
+            {
+                if (child is Control c && c.Focusable && c.Visibility == Visibility.Visible && c.IsEnabled)
+                {
+                    // Ignora o botão "invisível" do Wi-Fi se não quiseres que ele conte, 
+                    // mas no nosso caso queremos focar o BtnWifiReal
+                    list.Add(c);
+                }
+            }
+            return list;
+        }
+
+        // Helper recursivo para achar controlos dentro de Grids aninhadas
+        IEnumerable<DependencyObject> GetLogicalChildren(DependencyObject parent)
+        {
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is Control c && c.Focusable)
+                    yield return c;
+
+                // Continua a descer na árvore (se for Grid, StackPanel, etc)
+                foreach (var grandChild in GetLogicalChildren(child))
+                    yield return grandChild;
+            }
+        }
+
+        int GetCurrentContentCount()
+        {
+            var p = GetCurrentPanel();
+            return p != null ? GetFocusableControls(p).Count : 0;
+        }
+
+        Control? GetFocusedElement() => Keyboard.FocusedElement as Control;
 
         void MoveListFocus(ListBox lb, int dir)
         {
@@ -328,31 +585,6 @@ namespace PichalUI
             int next = Math.Clamp(lb.SelectedIndex + dir, 0, lb.Items.Count - 1);
             lb.SelectedIndex = next;
             lb.ScrollIntoView(lb.SelectedItem);
-        }
-
-        // Busca parent por nome
-        T? FindParent<T>(DependencyObject child, string name) where T : FrameworkElement
-        {
-            while (child != null)
-            {
-                if (child is T t && t.Name == name) return t;
-                child = VisualTreeHelper.GetParent(child);
-            }
-            return null;
-        }
-
-        // Busca primeiro child de um tipo
-        T? FindChild<T>(DependencyObject parent) where T : DependencyObject
-        {
-            int count = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T t) return t;
-                var res = FindChild<T>(child);
-                if (res != null) return res;
-            }
-            return null;
         }
     }
 
@@ -408,9 +640,6 @@ namespace PichalUI
 
         public static void Connect(string ssid, string password = "")
         {
-            // Nota: Ligar via netsh requer um perfil XML.
-            // Para simplificar sem criar XMLs complexos, vamos apenas abrir o painel nativo
-            // se a rede não for conhecida, ou tentar conectar se já for.
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -501,6 +730,8 @@ namespace PichalUI
         const int VK_VOLUME_MUTE = 0xAD;
         const int VK_VOLUME_DOWN = 0xAE;
         const int VK_VOLUME_UP = 0xAF;
+
+        HardwareMonitor hwMonitor;
 
         public GameLauncherWindow()
         {
@@ -658,15 +889,11 @@ namespace PichalUI
                 currentInputHandler = settingsInputHandler;
                 isFriendMenu = false;
 
-                /*Dispatcher.BeginInvoke(() =>
-                {
-                    if (SettingsListPanel.Children.Count > 0)
-                        (SettingsListPanel.Children[0] as Control)?.Focus();
-                }, DispatcherPriority.Input);*/
+                settingsInputHandler.Reset();
 
-                LoadMonitorInfo(); // <--- Carrega a info do monitor
+                LoadMonitorInfo();
+                LoadSystemInfo();
 
-                // Foca o Slider de Volume por defeito
                 VolumeSlider.Focus();
             }
         }
@@ -1080,6 +1307,73 @@ namespace PichalUI
                 }
             }
             await Task.CompletedTask;
+        }
+
+        async Task LoadFriendExtraDetails(PlayerSummary friend)
+        {
+            if (friend == null || string.IsNullOrEmpty(steamApiKey) || string.IsNullOrEmpty(connectedSteamId)) return;
+
+            // Evita recarregar se já tivermos dados
+            if (friend.RecentGames.Count > 0) return;
+
+            try
+            {
+                // 1. OBTER JOGOS RECENTES (Últimas 2 semanas)
+                var urlGames = $"https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key={steamApiKey}&steamid={friend.SteamId}&count=3";
+                var jsonGames = await SteamApiGetJson(urlGames);
+
+                await Dispatcher.InvokeAsync(() => friend.RecentGames.Clear());
+
+                if (jsonGames.HasValue && jsonGames.Value.TryGetProperty("response", out var r) && r.TryGetProperty("games", out var gamesArr))
+                {
+                    foreach (var g in gamesArr.EnumerateArray())
+                    {
+                        var info = new FriendGameInfo
+                        {
+                            Name = g.GetProperty("name").GetString() ?? "Unknown",
+                            AppId = g.GetProperty("appid").GetInt32().ToString(),
+                            Playtime2Weeks = $"{(g.GetProperty("playtime_2weeks").GetInt32() / 60.0):0.1} hrs"
+                        };
+                        await Dispatcher.InvokeAsync(() => friend.RecentGames.Add(info));
+                    }
+                }
+
+                // 2. OBTER AMIGOS EM COMUM
+                // Lógica: Pedimos a lista do amigo e comparamos com a nossa (que já temos na FriendListBox)
+                var urlFriends = $"https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key={steamApiKey}&steamid={friend.SteamId}&relationship=friend";
+                var jsonFriends = await SteamApiGetJson(urlFriends);
+
+                int mutualCount = 0;
+                if (jsonFriends.HasValue && jsonFriends.Value.TryGetProperty("friendslist", out var fl) && fl.TryGetProperty("friends", out var fArr))
+                {
+                    // Obtém os IDs dos amigos DELE
+                    var hisFriendIds = new HashSet<string>();
+                    foreach (var item in fArr.EnumerateArray()) hisFriendIds.Add(item.GetProperty("steamid").GetString()!);
+
+                    // Compara com os NOSSOS (que estão na FriendListBox)
+                    if (FriendListBox.ItemsSource is IEnumerable<PlayerSummary> myFriends)
+                    {
+                        mutualCount = myFriends.Count(myF => hisFriendIds.Contains(myF.SteamId));
+                    }
+                }
+
+                // Atualiza o texto na UI
+                await Dispatcher.InvokeAsync(() => friend.MutualFriendsText = $"{mutualCount} Amigos em Comum");
+            }
+            catch
+            {
+                // Perfil Privado geralmente causa erro ou retorna vazio
+                await Dispatcher.InvokeAsync(() => friend.MutualFriendsText = "Perfil Privado");
+            }
+        }
+
+        private void FriendListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (FriendListBox.SelectedItem is PlayerSummary selectedFriend)
+            {
+                // Dispara o carregamento em background (fire and forget)
+                _ = Task.Run(() => LoadFriendExtraDetails(selectedFriend));
+            }
         }
 
         async Task FetchAndShowFriendsAsync()
@@ -1570,7 +1864,7 @@ namespace PichalUI
             if (!_controller.Start()) { /* Log silencioso */ }
         }
 
-        private void Window_Closed(object sender, EventArgs e) => _controller?.Stop();
+        private void Window_Closed(object sender, EventArgs e){ _controller?.Stop(); hwMonitor?.Close();}
 
         private void Controller_StateChanged(DualSenseInputState state)
         {
@@ -1859,6 +2153,19 @@ namespace PichalUI
 
         // --- LÓGICA DE WI-FI (Simulada mas Funcional na UI) ---
 
+        private void WifiListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (WifiListBox.SelectedItem != null)
+            {
+                WifiPasswordPanel.Visibility = Visibility.Visible;
+                WifiPasswordBox.Focus(); // Foca logo para escreveres
+            }
+            else
+            {
+                WifiPasswordPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private async void OpenWifiModal_Click(object sender, RoutedEventArgs e)
         {
             WifiSelectorModal.Visibility = Visibility.Visible;
@@ -1879,15 +2186,31 @@ namespace PichalUI
         {
             if (WifiListBox.SelectedItem is WifiNetwork net)
             {
-                WifiStatusText.Text = $"A ligar a {net.SSID}...";
-                // Tenta ligar (funciona se a rede já estiver salva no Windows)
-                WifiScanner.Connect(net.SSID);
+                string password = WifiPasswordBox.Password;
 
-                // Fecha o modal
-                CloseWifiModal_Click(null, null);
+                WifiStatusText.Text = $"A conectar a {net.SSID}...";
+                CloseWifiModal_Click(null, null); // Fecha logo para não bloquear
+
+                Task.Run(async () =>
+                {
+                    bool connected = await WifiHelper.ConnectToNetwork(net.SSID, password);
+
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        if (connected)
+                        {
+                            WifiStatusText.Text = $"Ligado: {net.SSID} (Sinal Excelente)";
+                            MessageBox.Show("Conectado com sucesso!", "Wi-Fi");
+                        }
+                        else
+                        {
+                            WifiStatusText.Text = "Falha na conexão.";
+                            MessageBox.Show("Não foi possível conectar. Verifica a password.", "Erro Wi-Fi");
+                        }
+                    });
+                });
             }
         }
-
         public void CloseWifiModal_Click(object sender, RoutedEventArgs e)
         {
             WifiSelectorModal.Visibility = Visibility.Collapsed;
@@ -1965,6 +2288,192 @@ namespace PichalUI
 
             ApplyThemeColors(accent, textSecondary, bgStart, bgEnd, pnl);
         }
+
+        // --- POWER OPTIONS ---
+
+        private void BtnSleep_Click(object sender, RoutedEventArgs e)
+        {
+            // Suspender o PC
+            System.Windows.Forms.Application.SetSuspendState(System.Windows.Forms.PowerState.Suspend, true, true);
+        }
+
+        private void BtnRestart_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Tens a certeza que queres reiniciar?", "Reiniciar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                Process.Start("shutdown", "/r /t 0");
+            }
+        }
+
+        private void BtnShutdown_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Tens a certeza que queres desligar?", "Desligar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                Process.Start("shutdown", "/s /t 0");
+            }
+        }
+
+        // --- SISTEMA & ARMAZENAMENTO ---
+
+        void LoadSystemInfo()
+        {
+            try
+            {
+                var drive = new DriveInfo("C");
+                if (drive.IsReady)
+                {
+                    long total = drive.TotalSize;
+                    long free = drive.AvailableFreeSpace;
+                    long used = total - free;
+                    double percent = ((double)used / total) * 100;
+
+                    if (StorageBar != null) StorageBar.Value = percent;
+                    if (StorageText != null) StorageText.Text = $"{free / 1024 / 1024 / 1024} GB livres de {total / 1024 / 1024 / 1024} GB";
+                }
+            }
+            catch { }
+
+            long ramBytes = (long)new Microsoft.VisualBasic.Devices.Computer().Info.TotalPhysicalMemory;
+            if (RamInfoText != null) RamInfoText.Text = $"{ramBytes / 1024 / 1024 / 1024} GB Total";
+
+            // 3. CPU e GPU (Via LibreHardwareMonitor em Background)
+            Task.Run(() =>
+            {
+                if (hwMonitor == null) hwMonitor = new HardwareMonitor();
+
+                var info = hwMonitor.GetInfo();
+
+                Dispatcher.Invoke(() =>
+                {
+                    if (CpuInfoText != null)
+                        CpuInfoText.Text = info.cpuName.Replace("(R)", "").Replace("(TM)", "").Trim();
+
+                    if (GpuInfoText != null)
+                        GpuInfoText.Text = info.gpuName.Replace("NVIDIA", "").Trim(); // Limpeza estética
+                });
+            });
+        }
+
+        // Helper para formatar GB/TB
+        string FormatBytes(long bytes)
+        {
+            string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+            int i;
+            double dblSByte = bytes;
+            for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            {
+                dblSByte = bytes / 1024.0;
+            }
+            return String.Format("{0:0.0} {1}", dblSByte, suffix[i]);
+        }
+
+        private void BtnConnectSteam_Click(object sender, RoutedEventArgs e)
+        {
+            // Chama a função de login que já existe
+            _ = Task.Run(() => ConnectSteamFlowAsync());
+        }
+
+
+
+        public static class WifiHelper
+        {
+            // Tenta conectar e espera para ver se funcionou
+            public static async Task<bool> ConnectToNetwork(string ssid, string password)
+            {
+                try
+                {
+                    // 1. Apagar perfil antigo para garantir que a password nova entra
+                    RunNetsh($"wlan delete profile name=\"{ssid}\"");
+
+                    // 2. Criar XML do Perfil (WPA2-Personal AES - Padrão 99% dos routers)
+                    // O truque: hex=false para a password ser texto limpo
+                    string profileXml = $@"<?xml version=""1.0""?>
+<WLANProfile xmlns=""http://www.microsoft.com/networking/WLAN/profile/v1"">
+    <name>{ssid}</name>
+    <SSIDConfig>
+        <SSID>
+            <name>{ssid}</name>
+        </SSID>
+    </SSIDConfig>
+    <connectionType>ESS</connectionType>
+    <connectionMode>auto</connectionMode>
+    <MSM>
+        <security>
+            <authEncryption>
+                <authentication>WPA2PSK</authentication>
+                <encryption>AES</encryption>
+                <useOneX>false</useOneX>
+            </authEncryption>
+            <sharedKey>
+                <keyType>passPhrase</keyType>
+                <protected>false</protected>
+                <keyMaterial>{password}</keyMaterial>
+            </sharedKey>
+        </security>
+    </MSM>
+</WLANProfile>";
+
+                    string tempFile = Path.GetTempFileName();
+                    File.WriteAllText(tempFile, profileXml);
+
+                    // 3. Injetar perfil
+                    RunNetsh($"wlan add profile filename=\"{tempFile}\"");
+
+                    // 4. Conectar
+                    RunNetsh($"wlan connect name=\"{ssid}\"");
+
+                    File.Delete(tempFile);
+
+                    // 5. Verificar sucesso (Polling durante 5 segundos)
+                    for (int i = 0; i < 5; i++)
+                    {
+                        await Task.Delay(1000);
+                        if (IsConnectedTo(ssid)) return true;
+                    }
+                    return false;
+                }
+                catch { return false; }
+            }
+
+            // Helper para correr comandos invisíveis
+            private static void RunNetsh(string args)
+            {
+                var p = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = args,
+                        CreateNoWindow = true,
+                        UseShellExecute = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    }
+                };
+                p.Start();
+                p.WaitForExit();
+            }
+
+            // Verifica se estamos ligados à rede certa
+            public static bool IsConnectedTo(string ssid)
+            {
+                var p = new Process
+                {
+                    StartInfo = new ProcessStartInfo("netsh", "wlan show interfaces")
+                    {
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+                p.Start();
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+
+                // Procura "SSID : NomeDaRede" e "State : connected"
+                return output.Contains($"SSID") && output.Contains(ssid) && output.Contains(" connected");
+            }
+        }
+
 
         // --- XINPUT NATIVE CLASS ---
         static class XInputNative

@@ -12,6 +12,7 @@
     <PackageReference Include="AudioApi" Version="1.0.6" />
     <PackageReference Include="DualSenseAPI" Version="1.0.2" />
     <PackageReference Include="HidSharp" Version="2.6.4" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4" />
     <PackageReference Include="SteamKit2" Version="3.3.1" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
