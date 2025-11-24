@@ -15,67 +15,6 @@
         Closed="Window_Closed">
 
     <Window.Resources>
-        <Style x:Key="InfoListStyle"
-               TargetType="ListBox">
-            <Setter Property="Background"
-                    Value="Transparent"/>
-            <Setter Property="BorderThickness"
-                    Value="2"/>
-            <Setter Property="BorderBrush"
-                    Value="Transparent"/>
-            <Setter Property="Padding"
-                    Value="5"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
-                    Value="Disabled"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
-                    Value="Hidden"/>
-
-            <Style.Triggers>
-                <Trigger Property="IsKeyboardFocusWithin"
-                         Value="True">
-                    <Setter Property="BorderBrush"
-                            Value="{DynamicResource AccentBrush}"/>
-                    <Setter Property="Background"
-                            Value="#11FFFFFF"/>
-                    <Setter Property="Effect">
-                        <Setter.Value>
-                            <DropShadowEffect Color="Black"
-                                              BlurRadius="10"
-                                              ShadowDepth="2"
-                                              Opacity="0.5"/>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="InfoTextBoxStyle"
-               TargetType="TextBox">
-            <Setter Property="Background"
-                    Value="Transparent"/>
-            <Setter Property="BorderThickness"
-                    Value="2"/>
-            <Setter Property="BorderBrush"
-                    Value="Transparent"/>
-            <Setter Property="Foreground"
-                    Value="Gray"/>
-            <Setter Property="TextWrapping"
-                    Value="Wrap"/>
-            <Setter Property="IsReadOnly"
-                    Value="True"/>
-
-            <Style.Triggers>
-                <Trigger Property="IsFocused"
-                         Value="True">
-                    <Setter Property="BorderBrush"
-                            Value="{DynamicResource AccentBrush}"/>
-                    <Setter Property="Foreground"
-                            Value="White"/>
-                    <Setter Property="Background"
-                            Value="#11FFFFFF"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
         <SolidColorBrush x:Key="AccentBrush"
                          Color="#FF4758"/>
         <SolidColorBrush x:Key="TextPrimaryBrush"
@@ -102,8 +41,6 @@
                     Value="14"/>
             <Setter Property="BorderThickness"
                     Value="0"/>
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Left"/>
             <Setter Property="Padding"
                     Value="15,0"/>
             <Setter Property="Template">
@@ -113,7 +50,8 @@
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="6">
                             <ContentPresenter VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
+                                              Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
@@ -129,6 +67,83 @@
                                         Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground"
                                         Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PlayButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource SettingsButtonStyle}">
+            <Setter Property="Background"
+                    Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground"
+                    Value="Black"/>
+            <Setter Property="FontWeight"
+                    Value="Bold"/>
+            <Setter Property="FontSize"
+                    Value="20"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="0">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="White"/>
+                                <Setter TargetName="border"
+                                        Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="White"
+                                                          BlurRadius="20"
+                                                          ShadowDepth="0"
+                                                          Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FocusableItemStyle"
+               TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle"
+                    Value="{x:Null}"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Margin"
+                    Value="0,0,10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="Transparent"
+                                CornerRadius="6"
+                                BorderThickness="2"
+                                BorderBrush="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused"
+                                     Value="True">
+                                <Setter TargetName="Bd"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Bd"
+                                        Property="Background"
+                                        Value="#22FFFFFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -305,11 +320,6 @@
                                VerticalAlignment="Center"
                                Margin="16,0"
                                Grid.Column="0"/>
-                    <Button x:Name="BtnRefresh"
-                            Content="Rescan"
-                            Margin="6"
-                            Width="0"
-                            Visibility="Collapsed"/>
 
                     <StackPanel Grid.Column="1"
                                 HorizontalAlignment="Center"
@@ -326,6 +336,7 @@
                                    FontSize="12"
                                    HorizontalAlignment="Center"/>
                     </StackPanel>
+
                     <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 Margin="16,0">
@@ -360,7 +371,6 @@
                            Opacity="0.1"
                            IsHitTestVisible="False"
                            Height="0"/>
-
                     <TextBlock x:Name="BannerText"
                                FontSize="22"
                                Text="Home"
@@ -405,7 +415,6 @@
                          VerticalAlignment="Top"
                          Height="340"
                          ClipToBounds="False">
-
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal"
@@ -413,7 +422,6 @@
                                         VerticalAlignment="Top"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
-
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding"
@@ -424,10 +432,8 @@
                                     Value="Top"/>
                             <Setter Property="VerticalAlignment"
                                     Value="Top"/>
-
                             <Setter Property="Margin"
                                     Value="4,40,4,0"/>
-
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
@@ -440,7 +446,6 @@
                                             </Grid.RenderTransform>
                                             <ContentPresenter/>
                                         </Grid>
-
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsSelected"
                                                      Value="True">
@@ -459,7 +464,6 @@
                                                                              To="1.6"
                                                                              Duration="0:0:0.20"
                                                                              DecelerationRatio="0.6"/>
-
                                                             <ThicknessAnimation Storyboard.TargetProperty="Margin"
                                                                                 To="45,40,45,0"
                                                                                 Duration="0:0:0.20"
@@ -467,7 +471,6 @@
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </Trigger.EnterActions>
-
                                                 <Trigger.ExitActions>
                                                     <BeginStoryboard>
                                                         <Storyboard>
@@ -495,7 +498,6 @@
                             </Setter>
                         </Style>
                     </ListBox.ItemContainerStyle>
-
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid VerticalAlignment="Top">
@@ -512,7 +514,6 @@
                                                           ShadowDepth="3"
                                                           Opacity="0.4"/>
                                     </Border.Effect>
-
                                     <Grid x:Name="StoreOverlay"
                                           Visibility="Collapsed">
                                         <StackPanel VerticalAlignment="Center"
@@ -529,7 +530,6 @@
                                         </StackPanel>
                                     </Grid>
                                 </Border>
-
                                 <Canvas>
                                     <TextBlock x:Name="SideTitle"
                                                Text="{Binding Title}"
@@ -540,11 +540,9 @@
                                                Width="300"
                                                Canvas.Left="0"
                                                Canvas.Top="100"
-                                               Opacity="0">
-                                    </TextBlock>
+                                               Opacity="0"/>
                                 </Canvas>
                             </Grid>
-
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
                                              Value="True">
@@ -575,7 +573,6 @@
                                         </BeginStoryboard>
                                     </DataTrigger.ExitActions>
                                 </DataTrigger>
-
                                 <DataTrigger Binding="{Binding Source}"
                                              Value="System">
                                     <Setter TargetName="StoreOverlay"
@@ -802,44 +799,44 @@
                                     <StackPanel>
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Processador (CPU)"
-                                                    Foreground="Gray"/>
+                                                       Foreground="Gray"/>
                                             <TextBlock x:Name="CpuInfoText"
-                                                    Text="A ler..."
-                                                    Foreground="White"
+                                                       Text="A ler..."
+                                                       Foreground="White"
                                                        HorizontalAlignment="Right"
-                                                    MaxWidth="350"
+                                                       MaxWidth="350"
                                                        TextTrimming="CharacterEllipsis"
-                                                    FontWeight="SemiBold"/>
+                                                       FontWeight="SemiBold"/>
                                         </Grid>
 
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Placa Gráfica (GPU)"
-                                                    Foreground="Gray"/>
+                                                       Foreground="Gray"/>
                                             <TextBlock x:Name="GpuInfoText"
-                                                    Text="A ler..."
-                                                    Foreground="White"
+                                                       Text="A ler..."
+                                                       Foreground="White"
                                                        HorizontalAlignment="Right"
-                                                    MaxWidth="350"
+                                                       MaxWidth="350"
                                                        TextTrimming="CharacterEllipsis"
-                                                    FontWeight="SemiBold"/>
+                                                       FontWeight="SemiBold"/>
                                         </Grid>
 
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Resolução"
-                                                    Foreground="Gray"/>
+                                                       Foreground="Gray"/>
                                             <TextBlock x:Name="MonitorInfoText"
-                                                    Text="-"
-                                                    Foreground="White"
-                                                    HorizontalAlignment="Right"/>
+                                                       Text="-"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Right"/>
                                         </Grid>
 
                                         <Grid>
                                             <TextBlock Text="Memória RAM"
-                                                    Foreground="Gray"/>
+                                                       Foreground="Gray"/>
                                             <TextBlock x:Name="RamInfoText"
-                                                    Text="-"
-                                                    Foreground="White"
-                                                    HorizontalAlignment="Right"/>
+                                                       Text="-"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Right"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -1095,178 +1092,9 @@
 
 
             <Border Grid.Row="3"
-                    x:Name="InfoArea"
-                    Background="Transparent"
-                    Padding="0"
-                    Visibility="Visible">
-
-                <Grid HorizontalAlignment="Center"
-                      Width="1150">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Margin="0,0,0,20">
-                        <Image x:Name="HeroCover"
-                               Width="0"
-                               Height="0"
-                               Visibility="Collapsed"/>
-                        <StackPanel>
-                            <TextBlock x:Name="HeroTitle"
-                                       Text="Select a game"
-                                       FontSize="36"
-                                       FontWeight="Bold"
-                                       Foreground="White"
-                                       Height="0"
-                                       Width="0"/>
-                            <StackPanel Orientation="Horizontal"
-                                        Margin="0,10,0,0">
-                                <Button x:Name="StartBtn"
-                                        Content="JOGAR"
-                                        Width="0"
-                                        Height="0"
-                                        Background="#FFCC00"
-                                        FontWeight="Bold"
-                                        Margin="0,0,10,0"/>
-                                <Button x:Name="InstallBtn"
-                                        Content="Instalar"
-                                        Width="0"
-                                        Height="0"
-                                        Visibility="Collapsed"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <Border Grid.Row="1"
-                            CornerRadius="16"
-                            Margin="0,0,0,20"
-                            Background="#801D1D1D"
-                            Padding="20">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="300"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Game Completion"
-                                           Foreground="White"
-                                           FontWeight="SemiBold"
-                                           FontSize="16"/>
-                                <TextBlock x:Name="Info_CompletionPercent"
-                                           Text="0%"
-                                           FontSize="48"
-                                           FontWeight="Bold"
-                                           Foreground="White"
-                                           Margin="0,5,0,15"/>
-                                <TextBlock x:Name="Info_OwnedOn"
-                                           Text="Source: Steam"
-                                           Foreground="LightGray"
-                                           FontSize="14"
-                                           Margin="0,0,0,15"/>
-                                <TextBlock Text="Achievements"
-                                           Foreground="White"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,5"/>
-                                <ListBox x:Name="Info_AchievementsList"
-                                         Height="140"
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         Foreground="LightGray"
-                                         Style="{StaticResource InfoListStyle}"
-                                         ScrollViewer.VerticalScrollBarVisibility="Hidden"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1"
-                                        Margin="20,0">
-                                <TextBlock Text="News and Updates"
-                                           Foreground="White"
-                                           FontWeight="SemiBold"
-                                           FontSize="16"/>
-                                <TextBox x:Name="Info_Feed"
-                                         Style="{StaticResource InfoTextBoxStyle}"
-                                         Text="Loading..."
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         Foreground="LightGray"
-                                         TextWrapping="Wrap"
-                                         IsReadOnly="True"
-                                         Height="250"
-                                         Margin="0,5,0,0"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2">
-                                <Grid Margin="0,0,0,20">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Total Playtime"
-                                                   Foreground="White"
-                                                   FontSize="12"/>
-                                        <TextBlock x:Name="Info_Playtime"
-                                                   Text="0.0 hrs"
-                                                   Foreground="White"
-                                                   FontSize="20"
-                                                   FontWeight="Bold"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="Last Played"
-                                                   Foreground="White"
-                                                   FontSize="12"/>
-                                        <TextBlock x:Name="Info_LastPlayed"
-                                                   Text="-"
-                                                   Foreground="White"
-                                                   FontSize="14"/>
-                                    </StackPanel>
-                                </Grid>
-
-                                <TextBlock Text="Clips and Screenshots"
-                                           Foreground="White"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,5"/>
-
-                                <ListBox x:Name="Info_Screenshots"
-                                         Style="{StaticResource InfoListStyle}"
-                                         Height="160"
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         ScrollViewer.VerticalScrollBarVisibility="Hidden">
-                                    <ListBox.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal"
-                                                       Width="280"/>
-                                        </ItemsPanelTemplate>
-                                    </ListBox.ItemsPanel>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border CornerRadius="4"
-                                                    ClipToBounds="True"
-                                                    Margin="0,0,6,6">
-                                                <Image Source="{Binding}"
-                                                       Height="70"
-                                                       Width="125"
-                                                       Stretch="UniformToFill"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </Grid>
-            </Border>
-
-            <Border Grid.Row="3"
                     x:Name="FriendMenu"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    x:FieldModifier="public">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="20"/>
@@ -1276,6 +1104,7 @@
                     </Grid.ColumnDefinitions>
 
                     <ListBox x:Name="FriendListBox"
+                             x:FieldModifier="public"
                              SelectionChanged="FriendListBox_SelectionChanged"
                              Width="Auto"
                              Background="Transparent"
@@ -1289,7 +1118,6 @@
                              HorizontalAlignment="Left"
                              Padding="0"
                              Margin="3">
-
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="FocusVisualStyle"
@@ -1315,7 +1143,6 @@
                                                     <Setter Property="FontWeight"
                                                             Value="Bold"/>
                                                 </Trigger>
-
                                                 <Trigger Property="IsMouseOver"
                                                          Value="True">
                                                     <Setter TargetName="Bd"
@@ -1328,13 +1155,11 @@
                                 </Setter>
                             </Style>
                         </ListBox.ItemContainerStyle>
-
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="8"
                                         CornerRadius="4"
                                         Width="400"
-                                        Margin="0,0,0,0"
                                         Background="{DynamicResource PanelBackgroundBrush}">
                                     <DockPanel>
                                         <Grid Width="40"
@@ -1357,7 +1182,6 @@
                                                      Stroke="{DynamicResource PanelBackgroundBrush}"
                                                      StrokeThickness="1"/>
                                         </Grid>
-
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="{Binding PersonaName}"
                                                        FontSize="14"/>
@@ -1424,17 +1248,14 @@
                                 <ScrollViewer VerticalScrollBarVisibility="Hidden"
                                               Margin="25">
                                     <StackPanel>
-
                                         <StackPanel Orientation="Horizontal"
                                                     Margin="0,0,0,30">
                                             <Border CornerRadius="50"
                                                     Width="100"
-                                                    Height="100"
-                                                    Margin="0,0,0,0">
+                                                    Height="100">
                                                 <Border.Effect>
                                                     <DropShadowEffect Color="{Binding StatusColor.Color}"
                                                                       BlurRadius="20"
-                                                                      ShadowDepth="0"
                                                                       Opacity="0.6"/>
                                                 </Border.Effect>
                                                 <Image Source="{Binding AvatarFull}"
@@ -1446,14 +1267,12 @@
                                                     </Image.Clip>
                                                 </Image>
                                             </Border>
-
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding PersonaName}"
                                                            Foreground="{DynamicResource TextPrimaryBrush}"
                                                            FontSize="32"
                                                            FontWeight="Bold"
                                                            Margin="0,0,20,0"/>
-
                                                 <Border Background="{Binding StatusColor}"
                                                         CornerRadius="4"
                                                         HorizontalAlignment="Left"
@@ -1464,7 +1283,6 @@
                                                                FontWeight="Bold"
                                                                FontSize="12"/>
                                                 </Border>
-
                                                 <TextBlock Text="{Binding MutualFriendsText}"
                                                            Foreground="Gray"
                                                            FontSize="12"
@@ -1480,7 +1298,6 @@
                                                        FontSize="12"
                                                        FontWeight="Bold"
                                                        Margin="0,0,0,10"/>
-
                                             <Border Background="#22FFFFFF"
                                                     CornerRadius="8"
                                                     Padding="0">
@@ -1489,7 +1306,6 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
-
                                                     <Image Source="{Binding GameCoverUrl}"
                                                            Width="80"
                                                            Height="120"
@@ -1501,7 +1317,6 @@
                                                                                RadiusY="8"/>
                                                         </Image.Clip>
                                                     </Image>
-
                                                     <StackPanel Grid.Column="1"
                                                                 VerticalAlignment="Center"
                                                                 Margin="15,0">
@@ -1524,7 +1339,6 @@
                                                        FontSize="12"
                                                        FontWeight="Bold"
                                                        Margin="0,0,0,10"/>
-
                                             <ListBox ItemsSource="{Binding RecentGames}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
@@ -1558,8 +1372,7 @@
                                                                 <Image Source="{Binding CoverUrl}"
                                                                        Width="93"
                                                                        Height="140"
-                                                                       Stretch="UniformToFill"
-                                                                       Margin="0">
+                                                                       Stretch="UniformToFill">
                                                                     <Image.Clip>
                                                                         <RectangleGeometry Rect="0,0,93,140"
                                                                                            RadiusX="8"
@@ -1580,7 +1393,6 @@
                                                     </DataTemplate>
                                                 </ListBox.ItemTemplate>
                                             </ListBox>
-
                                             <TextBlock Text="Nenhuma atividade recente ou perfil privado."
                                                        Foreground="Gray"
                                                        FontStyle="Italic"
@@ -1647,12 +1459,429 @@
                                                 </Style>
                                             </Button.Resources>
                                         </Button>
-
                                     </StackPanel>
                                 </ScrollViewer>
                             </Grid>
                         </Grid>
                     </Border>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="3"
+                    x:Name="InfoArea"
+                    Background="Transparent"
+                    Padding="8"
+                    Visibility="Collapsed"
+                    RenderTransformOrigin="0.5,0.5"
+                    Opacity="0"
+                    CornerRadius="5"
+                    x:FieldModifier="public">
+
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="InfoSlideTransform"
+                                        Y="200"/>
+                </Border.RenderTransform>
+
+                <Grid>
+                    <Border>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0"
+                                                 EndPoint="1,0">
+                                <GradientStop Color="#EE0E0E0E"
+                                              Offset="0.0"/>
+                                <GradientStop Color="#CC0E0E0E"
+                                              Offset="0.4"/>
+                                <GradientStop Color="#990E0E0E"
+                                              Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <Grid Margin="60,40,60,40">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="450"/>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0"
+                                    VerticalAlignment="Top">
+                            <TextBlock x:Name="HeroTitle"
+                                       Text="Nome do Jogo"
+                                       FontSize="56"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,15"
+                                       LineHeight="60">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="20"
+                                                      ShadowDepth="4"
+                                                      Opacity="0.8"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,0,0,50">
+                                <Border Background="{DynamicResource AccentBrush}"
+                                        CornerRadius="4"
+                                        Padding="10,4"
+                                        Margin="0,0,15,0">
+                                    <TextBlock x:Name="Info_OwnedOn"
+                                               Text="STEAM"
+                                               Foreground="Black"
+                                               FontWeight="Bold"
+                                               FontSize="14"/>
+                                </Border>
+                                <TextBlock x:Name="Info_Playtime"
+                                           Text="120 hrs"
+                                           Foreground="LightGray"
+                                           VerticalAlignment="Center"
+                                           FontSize="16"/>
+                                <TextBlock Text=" • "
+                                           Foreground="Gray"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0"
+                                           FontSize="16"/>
+                                <TextBlock x:Name="Info_LastPlayed"
+                                           Text="Jogado há 2 dias"
+                                           Foreground="LightGray"
+                                           VerticalAlignment="Center"
+                                           FontSize="16"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,0,0,40">
+                                <Button x:Name="StartBtn"
+                                        x:FieldModifier="public"
+                                        Content="JOGAR"
+                                        Height="70"
+                                        Width="260"
+                                        Style="{StaticResource PlayButtonStyle}"
+                                        Focusable="True"
+                                        FontSize="24"
+                                        Margin="0,0,20,0"/>
+
+                                <Button x:Name="OptionsBtn"
+                                        x:FieldModifier="public"
+                                        Content="..."
+                                        Height="70"
+                                        Width="70"
+                                        Click="OpenGameOptions_Click"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Background="#33FFFFFF"
+                                        Foreground="White"
+                                        FontSize="32"
+                                        FontWeight="Bold"
+                                        Focusable="True">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius"
+                                                    Value="12"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Grid VerticalAlignment="Center">
+                                    <ProgressBar Value="{Binding ElementName=Info_CompletionPercent, Path=Tag}"
+                                                 Maximum="100"
+                                                 Width="300"
+                                                 Height="10"
+                                                 Background="#33FFFFFF"
+                                                 Foreground="{DynamicResource AccentBrush}"
+                                                 BorderThickness="0"/>
+                                </Grid>
+                                <TextBlock x:Name="Info_CompletionPercent"
+                                           Text="45%"
+                                           Tag="45"
+                                           Foreground="White"
+                                           FontWeight="Bold"
+                                           Margin="20,0,0,0"
+                                           FontSize="24"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                                          Height="600">
+                                <StackPanel>
+                                    <StackPanel x:Name="PanelPlayingNow"
+                                                x:FieldModifier="public"
+                                                Orientation="Horizontal">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility"
+                                                        Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Items.Count, ElementName=GameFriendsList}"
+                                                                 Value="0">
+                                                        <Setter Property="Visibility"
+                                                                Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+
+                                        <TextBlock Text="A JOGAR AGORA"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontWeight="Bold"
+                                                   FontSize="16"
+                                                   Margin="0,0,0,15"/>
+                                        <ListBox x:Name="GameFriendsList"
+                                                 x:FieldModifier="public"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                 ItemContainerStyle="{StaticResource FocusableItemStyle}"
+                                                 Margin="0,0,0,0"
+                                                 Focusable="True">
+                                            <ListBox.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ListBox.ItemsPanel>
+                                        </ListBox>
+                                    </StackPanel>
+
+                                    <TextBlock Text="AMIGOS QUE TÊM O JOGO"
+                                               Foreground="Gray"
+                                               FontWeight="Bold"
+                                               FontSize="16"
+                                               Margin="0,0,0,15"/>
+                                    <ListBox x:Name="OwnersFriendsList"
+                                             x:FieldModifier="public"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             ItemContainerStyle="{StaticResource FocusableItemStyle}"
+                                             Margin="0,0,0,0"
+                                             Focusable="True">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,0"
+                                                      ToolTip="{Binding PersonaName}">
+                                                    <Border CornerRadius="20"
+                                                            Width="40"
+                                                            Height="40">
+                                                        <Border.Background>
+                                                            <ImageBrush ImageSource="{Binding AvatarFull}"
+                                                                        Stretch="UniformToFill"/>
+                                                        </Border.Background>
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                    </ListBox>
+
+                                    <TextBlock Text="CONQUISTAS"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontWeight="Bold"
+                                               FontSize="16"
+                                               Margin="0,0,0,15"/>
+                                    <ListBox x:Name="Info_AchievementsList"
+                                             x:FieldModifier="public"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                             ItemContainerStyle="{StaticResource FocusableItemStyle}"
+                                             Margin="0,0,0,40"
+                                             Focusable="True"
+                                             MinHeight="40"
+                                             MaxHeight="200"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                                          Height="600">
+                                <StackPanel>
+                                    <TextBlock Text="ÚLTIMAS NOVIDADES"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontWeight="Bold"
+                                               FontSize="16"
+                                               Margin="0,0,0,0"/>
+                                    <ListBox x:Name="Info_NewsList"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                             ItemContainerStyle="{StaticResource FocusableItemStyle}"
+                                             Focusable="True"
+                                             MaxHeight="500">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#22FFFFFF"
+                                                        CornerRadius="8"
+                                                        Padding="20"
+                                                        Margin="0,0,0,15"
+                                                        HorizontalAlignment="Stretch">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Foreground="White"
+                                                                   FontWeight="Bold"
+                                                                   FontSize="16"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxWidth="400"/>
+                                                        <TextBlock Text="{Binding Date}"
+                                                                   Foreground="Gray"
+                                                                   FontSize="12"
+                                                                   Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <TextBlock Text="GALERIA"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontWeight="Bold"
+                                               FontSize="16"
+                                               Margin="0,20,0,15"/>
+                                    <ListBox x:Name="Info_Screenshots"
+                                             x:FieldModifier="public"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             ItemContainerStyle="{StaticResource FocusableItemStyle}"
+                                             Margin="0,0,0,30"
+                                             Focusable="True">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="6"
+                                                        Width="160"
+                                                        Height="90"
+                                                        Margin="0,0,10,10"
+                                                        Background="#222">
+                                                    <Image Source="{Binding}"
+                                                           Stretch="UniformToFill"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </StackPanel>
+
+                    </Grid>
+                    <Grid x:Name="NewsReaderModal"
+                          Background="#E6000000"
+                          Visibility="Collapsed"
+                          x:FieldModifier="public">
+                        <Border Background="#1A1A1A"
+                                BorderBrush="{DynamicResource AccentBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                MaxWidth="800"
+                                MaxHeight="600"
+                                Margin="50"
+                                Padding="30">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="NewsModalTitle"
+                                           Text="Título da Notícia"
+                                           Foreground="White"
+                                           FontSize="28"
+                                           FontWeight="Bold"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,10"/>
+                                <TextBlock x:Name="NewsModalDate"
+                                           Text="Data"
+                                           Foreground="Gray"
+                                           FontSize="14"
+                                           Margin="0,0,0,20"
+                                           Grid.Row="1"/>
+                                <ScrollViewer Grid.Row="2"
+                                              Margin="0,0,0,20">
+                                    <TextBlock x:Name="NewsModalContent"
+                                               Text="Conteúdo..."
+                                               Foreground="#DDD"
+                                               FontSize="16"
+                                               TextWrapping="Wrap"
+                                               LineHeight="24"/>
+                                </ScrollViewer>
+                                <Button Grid.Row="3"
+                                        Content="Fechar (ESC)"
+                                        Click="CloseNewsModal_Click"
+                                        Height="40"
+                                        Width="150"
+                                        HorizontalAlignment="Right"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Background="{DynamicResource AccentBrush}"
+                                        Foreground="Black"
+                                        FontWeight="Bold"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Grid x:Name="GameOptionsModal"
+                          Background="#CC000000"
+                          Visibility="Collapsed"
+                          x:FieldModifier="public">
+                        <Border Background="#1A1A1A"
+                                BorderBrush="{DynamicResource AccentBrush}"
+                                BorderThickness="2"
+                                CornerRadius="12"
+                                Width="400"
+                                VerticalAlignment="Center"
+                                Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="Opções"
+                                           Foreground="White"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,20"/>
+                                <Button Content="Adicionar aos Favoritos"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Click="OptionFavorite_Click"
+                                        Focusable="True"/>
+                                <Button Content="Criar Atalho"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Click="OptionShortcut_Click"
+                                        Focusable="True"/>
+                                <Button Content="Desinstalar"
+                                        Height="50"
+                                        Margin="0,20,0,10"
+                                        Background="#33FF0000"
+                                        Foreground="Red"
+                                        FontWeight="Bold"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Click="OptionUninstall_Click"
+                                        Focusable="True"/>
+                                <Button Content="Voltar"
+                                        Height="50"
+                                        Margin="0,10,0,0"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Click="CloseGameOptions_Click"
+                                        Focusable="True"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -1676,7 +1905,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.3.0 - alpha"
+                    <TextBlock Text="v0.3.1 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
@@ -1697,7 +1926,6 @@
                            FontWeight="Bold"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,20"/>
-
                 <ProgressBar IsIndeterminate="True"
                              Width="200"
                              Height="4"

@@ -24,6 +24,8 @@ using DualSenseAPI;
 using DualSenseAPI.State;
 using System.Windows.Media.Animation;
 using System.Xml;
+using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 
 namespace PichalUI
 {
@@ -54,6 +56,14 @@ namespace PichalUI
         public string AppId { get; set; } = "";
         public string CoverUrl => $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/library_600x900.jpg";
         public string Playtime2Weeks { get; set; } = ""; // Ex: "4.5 hrs"
+    }
+
+    public class GameNewsItem
+    {
+        public string Title { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string Snippet { get; set; } = "";
+        public string FullContent { get; set; } = "";
     }
 
     public class PlayerSummary
@@ -143,7 +153,11 @@ namespace PichalUI
         public void OnLeft() => w.SelectPrevious();
         public void OnRight() => w.SelectNext();
         public void OnUp() { }
-        public void OnDown() { w.SwitchToInfo(); }
+        public void OnDown()
+        {
+            // INICIA A MAGIA
+            w.EnterGameDetails();
+        }
         public void OnAccept() { w.LaunchSelected(); }
         public void OnCancel() { }
     }
@@ -186,156 +200,173 @@ namespace PichalUI
     public class InfoInputHandler : IInputHandler
     {
         readonly GameLauncherWindow w;
-
-        // 0 = Botões Topo (Jogar)
-        // 1 = Achievements (Esq) - Vertical
-        // 2 = News (Meio) - Texto
-        // 3 = Screenshots (Dir) - Horizontal
-        private int currentZone = 0;
-
         public InfoInputHandler(GameLauncherWindow window) { w = window; }
 
-        public void EnterAtStart()
-        {
-            currentZone = 0;
-            FocusZone();
-        }
+        public void EnterAtStart() => w.StartBtn.Focus();
 
-        void FocusZone()
+        public void OnDown()
         {
-            w.Dispatcher.InvokeAsync(() =>
+            // CORREÇÃO: Se estiveres no fundo das Notícias, salta para a Galeria (Screenshots)
+            if (w.Info_NewsList.IsKeyboardFocusWithin)
             {
-                // Garante que as seleções existem para feedback visual
-                if (w.Info_AchievementsList.Items.Count > 0 && w.Info_AchievementsList.SelectedIndex < 0)
-                    w.Info_AchievementsList.SelectedIndex = 0;
-
-                if (w.Info_Screenshots.Items.Count > 0 && w.Info_Screenshots.SelectedIndex < 0)
-                    w.Info_Screenshots.SelectedIndex = 0;
-
-                switch (currentZone)
+                // Verifica se é o último item ou se a lista está vazia
+                if (w.Info_NewsList.Items.Count == 0 || w.Info_NewsList.SelectedIndex >= w.Info_NewsList.Items.Count - 1)
                 {
-                    case 0: w.StartBtn.Focus(); break;
-                    case 1: w.Info_AchievementsList.Focus(); break;
-                    case 2: w.Info_Feed.Focus(); break;
-                    case 3: w.Info_Screenshots.Focus(); break;
+                    if (TryFocus(w.Info_Screenshots)) return;
                 }
-            }, DispatcherPriority.Input);
+            }
+
+            // Navegação normal
+            MoveFocus(FocusNavigationDirection.Down);
         }
 
         public void OnUp()
         {
-            if (currentZone == 0)
+            // CORREÇÃO: Se estiveres no topo da Galeria, salta para as Notícias
+            if (w.Info_Screenshots.IsKeyboardFocusWithin)
             {
-                // Sair para o Carrossel
-                w.SwitchToGamesFromInfo();
+                if (w.Info_Screenshots.SelectedIndex <= 0)
+                {
+                    // Tenta focar a última notícia ou a lista em si
+                    if (TryFocus(w.Info_NewsList))
+                    {
+                        // Opcional: Selecionar a última notícia para ser intuitivo
+                        if (w.Info_NewsList.Items.Count > 0)
+                        {
+                            w.Info_NewsList.SelectedIndex = w.Info_NewsList.Items.Count - 1;
+                            w.Info_NewsList.ScrollIntoView(w.Info_NewsList.SelectedItem);
+                        }
+                        return;
+                    }
+                }
             }
-            else if (currentZone == 1) // Achievements
+
+            // Se estivermos no topo absoluto das colunas principais, sai
+            if (w.StartBtn.IsFocused || w.OptionsBtn.IsFocused ||
+                IsAtTop(w.GameFriendsList) || IsAtTop(w.OwnersFriendsList) ||
+                IsAtTop(w.Info_AchievementsList) || IsAtTop(w.Info_NewsList))
             {
-                // Se estiver no topo da lista, sobe para o botão Jogar
-                if (w.Info_AchievementsList.SelectedIndex <= 0)
-                {
-                    currentZone = 0;
-                    FocusZone();
-                }
-                else
-                {
-                    MoveListFocus(w.Info_AchievementsList, -1);
-                }
+                w.ExitGameDetails();
             }
             else
             {
-                // News e Screenshots sobem sempre para o botão Jogar
-                currentZone = 0;
-                FocusZone();
+                MoveFocus(FocusNavigationDirection.Up);
             }
-        }
-
-        public void OnDown()
-        {
-            if (currentZone == 0)
-            {
-                currentZone = 1; // Desce para Achievements por defeito
-                FocusZone();
-            }
-            else if (currentZone == 1) // Achievements
-            {
-                MoveListFocus(w.Info_AchievementsList, 1);
-            }
-            // News e Screenshots não fazem nada no Down (ou podes fazer scroll no texto)
         }
 
         public void OnLeft()
         {
-            if (currentZone == 0) return;
-
-            if (currentZone == 1)
+            // 1. Direita -> Meio
+            if (IsZoneRightActive())
             {
-                // Já estamos na esquerda, não faz nada
+                if (!FocusZoneMiddle()) w.OptionsBtn.Focus(); // Se meio vazio, vai para Opções
                 return;
             }
-            else if (currentZone == 2) // News
+
+            // 2. Meio -> Esquerda (Opções)
+            if (IsZoneMiddleActive())
             {
-                currentZone = 1; // Vai para Achievements
-                FocusZone();
+                w.OptionsBtn.Focus(); // Prioriza ir para as Opções ao voltar
+                return;
             }
-            else if (currentZone == 3) // Screenshots (Horizontal)
+
+            // 3. Opções -> Jogar
+            if (w.OptionsBtn.IsFocused)
             {
-                // Lógica Inteligente:
-                // Se estiver no primeiro item, SALTA para News.
-                // Senão, navega para o item anterior.
-                if (w.Info_Screenshots.SelectedIndex <= 0)
-                {
-                    currentZone = 2;
-                    FocusZone();
-                }
-                else
-                {
-                    MoveListFocus(w.Info_Screenshots, -1);
-                }
+                w.StartBtn.Focus();
+                return;
             }
         }
 
         public void OnRight()
         {
-            if (currentZone == 0) return;
+            // 1. Jogar -> Opções
+            if (w.StartBtn.IsFocused)
+            {
+                w.OptionsBtn.Focus();
+                return;
+            }
 
-            if (currentZone == 1) // Achievements (Vertical)
+            // 2. Opções -> Meio (ou Direita se Meio vazio)
+            if (w.OptionsBtn.IsFocused)
             {
-                // SALTO FORÇADO: Direita sai sempre da lista vertical
-                currentZone = 2;
-                FocusZone();
+                if (!FocusZoneMiddle()) FocusZoneRight();
+                return;
             }
-            else if (currentZone == 2) // News
+
+            // 3. Meio -> Direita
+            if (IsZoneMiddleActive())
             {
-                currentZone = 3;
-                FocusZone();
-            }
-            else if (currentZone == 3) // Screenshots (Horizontal)
-            {
-                // Navega nos itens da lista
-                MoveListFocus(w.Info_Screenshots, 1);
+                FocusZoneRight();
+                return;
             }
         }
 
         public void OnAccept()
         {
-            if (currentZone == 0) w.LaunchSelected();
-            // Adiciona aqui lógica para abrir Screenshots/Achievements em grande se quiseres
+            if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase btn)
+                btn.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+
+            if (w.Info_NewsList.IsKeyboardFocusWithin && w.Info_NewsList.SelectedItem != null)
+                w.Info_NewsList_SelectionChanged(w.Info_NewsList, null);
         }
 
         public void OnCancel()
         {
-            w.SwitchToGamesFromInfo();
+            if (w.NewsReaderModal.Visibility == Visibility.Visible) { w.CloseNewsModal_Click(null, null); return; }
+            if (w.GameOptionsModal.Visibility == Visibility.Visible) { w.CloseGameOptions_Click(null, null); return; }
+            w.ExitGameDetails();
         }
 
-        void MoveListFocus(ListBox lb, int direction)
+        // --- HELPERS ---
+
+        bool IsZoneRightActive() => w.Info_NewsList.IsKeyboardFocusWithin || w.Info_Screenshots.IsKeyboardFocusWithin;
+        bool IsZoneMiddleActive() => w.GameFriendsList.IsKeyboardFocusWithin || w.OwnersFriendsList.IsKeyboardFocusWithin || w.Info_AchievementsList.IsKeyboardFocusWithin;
+
+        bool FocusZoneMiddle()
         {
-            if (lb.Items.Count == 0) return;
-            int next = Math.Clamp(lb.SelectedIndex + direction, 0, lb.Items.Count - 1);
-            lb.SelectedIndex = next;
-            lb.ScrollIntoView(lb.SelectedItem);
+            if (TryFocus(w.GameFriendsList)) return true;
+            if (TryFocus(w.OwnersFriendsList)) return true;
+            if (TryFocus(w.Info_AchievementsList)) return true;
+            return false;
         }
+
+        bool FocusZoneRight()
+        {
+            if (TryFocus(w.Info_NewsList)) return true;
+            if (TryFocus(w.Info_Screenshots)) return true;
+            return false;
+        }
+
+        bool TryFocus(ListBox list)
+        {
+            if (list.Visibility == Visibility.Visible && list.Items.Count > 0)
+            {
+                list.Focus();
+                if (list.SelectedIndex < 0)
+                {
+                    list.SelectedIndex = 0;
+                    list.ScrollIntoView(list.SelectedItem);
+                }
+
+                // Garante que o item visual recebe foco para a borda brilhar
+                var container = list.ItemContainerGenerator.ContainerFromIndex(list.SelectedIndex) as ListBoxItem;
+                container?.Focus();
+
+                return true;
+            }
+            return false;
+        }
+
+        void MoveFocus(FocusNavigationDirection dir)
+        {
+            var element = Keyboard.FocusedElement as UIElement;
+            element?.MoveFocus(new TraversalRequest(dir));
+        }
+
+        bool IsAtTop(ListBox list) => list.IsKeyboardFocusWithin && list.SelectedIndex <= 0;
     }
+
     public class SettingsInputHandler : IInputHandler
     {
         readonly GameLauncherWindow w;
@@ -660,6 +691,14 @@ namespace PichalUI
         public string SignalStrength { get; set; } = "";
     }
 
+    public class FriendPlayInfo
+    {
+        public string PersonaName { get; set; } = "";
+        public string AvatarFull { get; set; } = "";
+        public bool IsPlayingNow { get; set; } = false;
+        public string StatusText { get; set; } = ""; // Ex: "A jogar agora"
+    }
+
 
     // --- JANELA PRINCIPAL ---
     public partial class GameLauncherWindow : Window
@@ -733,43 +772,52 @@ namespace PichalUI
 
         HardwareMonitor hwMonitor;
 
+        bool isGameDetailsOpen = false;
+
+        // --- CACHES CRÍTICAS (PARA PERFORMANCE E DADOS) ---
+        // Cache de Amigos (Lista completa em memória)
+        List<PlayerSummary> _cachedFriendsList = new List<PlayerSummary>();
+        // Cache de Donos de Jogos (Para não chamar a API 1000 vezes)
+        Dictionary<string, List<PlayerSummary>> _gameOwnersCache = new Dictionary<string, List<PlayerSummary>>();
+        // Semaforo para limitar pedidos à Steam (evita bloqueios)
+        SemaphoreSlim _steamApiSemaphore = new SemaphoreSlim(5);
+
         public GameLauncherWindow()
         {
             InitializeComponent();
-
-            ToggleFullscreen();
-
-            // 1. Configurar diretorias
             configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PichalnovenseUI");
             apiKeyFilePath = Path.Combine(configDir, "steam_key.dat");
             loginFilePath = Path.Combine(configDir, "steam_login.dat");
             appCache = Path.Combine(configDir, "covercache");
             Directory.CreateDirectory(appCache);
+            ToggleFullscreen();
 
-            // 2. Inicializar Handlers
             gamesInputHandler = new GamesInputHandler(this);
             friendsInputHandler = new FriendsInputHandler(this);
             infoInputHandler = new InfoInputHandler(this);
             settingsInputHandler = new SettingsInputHandler(this);
             currentInputHandler = gamesInputHandler;
 
-            // 3. Ligar Eventos UI
             BtnConnectSteam.Click += (s, e) => _ = Task.Run(() => ConnectSteamFlowAsync());
             StartBtn.Click += (s, e) => LaunchSelected();
 
-            // 4. Timer de Input (XInput)
-            xinputTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
+            var xinputTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
             xinputTimer.Tick += XinputTimer_Tick;
             xinputTimer.Start();
 
             this.KeyDown += GameLauncherWindow_KeyDown;
             this.PreviewKeyDown += GameLauncherWindow_PreviewKeyDown;
 
-            // 5. Carregar dados Steam guardados
+
+
+
             try
             {
                 LoadSteamApiKey();
                 var savedId = LoadConnectedSteamId();
+
+                Task.Run(() => RescanGamesAsync());
+
                 if (!string.IsNullOrEmpty(savedId))
                 {
                     connectedSteamId = savedId;
@@ -808,42 +856,68 @@ namespace PichalUI
             }
             catch { }
 
-            // 6. Scan inicial
-            Task.Run(() => RescanGamesAsync());
-
-            // 7. Teste vibração (feedback tátil inicial)
-            VibrateFor(0, 20000, 20000, 500);
-
             DispatcherTimer clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            clockTimer.Tick += (s, e) =>
-            {
-                ClockTime.Text = DateTime.Now.ToString("HH:mm");
-                ClockDate.Text = DateTime.Now.ToString("ddd, dd MMM");
-            };
+            clockTimer.Tick += (s, e) => { ClockTime.Text = DateTime.Now.ToString("HH:mm"); ClockDate.Text = DateTime.Now.ToString("ddd, dd MMM"); };
             clockTimer.Start();
         }
 
         // --- NAVEGAÇÃO ENTRE VISTAS ---
 
-        public void SwitchToInfo()
+        public void SwitchToInfo() { currentInputHandler = infoInputHandler; Dispatcher.InvokeAsync(() => infoInputHandler.EnterAtStart()); }
+        public void EnterGameDetails()
         {
-            currentInputHandler = infoInputHandler;
-            Dispatcher.InvokeAsync(() => infoInputHandler.EnterAtStart());
+            if (isGameDetailsOpen) return;
+            isGameDetailsOpen = true;
+            InfoArea.Visibility = Visibility.Visible;
+            var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(300)); Carousel.BeginAnimation(OpacityProperty, fadeOut);
+            var slideUp = new DoubleAnimation(200, 0, TimeSpan.FromMilliseconds(400)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            var fadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(300));
+            InfoSlideTransform.BeginAnimation(TranslateTransform.YProperty, slideUp); InfoArea.BeginAnimation(OpacityProperty, fadeIn);
+            SwitchToInfo();
+
+            if (selectedIndex >= 0 && selectedIndex < games.Count)
+            {
+                var g = games[selectedIndex];
+                _ = Task.Run(async () =>
+                {
+                    await LoadFriendsPlayingGame(g.SteamAppId);
+                    await LoadFriendsWhoOwnGame(g.SteamAppId);
+                    await LoadGameNews(int.Parse(g.SteamAppId));
+                    await Dispatcher.InvokeAsync(() =>
+                            {
+                                Info_AchievementsList.Items.Clear();
+                                if (g.Achievements.Count > 0)
+                                    foreach (var a in g.Achievements) Info_AchievementsList.Items.Add(new TextBlock { Text = a, Foreground = Brushes.LightGray });
+                                else
+                                    Info_AchievementsList.Items.Add(new TextBlock { Text = "No achievements", Foreground = Brushes.Gray });
+                            });
+                });
+            }
         }
 
-        public void SwitchToGamesFromInfo()
+        public void ExitGameDetails()
         {
-            currentInputHandler = gamesInputHandler;
-            Dispatcher.InvokeAsync(() =>
-            {
-                GamesListBox?.Focus();
-                Keyboard.Focus(GamesListBox);
-            });
+            if (!isGameDetailsOpen) return;
+            isGameDetailsOpen = false;
+            var fadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(300)); Carousel.BeginAnimation(OpacityProperty, fadeIn);
+            var slideDown = new DoubleAnimation(0, 200, TimeSpan.FromMilliseconds(300));
+            var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(200));
+            fadeOut.Completed += (s, e) => InfoArea.Visibility = Visibility.Collapsed;
+            InfoSlideTransform.BeginAnimation(TranslateTransform.YProperty, slideDown); InfoArea.BeginAnimation(OpacityProperty, fadeOut);
+            SwitchToGamesFromInfo();
         }
+
+        public void SwitchToGamesFromInfo() { currentInputHandler = gamesInputHandler; Dispatcher.InvokeAsync(() => { GamesListBox?.Focus(); Keyboard.Focus(GamesListBox); }); }
 
         public void SwapViewRight()
         {
             currentIndex = (currentIndex + 1) % 3; // 0=Home, 1=Friends, 2=Settings (simulado)
+            UpdateViewVisibility();
+        }
+
+        public void SwapViewLeft()
+        {
+            currentIndex = 2 - ((currentIndex + 1) % 3); // 0=Home, 1=Friends, 2=Settings (simulado)
             UpdateViewVisibility();
         }
 
@@ -903,67 +977,42 @@ namespace PichalUI
         public void SelectIndex(int idx)
         {
             var currentList = isShowingStoreView ? storeGames : games;
-            if (currentList.Count == 0) return;
-
-            // Bloqueia loop
-            if (idx < 0 || idx >= currentList.Count) return;
-
-            selectedIndex = idx;
-
-            GamesListBox.SelectedIndex = selectedIndex;
-
-            var item = GamesListBox.SelectedItem;
-            if (item != null)
-            {
-                // Usamos Dispatcher para garantir que o zoom visual (XAML) já começou
-                // antes de calcularmos o centro
-                Dispatcher.InvokeAsync(() =>
-                {
-                    ScrollToCenterOfView(GamesListBox, item);
-                }, DispatcherPriority.Input);
-            }
-
+            if (currentList.Count == 0 || idx < 0 || idx >= currentList.Count) return;
+            selectedIndex = idx; GamesListBox.SelectedIndex = selectedIndex;
+            var item = GamesListBox.SelectedItem; if (item != null) Dispatcher.InvokeAsync(() => ScrollToCenterOfView(GamesListBox, item), DispatcherPriority.Input);
             var g = currentList[selectedIndex];
 
             Dispatcher.Invoke(() =>
             {
+                // Atualização Visual Imediata
                 if (g.Source == "System" && g.Title == "Loja")
                 {
-                    BannerImage.Source = MakePlaceholderBitmap(1000, 400);
-                    HeroTitle.Text = "Loja Steam";
-                    StatusLabel.Text = "Loja - Jogos não instalados";
-                    Info_OwnedOn.Text = "Clica ENTER para instalar jogos";
-                    Info_Playtime.Text = "—";
-                    HeroCover.Source = null;
-                    Info_CompletionPercent.Text = "";
-                    Info_LastPlayed.Text = "";
-                    Info_AchievementsList.Items.Clear();
-                    Info_Screenshots.ItemsSource = null;
+                    HeroTitle.Text = "Loja Steam"; Info_OwnedOn.Text = "SISTEMA"; Info_Playtime.Text = "—";
+                    Info_AchievementsList.ItemsSource = null; GameFriendsList.ItemsSource = null; OwnersFriendsList.ItemsSource = null;
                 }
                 else
                 {
                     BannerImage.Source = g.Cover ?? g.Icon ?? MakePlaceholderBitmap(1000, 400);
-                    HeroCover.Source = g.Cover ?? g.Icon ?? MakePlaceholderBitmap(800, 450);
-                    HeroTitle.Text = g.Title ?? "Unknown";
-                    StatusLabel.Text = $"Selected: {g.Title}";
-                    Info_OwnedOn.Text = $"Source: {g.Source}";
-                    Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
+                    HeroTitle.Text = g.Title;
+                    Info_OwnedOn.Text = g.Source; Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
                     Info_CompletionPercent.Text = $"{g.ProgressPercent}%";
-                    Info_LastPlayed.Text = g.LastPlayed.HasValue ? g.LastPlayed.Value.ToString("g") : "-";
+                    Info_LastPlayed.Text = g.LastPlayed.HasValue ? $"Jogado: {g.LastPlayed:d}" : "Nunca";
+
+                    // Reset das listas para não mostrar dados velhos
+                    Info_AchievementsList.ItemsSource = null;
+                    GameFriendsList.ItemsSource = null;
+                    OwnersFriendsList.ItemsSource = null;
 
                     Info_AchievementsList.Items.Clear();
-                    if (g.Achievements.Count > 0)
-                        foreach (var a in g.Achievements) Info_AchievementsList.Items.Add(new TextBlock { Text = a, Foreground = Brushes.LightGray });
-                    else
-                        Info_AchievementsList.Items.Add(new TextBlock { Text = "No achievements", Foreground = Brushes.Gray });
+                    // Se tivermos achievements locais, mostra já
+                    if (g.Achievements.Count > 0) Info_AchievementsList.ItemsSource = g.Achievements;
 
-                    int appid = 0;
-                    int.TryParse(g.SteamAppId, out appid);
-                    var shots = TryGetLocalSteamScreenshots(connectedSteamId ?? "", appid);
-                    Info_Screenshots.ItemsSource = shots;
+                    if (int.TryParse(g.SteamAppId, out int appid))
+                        Info_Screenshots.ItemsSource = TryGetLocalSteamScreenshots(connectedSteamId ?? "", appid);
                 }
             });
 
+            // Dados Pesados em Background
             if (!isShowingStoreView && steamConnected && !string.IsNullOrEmpty(g.SteamAppId) && g.Source != "System")
             {
                 _ = Task.Run(async () =>
@@ -972,22 +1021,21 @@ namespace PichalUI
                     {
                         if (int.TryParse(g.SteamAppId, out int appid))
                         {
-                            var play = await GetPlaytimeHoursForAppAsync(connectedSteamId!, appid);
-                            if (play.HasValue) g.PlaytimeHours = play.Value;
+                            // 1. Quem Joga Agora (Rápido - Cache)
+                            await LoadFriendsPlayingGame(g.SteamAppId);
 
-                            var news = await GetNewsForAppAsync(appid, 1);
-                            await Dispatcher.InvokeAsync(() =>
-                            {
-                                Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
-                                if (news.Count > 0) Info_Feed.Text = news[0].title + "\n\n" + news[0].contents;
-                                else Info_Feed.Text = "No news.";
-                            });
+                            // 2. Quem Tem o Jogo (Lento - API)
+                            await LoadFriendsWhoOwnGame(g.SteamAppId);
+
+                            // 3. News
+                            await LoadGameNews(appid);
                         }
                     }
                     catch { }
                 });
             }
         }
+
 
         public void SelectNext()
         {
@@ -998,6 +1046,12 @@ namespace PichalUI
         public void SelectPrevious()
         {
             if (selectedIndex > 0) SelectIndex(selectedIndex - 1);
+        }
+
+        void AnimateFadeIn(UIElement element)
+        {
+            var fadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(500));
+            element.BeginAnimation(UIElement.OpacityProperty, fadeIn);
         }
 
         public void LaunchSelected()
@@ -1272,41 +1326,102 @@ namespace PichalUI
         {
             if (string.IsNullOrEmpty(connectedSteamId)) return;
 
-            var steamGames = games.Where(g => !string.IsNullOrEmpty(g.SteamAppId)).ToList();
-            foreach (var g in steamGames)
+            try
             {
-                if (int.TryParse(g.SteamAppId, out int appid))
+                await Dispatcher.InvokeAsync(() => StatusLabel.Text = "A atualizar dados da Steam...");
+
+                // 1. Tenta obter TODOS os playtimes de uma vez (Mais rápido)
+                Dictionary<int, int> playtimeByApp = new Dictionary<int, int>();
+                if (!string.IsNullOrEmpty(steamApiKey))
                 {
                     try
                     {
-                        // 1. Playtime
-                        var play = await GetPlaytimeHoursForAppAsync(connectedSteamId, appid);
-                        if (play.HasValue) g.PlaytimeHours = play.Value;
-
-                        // 2. Achievements (Desbloqueados)
-                        var ach = await GetPlayerAchievementsAsync(connectedSteamId, appid);
-                        if (ach != null) g.Achievements = ach;
-
-                        int totalAchievements = await GetTotalAchievementsCount(appid);
-                        if (totalAchievements > 0 && g.Achievements.Count > 0)
+                        var url = $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={steamApiKey}&steamid={connectedSteamId}&include_appinfo=0&include_played_free_games=1";
+                        var root = await SteamApiGetJson(url);
+                        if (root.HasValue && root.Value.TryGetProperty("response", out var resp) && resp.TryGetProperty("games", out var gamesArr))
                         {
-                            // Regra de 3 simples
-                            g.ProgressPercent = (int)((double)g.Achievements.Count / totalAchievements * 100);
-                        }
-                        else if (totalAchievements > 0 && g.Achievements.Count == 0)
-                        {
-                            g.ProgressPercent = 0;
-                        }
-                        else if (totalAchievements == 0)
-                        {
-                            // Se não tiver achievements, define como -1 ou deixa 0
-                            g.ProgressPercent = 0;
+                            foreach (var gEl in gamesArr.EnumerateArray())
+                            {
+                                if (gEl.TryGetProperty("appid", out var aid) && gEl.TryGetProperty("playtime_forever", out var pt))
+                                {
+                                    playtimeByApp[aid.GetInt32()] = pt.GetInt32();
+                                }
+                            }
                         }
                     }
                     catch { }
                 }
+
+                // 2. Itera sobre os jogos que já encontrámos no PC
+                // Nota: Usamos ToList() para criar uma cópia segura e evitar erros se a lista mudar
+                var steamGames = games.Where(g => !string.IsNullOrEmpty(g.SteamAppId)).ToList();
+
+                // Limitador para não bloquear a API (6 pedidos simultâneos)
+                var sem = new SemaphoreSlim(6);
+                var tasks = new List<Task>();
+
+                foreach (var g in steamGames)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        if (!int.TryParse(g.SteamAppId, out int appid)) return;
+
+                        await sem.WaitAsync();
+                        try
+                        {
+                            // A. PLAYTIME
+                            if (playtimeByApp.TryGetValue(appid, out var minutes))
+                            {
+                                g.PlaytimeHours = minutes / 60.0;
+                            }
+                            else
+                            {
+                                // Fallback: Se não estava na lista geral, tenta pedir específico
+                                var play = await GetPlaytimeHoursForAppAsync(connectedSteamId, appid);
+                                if (play.HasValue) g.PlaytimeHours = play.Value;
+                            }
+
+                            // B. ACHIEVEMENTS
+                            if (!string.IsNullOrEmpty(steamApiKey))
+                            {
+                                var ach = await GetPlayerAchievementsAsync(connectedSteamId, appid);
+                                if (ach != null && ach.Count > 0) g.Achievements = ach;
+
+                                // Calcula percentagem (Opcional, se quiseres barra de progresso precisa)
+                                int total = await GetTotalAchievementsCount(appid);
+                                if (total > 0) g.ProgressPercent = (int)((double)g.Achievements.Count / total * 100);
+                            }
+
+                            // C. ATUALIZAR UI EM TEMPO REAL (Se este jogo estiver selecionado)
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                if (selectedIndex >= 0 && selectedIndex < games.Count && games[selectedIndex] == g)
+                                {
+                                    // Só atualiza os textos para não piscar a imagem
+                                    Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
+                                    Info_CompletionPercent.Text = $"{g.ProgressPercent}%";
+
+                                    // Se achievements chegaram agora, atualiza a lista
+                                    if (g.Achievements.Count > 0 && Info_AchievementsList.Items.Count <= 1)
+                                    {
+                                        Info_AchievementsList.ItemsSource = null;
+                                        Info_AchievementsList.ItemsSource = g.Achievements;
+                                    }
+                                }
+                            });
+                        }
+                        catch { }
+                        finally { sem.Release(); }
+                    }));
+                }
+
+                await Task.WhenAll(tasks);
+                await Dispatcher.InvokeAsync(() => StatusLabel.Text = "Dados Steam atualizados.");
             }
-            await Task.CompletedTask;
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() => StatusLabel.Text = "Erro Steam: " + ex.Message);
+            }
         }
 
         async Task LoadFriendExtraDetails(PlayerSummary friend)
@@ -1384,7 +1499,6 @@ namespace PichalUI
                 var url = $"https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key={steamApiKey}&steamid={connectedSteamId}&relationship=friend";
                 var root = await SteamApiGetJson(url);
                 var ids = new List<string>();
-
                 if (root.HasValue && root.Value.TryGetProperty("friendslist", out var fl) && fl.TryGetProperty("friends", out var fArr))
                 {
                     foreach (var f in fArr.EnumerateArray()) ids.Add(f.GetProperty("steamid").GetString()!);
@@ -1393,27 +1507,31 @@ namespace PichalUI
                 if (ids.Count > 0)
                 {
                     var summaries = new List<PlayerSummary>();
-                    var batch = string.Join(",", ids.Take(100));
-                    var url2 = $"https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key={steamApiKey}&steamids={batch}";
-                    var root2 = await SteamApiGetJson(url2);
-
-                    if (root2.HasValue && root2.Value.TryGetProperty("response", out var resp) && resp.TryGetProperty("players", out var players))
+                    // Batching de 100 para eficiência
+                    for (int i = 0; i < ids.Count; i += 100)
                     {
-                        foreach (var p in players.EnumerateArray())
+                        var batch = string.Join(",", ids.Skip(i).Take(100));
+                        var url2 = $"https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key={steamApiKey}&steamids={batch}";
+                        var root2 = await SteamApiGetJson(url2);
+                        if (root2.HasValue && root2.Value.TryGetProperty("response", out var r) && r.TryGetProperty("players", out var p))
                         {
-                            summaries.Add(new PlayerSummary
+                            foreach (var pl in p.EnumerateArray())
                             {
-                                SteamId = p.TryGetProperty("steamid", out var sid) ? sid.GetString() ?? "" : "",
-                                PersonaName = p.TryGetProperty("personaname", out var pn) ? pn.GetString() ?? "Unknown" : "Unknown",
-                                AvatarFull = p.TryGetProperty("avatarfull", out var af) ? af.GetString() ?? "" : "",
-                                ProfileUrl = p.TryGetProperty("profileurl", out var pu) ? pu.GetString() ?? "" : "",
-                                PersonaState = p.TryGetProperty("personastate", out var ps) ? ps.GetInt32() : 0,
-                                GameExtraInfo = p.TryGetProperty("gameextrainfo", out var ge) ? ge.GetString() ?? "" : "",
-                                GameId = p.TryGetProperty("gameid", out var gid) ? gid.GetString() ?? "0" : "0"
-                            });
+                                summaries.Add(new PlayerSummary
+                                {
+                                    SteamId = pl.TryGetProperty("steamid", out var s) ? s.GetString() ?? "" : "",
+                                    PersonaName = pl.TryGetProperty("personaname", out var pn) ? pn.GetString() ?? "U" : "U",
+                                    AvatarFull = pl.TryGetProperty("avatarfull", out var af) ? af.GetString() ?? "" : "",
+                                    ProfileUrl = pl.TryGetProperty("profileurl", out var pu) ? pu.GetString() ?? "" : "",
+                                    GameExtraInfo = pl.TryGetProperty("gameextrainfo", out var ge) ? ge.GetString() ?? "" : "",
+                                    GameId = pl.TryGetProperty("gameid", out var gid) ? gid.GetString() ?? "0" : "0"
+                                });
+                            }
                         }
                     }
-                    await Dispatcher.InvokeAsync(() => FriendListBox.ItemsSource = summaries);
+                    // AQUI ESTÁ O SEGREDO: Guardar na cache para ser usado na InfoArea
+                    _cachedFriendsList = summaries;
+                    await Dispatcher.InvokeAsync(() => FriendListBox.ItemsSource = _cachedFriendsList);
                 }
             }
             catch { }
@@ -1602,6 +1720,19 @@ namespace PichalUI
         }
 
         // --- HELPERS ---
+        public T? FindChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) return null;
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++) { var child = VisualTreeHelper.GetChild(parent, i); if (child is T t) return t; var res = FindChild<T>(child); if (res != null) return res; }
+            return null;
+        }
+
+        public T? FindParent<T>(DependencyObject child, string name) where T : FrameworkElement
+        {
+            while (child != null) { if (child is T t && t.Name == name) return t; child = VisualTreeHelper.GetParent(child); }
+            return null;
+        }
 
         void LoadSteamApiKey()
         {
@@ -1859,12 +1990,51 @@ namespace PichalUI
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Inicia o comando
+            ToggleFullscreen();
             _controller = new PlayStationController();
             _controller.StateChanged += Controller_StateChanged;
-            if (!_controller.Start()) { /* Log silencioso */ }
+            if (!_controller.Start()) { /* Log */ }
+
+            // INÍCIO DO PROCESSO DE CARREGAMENTO
+            _ = Task.Run(async () =>
+            {
+                // 1. Carregar Credenciais
+                LoadSteamApiKey();
+                var savedId = LoadConnectedSteamId();
+
+                // Atualiza o Header se tivermos ID (para a foto aparecer logo)
+                if (!string.IsNullOrEmpty(savedId))
+                {
+                    connectedSteamId = savedId;
+                    await UpdateHeaderUI();
+                }
+
+                // 2. SCAN AOS JOGOS (CRÍTICO: Isto tem de acontecer ANTES de pedir dados à Steam)
+                // Isto preenche a lista 'games' com o que tens instalado.
+                await RescanGamesAsync();
+
+                // 3. Se tivermos login, vamos buscar os dados EXTRA (Playtime, Amigos, etc.)
+                if (!string.IsNullOrEmpty(connectedSteamId))
+                {
+                    // Lança as tarefas pesadas em paralelo
+                    var t1 = FetchSteamDataForAllGamesAsync(); // Preenche Playtime e Achievements
+                    var t2 = FetchAndShowFriendsAsync();       // Preenche a lista de amigos (Cache)
+
+                    await Task.WhenAll(t1, t2);
+
+                    // 4. Atualização Final da UI
+                    // Força um refresh ao jogo selecionado para mostrar os dados que acabaram de chegar
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        if (selectedIndex >= 0) SelectIndex(selectedIndex);
+                        else if (games.Count > 0) SelectIndex(0);
+                    });
+                }
+            });
         }
 
-        private void Window_Closed(object sender, EventArgs e){ _controller?.Stop(); hwMonitor?.Close();}
+        private void Window_Closed(object sender, EventArgs e) { _controller?.Stop(); hwMonitor?.Close(); }
 
         private void Controller_StateChanged(DualSenseInputState state)
         {
@@ -1876,6 +2046,10 @@ namespace PichalUI
                 FireEdge(state.CrossButton, _prevDsState.CrossButton, () => currentInputHandler?.OnAccept());
                 FireEdge(state.CircleButton, _prevDsState.CircleButton, () => currentInputHandler?.OnCancel());
                 FireEdge(state.R1Button, _prevDsState.R1Button, () => SwapViewRight());
+                FireEdge(state.DPadRightButton, _prevDsState.DPadRightButton, () => currentInputHandler?.OnRight());
+                FireEdge(state.DPadLeftButton, _prevDsState.DPadLeftButton, () => currentInputHandler?.OnLeft());
+                FireEdge(state.DPadUpButton, _prevDsState.DPadUpButton, () => currentInputHandler?.OnUp());
+                FireEdge(state.DPadDownButton, _prevDsState.DPadDownButton, () => currentInputHandler?.OnDown());
             }
             _prevDsState = state;
         }
@@ -2371,6 +2545,224 @@ namespace PichalUI
         {
             // Chama a função de login que já existe
             _ = Task.Run(() => ConnectSteamFlowAsync());
+        }
+
+        async Task LoadFriendsPlayingGame(string appidStr)
+        {
+            if (string.IsNullOrEmpty(appidStr) || _cachedFriendsList.Count == 0) return;
+            var playing = new List<FriendPlayInfo>();
+            foreach (var f in _cachedFriendsList)
+            {
+                if (f.GameId == appidStr) playing.Add(new FriendPlayInfo { PersonaName = f.PersonaName, AvatarFull = f.AvatarFull, IsPlayingNow = true, StatusText = "A jogar agora" });
+            }
+            await Dispatcher.InvokeAsync(() =>
+            {
+                GameFriendsList.ItemsSource = playing;
+                AnimateFadeIn(GameFriendsList);
+            });
+        }
+
+        async Task LoadFriendsWhoOwnGame(string appidStr)
+        {
+            // 1. Prepara a coleção visual
+            var ownersCollection = new System.Collections.ObjectModel.ObservableCollection<PlayerSummary>();
+            await Dispatcher.InvokeAsync(() => OwnersFriendsList.ItemsSource = ownersCollection);
+
+            if (string.IsNullOrEmpty(appidStr) || string.IsNullOrEmpty(steamApiKey)) return;
+
+            // --- VERIFICAÇÃO DE CACHE (CORRIGIDA) ---
+            if (_gameOwnersCache.ContainsKey(appidStr))
+            {
+                var cachedOwners = _gameOwnersCache[appidStr];
+
+                // CORREÇÃO: Usar Dispatcher para adicionar à UI, senão dá erro silencioso!
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var friend in cachedOwners)
+                    {
+                        ownersCollection.Add(friend);
+                    }
+                });
+                return; // Sai da função, já temos tudo!
+            }
+            // -----------------------------------------
+
+            var allFriends = _cachedFriendsList.ToList();
+            if (allFriends.Count == 0) return;
+
+            var detectedOwners = new System.Collections.Concurrent.ConcurrentBag<PlayerSummary>();
+
+            // Limita os pedidos simultâneos para não bloquear a API
+            var semaphore = new SemaphoreSlim(10);
+
+            var tasks = allFriends.Select(async friend =>
+            {
+                await semaphore.WaitAsync();
+                try
+                {
+                    bool hasGame = false;
+                    if (friend.GameId == appidStr) hasGame = true;
+                    else
+                    {
+                        try
+                        {
+                            var url = $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={steamApiKey}&steamid={friend.SteamId}&include_appinfo=0&appids_filter[0]={appidStr}";
+                            var json = await SteamApiGetJson(url);
+                            if (json.HasValue && json.Value.TryGetProperty("response", out var r) && r.TryGetProperty("game_count", out var count))
+                            {
+                                if (count.GetInt32() > 0) hasGame = true;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (hasGame)
+                    {
+                        // Adiciona à UI (Visual)
+                        await Dispatcher.InvokeAsync(() => ownersCollection.Add(friend));
+                        // Guarda na lista temporária
+                        detectedOwners.Add(friend);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            await Task.WhenAll(tasks);
+
+            // Guardar na Cache para a próxima vez
+            _gameOwnersCache[appidStr] = detectedOwners.ToList();
+        }
+
+        async Task LoadGameNews(int appid)
+        {
+            var news = await GetNewsForAppAsync(appid, 3);
+            var clean = new List<GameNewsItem>();
+            foreach (var n in news) clean.Add(new GameNewsItem { Title = n.title, Date = n.date.ToShortDateString(), Snippet = n.contents.Substring(0, Math.Min(100, n.contents.Length)) });
+            await Dispatcher.InvokeAsync(() =>
+            {
+                Info_NewsList.ItemsSource = clean;
+                AnimateFadeIn(Info_NewsList);
+            });
+        }
+
+        public void Info_NewsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Info_NewsList.SelectedItem is GameNewsItem news)
+            {
+                NewsModalTitle.Text = news.Title;
+                NewsModalDate.Text = news.Date;
+                NewsModalContent.Text = news.FullContent;
+
+                NewsReaderModal.Visibility = Visibility.Visible;
+
+                var btn = FindChild<Button>(NewsReaderModal);
+                btn?.Focus();
+
+                Info_NewsList.SelectedIndex = -1;
+            }
+        }
+
+        public void CloseNewsModal_Click(object sender, RoutedEventArgs e)
+        {
+            NewsReaderModal.Visibility = Visibility.Collapsed;
+
+            // 1. Devolve o foco à lista de notícias
+            Info_NewsList.Focus();
+
+            // 2. Garante que o item selecionado volta a ganhar o foco do teclado (Borda Brilhante)
+            if (Info_NewsList.SelectedItem != null)
+            {
+                Info_NewsList.ScrollIntoView(Info_NewsList.SelectedItem);
+                var item = Info_NewsList.ItemContainerGenerator.ContainerFromItem(Info_NewsList.SelectedItem) as ListBoxItem;
+                item?.Focus();
+            }
+        }
+
+        private void OpenGameOptions_Click(object sender, RoutedEventArgs e)
+        {
+            GameOptionsModal.Visibility = Visibility.Visible;
+
+            // Foca o primeiro botão do modal para o comando funcionar
+            Dispatcher.BeginInvoke(() =>
+            {
+                var btn = FindChild<Button>(GameOptionsModal);
+                btn?.Focus();
+            }, DispatcherPriority.Input);
+        }
+
+        public void CloseGameOptions_Click(object sender, RoutedEventArgs e)
+        {
+            GameOptionsModal.Visibility = Visibility.Collapsed;
+            OptionsBtn.Focus(); // Devolve o foco ao botão "..."
+        }
+
+        private void OptionUninstall_Click(object sender, RoutedEventArgs e)
+        {
+            var game = games[selectedIndex];
+            if (game.Source == "Steam" && !string.IsNullOrEmpty(game.SteamAppId))
+            {
+                if (MessageBox.Show($"Queres desinstalar {game.Title}?", "Desinstalar", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    // Comando Steam para desinstalar
+                    Process.Start(new ProcessStartInfo($"steam://uninstall/{game.SteamAppId}") { UseShellExecute = true });
+                    CloseGameOptions_Click(null, null);
+                }
+            }
+            else
+            {
+                MessageBox.Show("A desinstalação automática só funciona para jogos Steam (por agora).", "Info");
+            }
+        }
+
+        private void OptionFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            // Aqui implementarias a lógica de salvar numa lista de favoritos
+            MessageBox.Show("Adicionado aos Favoritos (Funcionalidade em breve)", "Favoritos");
+            CloseGameOptions_Click(null, null);
+        }
+
+        private void OptionShortcut_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Atalho criado (Simulado)", "Atalho");
+            CloseGameOptions_Click(null, null);
+        }
+
+        async Task UpdateHeaderUI()
+        {
+            if (string.IsNullOrEmpty(connectedSteamId) || string.IsNullOrEmpty(steamApiKey)) return;
+
+            try
+            {
+                // 1. Busca os dados do perfil (Nome e Avatar)
+                var profile = await GetProfileSummary();
+
+                // 2. Atualiza a UI (tem de ser no Dispatcher porque é visual)
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    if (!string.IsNullOrEmpty(profile.PersonaName))
+                    {
+                        // Atualiza o Nome
+                        ProfileName.Text = profile.PersonaName;
+
+                        // Atualiza a Imagem
+                        if (!string.IsNullOrEmpty(profile.AvatarFull))
+                        {
+                            var bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.UriSource = new Uri(profile.AvatarFull);
+                            bmp.CacheOption = BitmapCacheOption.OnLoad; // Importante para não bloquear o ficheiro
+                            bmp.EndInit();
+                            ProfileImage.Source = bmp;
+                        }
+
+                        StatusLabel.Text = "Steam: Ligado";
+                    }
+                });
+            }
+            catch { /* Ignora erros de rede pontuais */ }
         }
 
 
