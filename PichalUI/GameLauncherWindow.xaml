@@ -1442,6 +1442,15 @@
                                             </StackPanel>
                                         </Border>
 
+                                        <Button Content="Convidar"
+                                                Height="50"
+                                                Width="160"
+                                                Margin="0,0,15,0"
+                                                Style="{StaticResource SettingsButtonStyle}"
+                                                Focusable="True"
+                                                Command="{Binding DataContext.InviteFriendCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding SteamId}"/>
+
                                         <Button Content="Ver Perfil Completo"
                                                 Height="50"
                                                 Margin="0,30,0,0"
@@ -1659,7 +1668,8 @@
                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                              ItemContainerStyle="{StaticResource FocusableItemStyle}"
                                              Margin="0,0,0,0"
-                                             Focusable="True">
+                                             Focusable="True"
+                                             MaxHeight="300">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="0,0,0,0"
@@ -1697,7 +1707,8 @@
                                              Margin="0,0,0,40"
                                              Focusable="True"
                                              MinHeight="40"
-                                             MaxHeight="200"/>
+                                             MaxHeight="300"
+                                             Foreground="White"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </StackPanel>
