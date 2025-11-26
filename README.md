@@ -32,7 +32,7 @@ PichalUI is a windows game launcher developed in WPF (.NET 9.0), designed to pro
 - **Steam**: The Steam client must be installed and running in the background for the integration to fully works.
 
 ## How to Compile and Run
-**1. Clonning and Install Dependencies**
+**1. Clonning and Install Dependencies** <br/>
 Certify that you have .NET 9.0 SDK installed.
 ```bash
 git clone https://github.com/Ratattouile/PichalUI.git
@@ -40,19 +40,19 @@ cd PichalUI
 dotnet restore
 ```
 
-**2. Critical Configuration**
+**2. Critical Configuration**<br/>
 For the Steam integration to work in dev mode (Debug), is necessary create a file in the folder where the executable runs.
 1. Go to the folder `bin/Debug/net9.0-windows` (after the first compilation).
 2. Create a file text named `steam_appid.txt`.
 3. Write only the number `480` inside the file and save.
 4. Certify that the file `steam_api64.dll` is also on this folder (normaly is pasted automatically by NuGet).
 
-**3. Run**
+**3. Run**<br/>
 To run the program eithout compiling a final exe file, you need to be on the folder with the `ConsoleUI_WPF.sln` file.Then rus this command:
 ```bash
 dotnet run --project PichalUI
 ```
-**4. Compile**
+**4. Compile**<br/>
 To compile and create a exe file optimized, you need to be also on the folder with the `ConsoleUI_WPF.sln` file and then run this command:
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o ./publish
