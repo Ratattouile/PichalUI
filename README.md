@@ -42,11 +42,10 @@ dotnet restore
 
 **2. Critical Configuration**
 For the Steam integration to work in dev mode (Debug), is necessary create a file in the folder where the executable runs.
-- 
-    1. Go to the folder `bin/Debug/net9.0-windows` (after the first compilation).
-    2. Create a file text named `steam_appid.txt`.
-    3. Write only the number `480` inside the file and save.
-    4. Certify that the file `steam_api64.dll` is also on this folder (normaly is pasted automatically by NuGet).
+1. Go to the folder `bin/Debug/net9.0-windows` (after the first compilation).
+2. Create a file text named `steam_appid.txt`.
+3. Write only the number `480` inside the file and save.
+4. Certify that the file `steam_api64.dll` is also on this folder (normaly is pasted automatically by NuGet).
 
 **3. Run**
 To run the program eithout compiling a final exe file, you need to be on the folder with the `ConsoleUI_WPF.sln` file.Then rus this command:
