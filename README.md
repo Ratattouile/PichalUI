@@ -76,4 +76,5 @@ Option (Dualsense) / Start (XInput) | Rescan Library
 - **System.Net.Http**: Comunication with Web API (fallback).
 - **Steam Web API**
 
-## Developed by Ratatouille (@Ratattouile), @joaomgleitao, @Echo4Cells
+## Developed by 
+Ratatouille (@Ratattouile), @joaomgleitao, @Echo4Cells
