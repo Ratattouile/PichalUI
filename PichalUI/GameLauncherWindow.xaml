@@ -1945,5 +1945,129 @@
                              Foreground="#FFCC00"/>
             </StackPanel>
         </Grid>
+
+        <Grid x:Name="ChatModal"
+              Visibility="Collapsed"
+              Background="#CC000000"
+              x:FieldModifier="public">
+            <Border Height="600"
+                    Width="500"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="0,0,50,0"
+                    Background="#1F1F1F"
+                    CornerRadius="12"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30"
+                                      ShadowDepth="0"
+                                      Opacity="0.5"/>
+                </Border.Effect>
+
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0"
+                               Margin="0,0,0,15">
+                        <Button Content="X"
+                                Click="CloseChat_Click"
+                                DockPanel.Dock="Right"
+                                Style="{StaticResource SettingsButtonStyle}"
+                                Width="40"
+                                HorizontalContentAlignment="Center"/>
+                        <Image x:Name="ChatFriendAvatar"
+                               Width="30"
+                               Height="30"
+                               Margin="0,0,10,0">
+                            <Image.Clip>
+                                <EllipseGeometry Center="15,15"
+                                                 RadiusX="15"
+                                                 RadiusY="15"/>
+                            </Image.Clip>
+                        </Image>
+                        <TextBlock x:Name="ChatFriendName"
+                                   Text="Nome do Amigo"
+                                   Foreground="White"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <ListBox x:Name="ChatList"
+                             Grid.Row="1"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             Margin="0,0,0,15">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="FocusVisualStyle"
+                                        Value="{x:Null}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,5">
+                                    <Border Background="{Binding BubbleColor}"
+                                            CornerRadius="8"
+                                            Padding="10,8"
+                                            HorizontalAlignment="{Binding Alignment}"
+                                            MaxWidth="350">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Message}"
+                                                       Foreground="White"
+                                                       TextWrapping="Wrap"
+                                                       FontSize="14"/>
+                                            <TextBlock Text="{Binding Time}"
+                                                       Foreground="#AAFFFFFF"
+                                                       FontSize="10"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ChatInputBox"
+                                 Height="40"
+                                 Background="#333"
+                                 Foreground="White"
+                                 BorderThickness="0"
+                                 VerticalContentAlignment="Center"
+                                 Padding="10,0"
+                                 KeyDown="ChatInputBox_KeyDown"
+                                 FontSize="14"/>
+                        <Button Grid.Column="1"
+                                Content="Enviar"
+                                Click="SendChat_Click"
+                                Style="{StaticResource SettingsButtonStyle}"
+                                Background="{DynamicResource AccentBrush}"
+                                Foreground="Black"
+                                FontWeight="Bold"
+                                Width="80"
+                                Margin="10,0,0,0"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
