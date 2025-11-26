@@ -2069,5 +2069,37 @@
                 </Grid>
             </Border>
         </Grid>
+
+        <Border x:Name="NotificationPopup"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Margin="0,-100,0,0"
+                Background="#1A1A1A"
+                BorderBrush="{DynamicResource AccentBrush}"
+                BorderThickness="1"
+                CornerRadius="30"
+                Padding="20,10"
+                Height="60"
+                x:FieldModifier="public"
+                Panel.ZIndex="9999">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.6"/>
+            </Border.Effect>
+
+            <StackPanel Orientation="Horizontal">
+                <Grid Width="40" Height="40" Margin="0,0,15,0">
+                    <Image x:Name="NotifImage" Stretch="UniformToFill">
+                        <Image.Clip>
+                            <EllipseGeometry Center="20,20" RadiusX="20" RadiusY="20"/>
+                        </Image.Clip>
+                    </Image>
+                </Grid>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="NotifTitle" Text="Nome" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" FontSize="14"/>
+                    <TextBlock x:Name="NotifMessage" Text="Mensagem Recebida" Foreground="White" FontSize="12" TextTrimming="CharacterEllipsis" MaxWidth="300"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

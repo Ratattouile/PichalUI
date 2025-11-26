@@ -27,6 +27,8 @@ using System.Xml;
 using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
 using Steamworks;
+using SteamKit2.Internal;
+using System.Reactive;
 
 namespace PichalUI
 {
@@ -835,8 +837,11 @@ namespace PichalUI
         // Variáveis para o Chat
         Steamworks.Friend _currentChatFriend; // O amigo com quem estamos a falar
         ObservableCollection<ChatMessage> _chatMessages = new ObservableCollection<ChatMessage>();
-
+        private static readonly object _chatFileLock = new object();
         string chatLogDir => Path.Combine(configDir, "chat_logs");
+
+        // NOTIFICAÇÕES
+        private CancellationTokenSource? _notificationCts;
 
         public GameLauncherWindow()
         {
@@ -866,53 +871,7 @@ namespace PichalUI
             this.KeyDown += GameLauncherWindow_KeyDown;
             this.PreviewKeyDown += GameLauncherWindow_PreviewKeyDown;
 
-
-
-
-            try
-            {
-                LoadSteamApiKey();
-                var savedId = LoadConnectedSteamId();
-
-                Task.Run(() => RescanGamesAsync());
-
-                if (!string.IsNullOrEmpty(savedId))
-                {
-                    connectedSteamId = savedId;
-                    StatusLabel.Text = $"Steam: connected (cached) {savedId}";
-
-                    // Background load
-                    _ = Task.Run(async () =>
-                    {
-                        var profileSummary = await GetProfileSummary();
-                        await FetchSteamDataForAllGamesAsync();
-                        await FetchAndShowFriendsAsync();
-
-                        await Dispatcher.InvokeAsync(() =>
-                        {
-                            PopulateGamesPanel();
-                            if (games.Count > 0) SelectIndex(0);
-
-                            if (!string.IsNullOrEmpty(profileSummary.PersonaName))
-                                ProfileName.Text = profileSummary.PersonaName;
-
-                            if (!string.IsNullOrEmpty(profileSummary.AvatarFull))
-                            {
-                                var bitmapImage = new BitmapImage();
-                                bitmapImage.BeginInit();
-                                bitmapImage.UriSource = new Uri(profileSummary.AvatarFull);
-                                bitmapImage.EndInit();
-                                ProfileImage.Source = bitmapImage;
-                            }
-                        });
-                    });
-                }
-                else
-                {
-                    StatusLabel.Text = "Steam not connected.";
-                }
-            }
-            catch { }
+            CompositionTarget.Rendering += UpdateSteamCallbacks;
 
             DispatcherTimer clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             clockTimer.Tick += (s, e) => { ClockTime.Text = DateTime.Now.ToString("HH:mm"); ClockDate.Text = DateTime.Now.ToString("ddd, dd MMM"); };
@@ -2061,21 +2020,19 @@ namespace PichalUI
         {
             // Inicia o comando
             ToggleFullscreen();
-            SteamFriends.OnChatMessage += OnSteamChatMessage;
             _controller = new PlayStationController();
             _controller.StateChanged += Controller_StateChanged;
             if (!_controller.Start()) { /* Log */ }
 
             try
             {
-                // Inicia a comunicação com a Steam (AppID 480 = Spacewar)
-                SteamClient.Init(480);
-                StatusLabel.Text = "Steamworks: Ativo";
+                SteamClient.Init(480); // Inicia a Steam
+                SteamFriends.ListenForFriendsMessages = true; //CRL +2H QUE SE RESOLVEU NUMA LINHA DE CÓDIGO FDS
+                SteamFriends.OnChatMessage += OnSteamChatMessage; // Liga o ouvinte de mensagens
+
+                StatusLabel.Text = "Steam: Ligado (Local)";
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("A Steam precisa de estar aberta para o chat funcionar.");
-            }
+            catch { StatusLabel.Text = "Steam: Offline (Web Mode)"; }
 
             // INÍCIO DO PROCESSO DE CARREGAMENTO
             _ = Task.Run(async () =>
@@ -2884,15 +2841,15 @@ namespace PichalUI
                 if (img.HasValue)
                 {
                     var bmp = SteamImageToBitmap(img.Value);
+                    bmp.Freeze();
                     await Dispatcher.InvokeAsync(() => ChatFriendAvatar.Source = bmp);
                 }
             });
 
-            _chatMessages.Clear();
-            ChatList.ItemsSource = _chatMessages;
-
             ChatModal.Visibility = Visibility.Visible;
             ChatInputBox.Focus();
+
+            if (_chatMessages.Count > 0) ChatList.ScrollIntoView(_chatMessages.Last());
         }
 
         private void SendChat_Click(object sender, RoutedEventArgs e)
@@ -2916,33 +2873,50 @@ namespace PichalUI
 
                 ChatInputBox.Clear();
                 ChatList.ScrollIntoView(_chatMessages.Last());
-            }
+            }else MessageBox.Show("Erro ao enviar. A Steam está aberta?");
         }
 
         private void OnSteamChatMessage(Friend friend, string type, string message)
-        {   
-            SaveChatMessage(friend.Id.ToString(), friend.Name, message);
+        {
+            string cleanMessage = message.Replace("\0", "").Trim();
+            if (string.IsNullOrWhiteSpace(cleanMessage)) return;
+
+            SaveChatMessage(friend.Id.ToString(), friend.Name, cleanMessage);
 
             // Só mostra se o modal estiver aberto e for o amigo certo
-            if (ChatModal.Visibility == Visibility.Visible && friend.Id == _currentChatFriend.Id)
+            if (ChatModal.Visibility == Visibility.Visible && _currentChatFriend.Id == friend.Id)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    _chatMessages.Add(new ChatMessage
+                    var msg = new ChatMessage
                     {
                         SenderName = friend.Name,
-                        Message = message,
+                        Message = cleanMessage,
                         Time = DateTime.Now.ToShortTimeString(),
                         Alignment = HorizontalAlignment.Left, // Lado Esquerdo = Amigo
                         BubbleColor = Brushes.Gray
-                    });
+                    };
+                    _chatMessages.Add(msg);
                     ChatList.ScrollIntoView(_chatMessages.Last());
                 });
             }
-            else
+
+            if(ChatModal.Visibility != Visibility.Visible)
             {
-                // Opcional: Tocar um som ou mostrar notificação se o chat estiver fechado
-                // System.Media.SystemSounds.Asterisk.Play();
+                _ = Task.Run(async () =>
+                {
+                    var img = await SteamFriends.GetLargeAvatarAsync(friend.Id);
+                    if (img.HasValue)
+                    {
+                        var bmp = SteamImageToBitmap(img.Value);
+                        bmp.Freeze();
+                        ShowNotification(friend.Name, cleanMessage, bmp);
+                    }
+                    else
+                    {
+                        ShowNotification(friend.Name, cleanMessage);
+                    }
+                });
             }
         }
 
@@ -2980,71 +2954,115 @@ namespace PichalUI
             return BitmapSource.Create(w, h, 96, 96, PixelFormats.Bgra32, null, bgra, w * 4);
         }
 
-        void SaveChatMessage(string friendSteamId, string senderName, string message)
+        void SaveChatMessage(string friendId, string sender, string msg)
         {
-            try
-            {
-                Directory.CreateDirectory(chatLogDir);
-                string filePath = Path.Combine(chatLogDir, $"{friendSteamId}.json");
-
-                var entry = new ChatLogEntry
-                {
-                    Sender = senderName,
-                    Message = message,
-                    Timestamp = DateTime.Now
-                };
-
-                // Lê o histórico existente (se houver)
-                List<ChatLogEntry> history = new List<ChatLogEntry>();
-                if (File.Exists(filePath))
-                {
-                    string json = File.ReadAllText(filePath);
-                    history = JsonSerializer.Deserialize<List<ChatLogEntry>>(json) ?? new List<ChatLogEntry>();
-                }
-
-                // Adiciona a nova e guarda (limita a 100 mensagens para não ficar pesado)
-                history.Add(entry);
-                if (history.Count > 100) history.RemoveAt(0);
-
-                File.WriteAllText(filePath, JsonSerializer.Serialize(history));
-            }
-            catch { /* Ignora erros de escrita */ }
-        }
-
-        void LoadChatHistory(string friendSteamId)
-        {
-            _chatMessages.Clear();
-            string filePath = Path.Combine(chatLogDir, $"{friendSteamId}.json");
-
-            if (File.Exists(filePath))
+            lock (_chatFileLock)
             {
                 try
                 {
-                    string json = File.ReadAllText(filePath);
-                    var history = JsonSerializer.Deserialize<List<ChatLogEntry>>(json);
-
-                    if (history != null)
+                    Directory.CreateDirectory(chatLogDir);
+                    string f = Path.Combine(chatLogDir, $"{friendId}.json");
+                    var list = new List<ChatLogEntry>();
+                    if (File.Exists(f))
                     {
-                        foreach (var entry in history)
-                        {
-                            // Recria a mensagem visualmente
-                            _chatMessages.Add(new ChatMessage
+                        try { list = JsonSerializer.Deserialize<List<ChatLogEntry>>(File.ReadAllText(f)) ?? new List<ChatLogEntry>(); } catch { }
+                    }
+                    list.Add(new ChatLogEntry { Sender = sender, Message = msg, Timestamp = DateTime.Now });
+                    if (list.Count > 200) list.RemoveRange(0, list.Count - 200);
+                    File.WriteAllText(f, JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true }));
+                }
+                catch (Exception ex) { Dispatcher.Invoke(() => MessageBox.Show("Erro a gravar chat: " + ex.Message)); }
+            }
+        }
+
+        void LoadChatHistory(string friendId)
+        {
+            _chatMessages.Clear();
+            ChatList.ItemsSource = _chatMessages;
+            
+            lock (_chatFileLock)
+            {
+                try
+                {
+                    string f = Path.Combine(chatLogDir, $"{friendId}.json");
+                    if (File.Exists(f))
+                    {
+                        var list = JsonSerializer.Deserialize<List<ChatLogEntry>>(File.ReadAllText(f));
+                        if (list != null) foreach (var e in list)
                             {
-                                SenderName = entry.Sender,
-                                Message = entry.Message,
-                                Time = entry.Timestamp.ToShortTimeString(),
-                                // Se fui "Eu", direita. Se foi o amigo, esquerda.
-                                Alignment = entry.Sender == "Eu" ? HorizontalAlignment.Right : HorizontalAlignment.Left,
-                                BubbleColor = entry.Sender == "Eu" ? (SolidColorBrush)FindResource("AccentBrush") : Brushes.Gray
-                            });
-                        }
-                        // Scroll para o fundo
-                        if (_chatMessages.Count > 0)
-                            ChatList.ScrollIntoView(_chatMessages.Last());
+                                _chatMessages.Add(new ChatMessage
+                                {
+                                    SenderName = e.Sender,
+                                    Message = e.Message,
+                                    Time = e.Timestamp.ToShortTimeString(),
+                                    Alignment = e.Sender == "Eu" ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+                                    BubbleColor = e.Sender == "Eu" ? (SolidColorBrush)FindResource("AccentBrush") : Brushes.Gray
+                                });
+                            }
+                        if (_chatMessages.Count > 0) ChatList.ScrollIntoView(_chatMessages.Last());
                     }
                 }
                 catch { }
             }
+        }
+
+        private void UpdateSteamCallbacks(object? sender, EventArgs e)
+        {
+            if (SteamClient.IsValid)
+            {
+                try
+                {
+                    SteamClient.RunCallbacks();
+                }
+                catch
+                {
+                    
+                }
+            }
+        }
+
+        public void ShowNotification(string title, string message, ImageSource? image = null)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                //Configurar os Dados
+                NotifTitle.Text = title;
+                NotifMessage.Text = message;
+                if(image != null) NotifImage.Source = image;
+
+                //Cancelar a animação anterior caso haja (pra prevenir que pisque)
+                _notificationCts?.Cancel();
+                _notificationCts = new CancellationTokenSource();
+                var token = _notificationCts.Token;
+
+                //Animação de Entrada
+                var slideIn = new ThicknessAnimation
+                {
+                  From = new Thickness(0,-100,0,0),
+                  To = new Thickness(0,30,0,0), //Fica abaixo do topo 30px
+                  Duration = TimeSpan.FromMilliseconds(400),
+                  EasingFunction = new CubicEase{ EasingMode = EasingMode.EaseOut }
+                };
+
+                NotificationPopup.BeginAnimation(Border.MarginProperty, slideIn);
+
+                //Esperar e Fechar
+                Task.Delay(4000, token).ContinueWith(_ =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        //Animação de Saida
+                        var slideOut = new ThicknessAnimation
+                        {
+                            From = new Thickness(0,30,0,0),
+                            To = new Thickness(0,-100,0,0),
+                            Duration = TimeSpan.FromMilliseconds(400),
+                            EasingFunction = new CubicEase{ EasingMode = EasingMode.EaseIn }
+                        };
+                        NotificationPopup.BeginAnimation(Border.MarginProperty, slideOut);
+                    });
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            });
         }
 
         public static class WifiHelper
