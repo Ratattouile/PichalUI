@@ -42,6 +42,7 @@ dotnet restore
 
 **2. Critical Configuration**
 For the Steam integration to work in dev mode (Debug), is necessary create a file in the folder where the executable runs.
+- 
     1. Go to the folder `bin/Debug/net9.0-windows` (after the first compilation).
     2. Create a file text named `steam_appid.txt`.
     3. Write only the number `480` inside the file and save.
