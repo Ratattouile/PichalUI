@@ -2023,7 +2023,8 @@ namespace PichalUI
             LoadSavedTheme();
             // Inicia o comando
             ToggleFullscreen();
-            _ = PlayStartupAnimation();
+            //_ = PlayStartupAnimation();
+            _ = FoxyStartupAnimation();
             _controller = new PlayStationController();
             _controller.StateChanged += Controller_StateChanged;
             if (!_controller.Start()) { /* Log */ }
@@ -3120,7 +3121,7 @@ namespace PichalUI
             var colorAnim = new ColorAnimationUsingKeyFrames();
             colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 0, 0), KeyTime.FromTimeSpan(TimeSpan.Zero)));
             colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 100, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.8))));
-            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(255, 215, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(1.4))));
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 215, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(1.4))));
             IntroColorCore.BeginAnimation(GradientStop.ColorProperty, colorAnim);
 
             await Task.Delay(1200);
@@ -3149,17 +3150,18 @@ namespace PichalUI
             var glowAnim = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1));
             LogoGlow.BeginAnimation(DropShadowEffect.OpacityProperty, glowAnim);
 
-            await Task.Delay(1800); 
+            await Task.Delay(1800);
 
-            var flashIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
-            IntroFlash.BeginAnimation(Border.OpacityProperty, flashIn);
+            var logoSizeUp = new DoubleAnimation(1, 100, TimeSpan.FromMilliseconds(900)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+            IntroLogoScale.BeginAnimation(ScaleTransform.ScaleXProperty, logoSizeUp);
+            IntroLogoScale.BeginAnimation(ScaleTransform.ScaleYProperty, logoSizeUp);
 
-            await Task.Delay(300);
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(1000)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            IntroLogo.BeginAnimation(UIElement.OpacityProperty, fadeOut);
 
-            IntroLogo.Opacity = 0;
+            await Task.Delay(450);
+            StartupOverlay.Visibility = Visibility.Collapsed;
             IntroBackgroundGradient.RadiusX = 0;
-
-            var flashOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1));
 
             var gamesFadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(1.5));
             var gamesSlideUp = new DoubleAnimation(150, 0, TimeSpan.FromSeconds(1.9))
@@ -3169,12 +3171,76 @@ namespace PichalUI
 
             Carousel.BeginAnimation(Border.OpacityProperty, gamesFadeIn);
             CarouselSlideTransform.BeginAnimation(TranslateTransform.YProperty, gamesSlideUp);
+        }
 
-            flashOut.Completed += (s, e) =>
+        async Task FoxyStartupAnimation()
+        {
+            Carousel.Opacity = 0;
+            CarouselSlideTransform.Y = 150;
+
+            IntroBackgroundGradient.RadiusX = 0; IntroBackgroundGradient.RadiusY = 0;
+
+            await Task.Delay(300);
+            try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
+
+            var bgExpand = new DoubleAnimation(0.0, 1.2, TimeSpan.FromSeconds(1.5)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            IntroBackgroundGradient.BeginAnimation(RadialGradientBrush.RadiusXProperty, bgExpand);
+            IntroBackgroundGradient.BeginAnimation(RadialGradientBrush.RadiusYProperty, bgExpand);
+
+            var colorAnim = new ColorAnimationUsingKeyFrames();
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 0, 0), KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 100, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.8))));
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 215, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(1.4))));
+            IntroColorCore.BeginAnimation(GradientStop.ColorProperty, colorAnim);
+
+            await Task.Delay(1200);
+
+            IntroShockwave1.Opacity = 1; IntroShockwave2.Opacity = 1;
+            var shock1 = new DoubleAnimation(1, 15, TimeSpan.FromMilliseconds(800));
+            var fade1 = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(800));
+            ShockScale1.BeginAnimation(ScaleTransform.ScaleXProperty, shock1);
+            ShockScale1.BeginAnimation(ScaleTransform.ScaleYProperty, shock1);
+            IntroShockwave1.BeginAnimation(System.Windows.Shapes.Ellipse.OpacityProperty, fade1);
+
+            var shock2 = new DoubleAnimation(1, 10, TimeSpan.FromMilliseconds(400));
+            var fade2 = new DoubleAnimation(0.8, 0, TimeSpan.FromMilliseconds(400));
+            ShockScale2.BeginAnimation(ScaleTransform.ScaleXProperty, shock2);
+            ShockScale2.BeginAnimation(ScaleTransform.ScaleYProperty, shock2);
+            IntroShockwave2.BeginAnimation(System.Windows.Shapes.Ellipse.OpacityProperty, fade2);
+
+            IntroLogo.Opacity = 1;
+            var logoPop = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(900)) { EasingFunction = new ElasticEase { Oscillations = 1, Springiness = 6 } };
+            IntroLogoScale.BeginAnimation(ScaleTransform.ScaleXProperty, logoPop);
+            IntroLogoScale.BeginAnimation(ScaleTransform.ScaleYProperty, logoPop);
+
+            var logoSpin = new DoubleAnimation(-180, 0, TimeSpan.FromMilliseconds(900)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            IntroLogoRotate.BeginAnimation(RotateTransform.AngleProperty, logoSpin);
+
+            var glowAnim = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1));
+            LogoGlow.BeginAnimation(DropShadowEffect.OpacityProperty, glowAnim);
+
+            await Task.Delay(1800);
+
+            Foxy.Opacity = 1;
+            var logoSizeUp = new DoubleAnimation(0, 100, TimeSpan.FromMilliseconds(450)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+            FoxyScale.BeginAnimation(ScaleTransform.ScaleXProperty, logoSizeUp);
+            FoxyScale.BeginAnimation(ScaleTransform.ScaleYProperty, logoSizeUp);
+
+
+            await Task.Delay(440);
+            Foxy.Opacity = 0;
+            IntroLogo.Opacity = 0;
+            StartupOverlay.Visibility = Visibility.Collapsed;
+            IntroBackgroundGradient.RadiusX = 0;
+
+            var gamesFadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(1.5));
+            var gamesSlideUp = new DoubleAnimation(150, 0, TimeSpan.FromSeconds(1.9))
             {
-                StartupOverlay.Visibility = Visibility.Collapsed;
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
-            IntroFlash.BeginAnimation(Border.OpacityProperty, flashOut);
+
+            Carousel.BeginAnimation(Border.OpacityProperty, gamesFadeIn);
+            CarouselSlideTransform.BeginAnimation(TranslateTransform.YProperty, gamesSlideUp);
         }
 
         public static class WifiHelper

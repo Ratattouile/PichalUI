@@ -20,6 +20,7 @@
     <Resource Include="Assets/PichalLeafMask.png"/>
     <Resource Include="Assets/PichalLogoFull.png"/>
     <Resource Include="Assets/PichalLeaf.png"/>
+    <Resource Include="Assets/Fox.png"/>
   </ItemGroup>
 
 </Project>

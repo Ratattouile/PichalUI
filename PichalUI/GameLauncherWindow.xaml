@@ -1921,7 +1921,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.4.0 - alpha"
+                    <TextBlock Text="v0.4.2 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
@@ -2192,11 +2192,26 @@
                     </Image.RenderTransform>
                     <Image.Effect>
                         <DropShadowEffect x:Name="LogoGlow"
-                                          Color="Gold"
+                                          Color="Green"
                                           BlurRadius="60"
                                           ShadowDepth="0"
                                           Opacity="0"/>
                     </Image.Effect>
+                </Image>
+
+                <Image x:Name="Foxy"
+                       Source="Assets/Fox.png"
+                       Width="280"
+                       Height="280"
+                       RenderTransformOrigin="0.5,0.5"
+                       Opacity="0">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="FoxyScale"
+                                            ScaleX="0.0"
+                                            ScaleY="0.0"/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
                 </Image>
 
                 <Border x:Name="IntroFlash"
