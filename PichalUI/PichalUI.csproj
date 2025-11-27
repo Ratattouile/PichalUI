@@ -16,6 +16,10 @@
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4" />
     <PackageReference Include="SteamKit2" Version="3.3.1" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <Folder Include="Assets/"/>
+    <Resource Include="Assets/PichalLeafMask.png"/>
+    <Resource Include="Assets/PichalLogoFull.png"/>
+    <Resource Include="Assets/PichalLeaf.png"/>
   </ItemGroup>
 
 </Project>

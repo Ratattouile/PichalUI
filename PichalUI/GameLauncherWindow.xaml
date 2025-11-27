@@ -403,7 +403,12 @@
                     Height="340"
                     VerticalAlignment="Center"
                     ClipToBounds="False"
-                    Padding="8">
+                    Padding="8"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="CarouselSlideTransform"
+                            Y="0"/>
+                </Border.RenderTransform>
                 <ListBox x:Name="GamesListBox"
                          Grid.Row="3"
                          Background="Transparent"
@@ -1916,7 +1921,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.3.1 - alpha"
+                    <TextBlock Text="v0.4.0 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
@@ -2083,23 +2088,124 @@
                 x:FieldModifier="public"
                 Panel.ZIndex="9999">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.6"/>
+                <DropShadowEffect BlurRadius="20"
+                                  ShadowDepth="4"
+                                  Opacity="0.6"/>
             </Border.Effect>
 
             <StackPanel Orientation="Horizontal">
-                <Grid Width="40" Height="40" Margin="0,0,15,0">
-                    <Image x:Name="NotifImage" Stretch="UniformToFill">
+                <Grid Width="40"
+                      Height="40"
+                      Margin="0,0,15,0">
+                    <Image x:Name="NotifImage"
+                           Stretch="UniformToFill">
                         <Image.Clip>
-                            <EllipseGeometry Center="20,20" RadiusX="20" RadiusY="20"/>
+                            <EllipseGeometry Center="20,20"
+                                             RadiusX="20"
+                                             RadiusY="20"/>
                         </Image.Clip>
                     </Image>
                 </Grid>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock x:Name="NotifTitle" Text="Nome" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" FontSize="14"/>
-                    <TextBlock x:Name="NotifMessage" Text="Mensagem Recebida" Foreground="White" FontSize="12" TextTrimming="CharacterEllipsis" MaxWidth="300"/>
+                    <TextBlock x:Name="NotifTitle"
+                               Text="Nome"
+                               Foreground="{DynamicResource AccentBrush}"
+                               FontWeight="Bold"
+                               FontSize="14"/>
+                    <TextBlock x:Name="NotifMessage"
+                               Text="Mensagem Recebida"
+                               Foreground="White"
+                               FontSize="12"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="300"/>
                 </StackPanel>
             </StackPanel>
         </Border>
+
+        <Grid x:Name="StartupOverlay"
+              Grid.RowSpan="5"
+              Visibility="Visible"
+              Panel.ZIndex="99999"
+              x:FieldModifier="public">
+
+            <Grid.Background>
+                <RadialGradientBrush x:Name="IntroBackgroundGradient"
+                                     GradientOrigin="0.5,0.5"
+                                     Center="0.5,0.5"
+                                     RadiusX="0.0"
+                                     RadiusY="0.0">
+                    <GradientStop x:Name="IntroColorCore"
+                                  Color="#FFD700"
+                                  Offset="0.0"/>
+                    <GradientStop x:Name="IntroColorEdge"
+                                  Color="#003300"
+                                  Offset="1.0"/>
+                </RadialGradientBrush>
+            </Grid.Background>
+
+            <Grid HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+
+                <Ellipse x:Name="IntroShockwave1"
+                         Width="50"
+                         Height="50"
+                         Stroke="#FFD700"
+                         StrokeThickness="5"
+                         Opacity="0"
+                         RenderTransformOrigin="0.5,0.5">
+                    <Ellipse.RenderTransform>
+                        <ScaleTransform x:Name="ShockScale1"
+                                        ScaleX="1"
+                                        ScaleY="1"/>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+
+                <Ellipse x:Name="IntroShockwave2"
+                         Width="50"
+                         Height="50"
+                         Stroke="White"
+                         StrokeThickness="2"
+                         Opacity="0"
+                         RenderTransformOrigin="0.5,0.5">
+                    <Ellipse.RenderTransform>
+                        <ScaleTransform x:Name="ShockScale2"
+                                        ScaleX="1"
+                                        ScaleY="1"/>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+
+                <Image x:Name="IntroLogo"
+                       Source="Assets/PichalLeaf.png"
+                       Width="280"
+                       Height="280"
+                       RenderTransformOrigin="0.5,0.5"
+                       Opacity="0">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="IntroLogoScale"
+                                            ScaleX="0.0"
+                                            ScaleY="0.0"/>
+                            <RotateTransform x:Name="IntroLogoRotate"
+                                             Angle="-180"/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                    <Image.Effect>
+                        <DropShadowEffect x:Name="LogoGlow"
+                                          Color="Gold"
+                                          BlurRadius="60"
+                                          ShadowDepth="0"
+                                          Opacity="0"/>
+                    </Image.Effect>
+                </Image>
+
+                <Border x:Name="IntroFlash"
+                        Background="White"
+                        Opacity="0"
+                        IsHitTestVisible="False"
+                        Width="3000"
+                        Height="2000"/>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

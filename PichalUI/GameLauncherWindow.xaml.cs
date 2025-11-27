@@ -29,6 +29,8 @@ using System.Collections.Concurrent;
 using Steamworks;
 using SteamKit2.Internal;
 using System.Reactive;
+using System.Windows.Media.Effects;
+using System.Configuration;
 
 namespace PichalUI
 {
@@ -2018,8 +2020,10 @@ namespace PichalUI
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            LoadSavedTheme();
             // Inicia o comando
             ToggleFullscreen();
+            _ = PlayStartupAnimation();
             _controller = new PlayStationController();
             _controller.StateChanged += Controller_StateChanged;
             if (!_controller.Start()) { /* Log */ }
@@ -2457,6 +2461,7 @@ namespace PichalUI
             var pnl = (Color)ColorConverter.ConvertFromString("#D9101010");
 
             ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl);
+            SaveTheme("Red");
         }
 
         private void BtnThemeBlue_Click(object sender, RoutedEventArgs e)
@@ -2468,6 +2473,7 @@ namespace PichalUI
             var pnl = (Color)ColorConverter.ConvertFromString("#D9051020");
 
             ApplyThemeColors(accent, Colors.LightBlue, bgStart, bgEnd, pnl);
+            SaveTheme("Blue");
         }
 
         private void BtnThemeDark_Click(object sender, RoutedEventArgs e)
@@ -2479,6 +2485,7 @@ namespace PichalUI
             var pnl = (Color)ColorConverter.ConvertFromString("#E6000000");
 
             ApplyThemeColors(accent, Colors.DarkGray, bgStart, bgEnd, pnl);
+            SaveTheme("Dark");
         }
 
         private void BtnThemePichal_Click(object sender, RoutedEventArgs e)
@@ -2499,6 +2506,7 @@ namespace PichalUI
             var textSecondary = (Color)ColorConverter.ConvertFromString("#FFD4AF37");
 
             ApplyThemeColors(accent, textSecondary, bgStart, bgEnd, pnl);
+            SaveTheme("Pichal");
         }
 
         // --- POWER OPTIONS ---
@@ -2873,7 +2881,8 @@ namespace PichalUI
 
                 ChatInputBox.Clear();
                 ChatList.ScrollIntoView(_chatMessages.Last());
-            }else MessageBox.Show("Erro ao enviar. A Steam está aberta?");
+            }
+            else MessageBox.Show("Erro ao enviar. A Steam está aberta?");
         }
 
         private void OnSteamChatMessage(Friend friend, string type, string message)
@@ -2901,7 +2910,7 @@ namespace PichalUI
                 });
             }
 
-            if(ChatModal.Visibility != Visibility.Visible)
+            if (ChatModal.Visibility != Visibility.Visible)
             {
                 _ = Task.Run(async () =>
                 {
@@ -2979,7 +2988,7 @@ namespace PichalUI
         {
             _chatMessages.Clear();
             ChatList.ItemsSource = _chatMessages;
-            
+
             lock (_chatFileLock)
             {
                 try
@@ -3016,7 +3025,7 @@ namespace PichalUI
                 }
                 catch
                 {
-                    
+
                 }
             }
         }
@@ -3028,7 +3037,7 @@ namespace PichalUI
                 //Configurar os Dados
                 NotifTitle.Text = title;
                 NotifMessage.Text = message;
-                if(image != null) NotifImage.Source = image;
+                if (image != null) NotifImage.Source = image;
 
                 //Cancelar a animação anterior caso haja (pra prevenir que pisque)
                 _notificationCts?.Cancel();
@@ -3038,10 +3047,10 @@ namespace PichalUI
                 //Animação de Entrada
                 var slideIn = new ThicknessAnimation
                 {
-                  From = new Thickness(0,-100,0,0),
-                  To = new Thickness(0,30,0,0), //Fica abaixo do topo 30px
-                  Duration = TimeSpan.FromMilliseconds(400),
-                  EasingFunction = new CubicEase{ EasingMode = EasingMode.EaseOut }
+                    From = new Thickness(0, -100, 0, 0),
+                    To = new Thickness(0, 30, 0, 0), //Fica abaixo do topo 30px
+                    Duration = TimeSpan.FromMilliseconds(400),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
 
                 NotificationPopup.BeginAnimation(Border.MarginProperty, slideIn);
@@ -3054,15 +3063,118 @@ namespace PichalUI
                         //Animação de Saida
                         var slideOut = new ThicknessAnimation
                         {
-                            From = new Thickness(0,30,0,0),
-                            To = new Thickness(0,-100,0,0),
+                            From = new Thickness(0, 30, 0, 0),
+                            To = new Thickness(0, -100, 0, 0),
                             Duration = TimeSpan.FromMilliseconds(400),
-                            EasingFunction = new CubicEase{ EasingMode = EasingMode.EaseIn }
+                            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
                         };
                         NotificationPopup.BeginAnimation(Border.MarginProperty, slideOut);
                     });
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             });
+        }
+
+        // --- GESTÃO DE TEMAS ---
+        string themeFilePath => System.IO.Path.Combine(configDir, "current_theme.dat");
+        void SaveTheme(string themeName)
+        {
+            try
+            {
+                File.WriteAllText(themeFilePath, themeName);
+            }
+            catch { }
+        }
+
+        void LoadSavedTheme()
+        {
+            if (!File.Exists(themeFilePath)) return;
+
+            try
+            {
+                string theme = File.ReadAllText(themeFilePath);
+                switch (theme)
+                {
+                    case "Blue": BtnThemeBlue_Click(null, null); break;
+                    case "Dark": BtnThemeDark_Click(null, null); break;
+                    case "Pichal": BtnThemePichal_Click(null, null); break;
+                    case "Red": BtnThemeRed_Click(null, null); break;
+                }
+            }
+            catch { }
+        }
+
+        async Task PlayStartupAnimation()
+        {
+            Carousel.Opacity = 0;
+            CarouselSlideTransform.Y = 150;
+
+            IntroBackgroundGradient.RadiusX = 0; IntroBackgroundGradient.RadiusY = 0;
+
+            await Task.Delay(300);
+            try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
+
+            var bgExpand = new DoubleAnimation(0.0, 1.2, TimeSpan.FromSeconds(1.5)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            IntroBackgroundGradient.BeginAnimation(RadialGradientBrush.RadiusXProperty, bgExpand);
+            IntroBackgroundGradient.BeginAnimation(RadialGradientBrush.RadiusYProperty, bgExpand);
+
+            var colorAnim = new ColorAnimationUsingKeyFrames();
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 0, 0), KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(0, 100, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.8))));
+            colorAnim.KeyFrames.Add(new EasingColorKeyFrame(Color.FromRgb(255, 215, 0), KeyTime.FromTimeSpan(TimeSpan.FromSeconds(1.4))));
+            IntroColorCore.BeginAnimation(GradientStop.ColorProperty, colorAnim);
+
+            await Task.Delay(1200);
+
+            IntroShockwave1.Opacity = 1; IntroShockwave2.Opacity = 1;
+            var shock1 = new DoubleAnimation(1, 15, TimeSpan.FromMilliseconds(800));
+            var fade1 = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(800));
+            ShockScale1.BeginAnimation(ScaleTransform.ScaleXProperty, shock1);
+            ShockScale1.BeginAnimation(ScaleTransform.ScaleYProperty, shock1);
+            IntroShockwave1.BeginAnimation(System.Windows.Shapes.Ellipse.OpacityProperty, fade1);
+
+            var shock2 = new DoubleAnimation(1, 10, TimeSpan.FromMilliseconds(400));
+            var fade2 = new DoubleAnimation(0.8, 0, TimeSpan.FromMilliseconds(400));
+            ShockScale2.BeginAnimation(ScaleTransform.ScaleXProperty, shock2);
+            ShockScale2.BeginAnimation(ScaleTransform.ScaleYProperty, shock2);
+            IntroShockwave2.BeginAnimation(System.Windows.Shapes.Ellipse.OpacityProperty, fade2);
+
+            IntroLogo.Opacity = 1;
+            var logoPop = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(900)) { EasingFunction = new ElasticEase { Oscillations = 1, Springiness = 6 } };
+            IntroLogoScale.BeginAnimation(ScaleTransform.ScaleXProperty, logoPop);
+            IntroLogoScale.BeginAnimation(ScaleTransform.ScaleYProperty, logoPop);
+
+            var logoSpin = new DoubleAnimation(-180, 0, TimeSpan.FromMilliseconds(900)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            IntroLogoRotate.BeginAnimation(RotateTransform.AngleProperty, logoSpin);
+
+            var glowAnim = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1));
+            LogoGlow.BeginAnimation(DropShadowEffect.OpacityProperty, glowAnim);
+
+            await Task.Delay(1800); 
+
+            var flashIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
+            IntroFlash.BeginAnimation(Border.OpacityProperty, flashIn);
+
+            await Task.Delay(300);
+
+            IntroLogo.Opacity = 0;
+            IntroBackgroundGradient.RadiusX = 0;
+
+            var flashOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1));
+
+            var gamesFadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(1.5));
+            var gamesSlideUp = new DoubleAnimation(150, 0, TimeSpan.FromSeconds(1.9))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            Carousel.BeginAnimation(Border.OpacityProperty, gamesFadeIn);
+            CarouselSlideTransform.BeginAnimation(TranslateTransform.YProperty, gamesSlideUp);
+
+            flashOut.Completed += (s, e) =>
+            {
+                StartupOverlay.Visibility = Visibility.Collapsed;
+            };
+            IntroFlash.BeginAnimation(Border.OpacityProperty, flashOut);
         }
 
         public static class WifiHelper
