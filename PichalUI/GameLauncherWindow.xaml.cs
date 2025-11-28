@@ -27,10 +27,11 @@ using System.Xml;
 using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
 using Steamworks;
-using SteamKit2.Internal;
+using SteamKit2;
 using System.Reactive;
 using System.Windows.Media.Effects;
 using System.Configuration;
+
 
 namespace PichalUI
 {
@@ -752,6 +753,12 @@ namespace PichalUI
         public DateTime Timestamp { get; set; }
     }
 
+    public class UserProfile
+    {
+        public string Username { get; set; }
+        public string ImagePath { get; set; }
+    }
+
     // --- JANELA PRINCIPAL ---
     public partial class GameLauncherWindow : Window
     {
@@ -779,7 +786,6 @@ namespace PichalUI
 
         // Timers e Ferramentas
         DispatcherTimer xinputTimer;
-        readonly string appCache;
         static readonly HttpClient http = new HttpClient();
 
         // DualSense / Input States
@@ -792,10 +798,6 @@ namespace PichalUI
         string? connectedSteamId = null;
         string? steamApiKey = null;
         bool steamConnected => !string.IsNullOrEmpty(connectedSteamId);
-        readonly string configDir;
-        readonly string apiKeyFilePath;
-        readonly string loginFilePath;
-
         // Navegação de Vistas
         public int currentIndex = 0;
         public bool isFriendMenu = false;
@@ -840,18 +842,31 @@ namespace PichalUI
         Steamworks.Friend _currentChatFriend; // O amigo com quem estamos a falar
         ObservableCollection<ChatMessage> _chatMessages = new ObservableCollection<ChatMessage>();
         private static readonly object _chatFileLock = new object();
-        string chatLogDir => Path.Combine(configDir, "chat_logs");
 
         // NOTIFICAÇÕES
         private CancellationTokenSource? _notificationCts;
 
+        // --- GESTÃO DE UTILIZADORES ---
+        string baseConfigDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PichalnovenseUI");
+        string usersDir => Path.Combine(baseConfigDir, "Users");
+
+        // Estes caminhos dependem do utilizador logado
+        string CurrentUserDir { get; set; } = "";
+        string apiKeyFilePath => Path.Combine(CurrentUserDir, "steam_key.dat");
+        string loginFilePath => Path.Combine(CurrentUserDir, "steam_login.dat");
+        string chatLogDir => Path.Combine(CurrentUserDir, "chat_logs");
+        string themeFilePath => Path.Combine(CurrentUserDir, "current_theme.dat");
+        string appCache => Path.Combine(baseConfigDir, "covercache"); // Cache de imagens partilhada
+
+        UserProfile currentUser;
+        List<UserProfile> availableUsers = new List<UserProfile>();
+
+
         public GameLauncherWindow()
         {
             InitializeComponent();
-            configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PichalnovenseUI");
-            apiKeyFilePath = Path.Combine(configDir, "steam_key.dat");
-            loginFilePath = Path.Combine(configDir, "steam_login.dat");
-            appCache = Path.Combine(configDir, "covercache");
+            Directory.CreateDirectory(baseConfigDir);
+            Directory.CreateDirectory(usersDir);
             Directory.CreateDirectory(appCache);
 
             this.DataContext = this;
@@ -2017,31 +2032,181 @@ namespace PichalUI
         }
 
         // --- DUALSENSE & WINDOW ---
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        async Task StartupAndLogin()
         {
-            LoadSavedTheme();
-            // Inicia o comando
+            await PlayStartupAnimation();
+
+            LoadUsers();
+        }
+
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
             ToggleFullscreen();
-            //_ = PlayStartupAnimation();
-            _ = FoxyStartupAnimation();
+            //_ = FoxyStartupAnimation();
             _controller = new PlayStationController();
             _controller.StateChanged += Controller_StateChanged;
             if (!_controller.Start()) { /* Log */ }
 
+            await PlayStartupAnimation();
+
+            LoadUsers();
+
+            if (availableUsers.Count == 0)
+            {
+                ShowAddUserModal_Click(null, null);
+            }
+            else
+            {
+                UserSelectionOverlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        void LoadUsers()
+        {
+            availableUsers.Clear();
+            if (Directory.Exists(usersDir))
+            {
+                foreach (var dir in Directory.GetDirectories(usersDir))
+                {
+                    availableUsers.Add(new UserProfile { Username = new DirectoryInfo(dir).Name });
+                }
+            }
+            UserListBox.ItemsSource = null;
+            UserListBox.ItemsSource = availableUsers;
+        }
+
+        private void UserButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string username)
+            {
+                LoginUser(username);
+            }
+        }
+
+        private void AddUser_Click(object sender, RoutedEventArgs e)
+        {
+            string newName = PromptForText("Novo Utilizador", "Nome do ustilizador:", "");
+            if (!string.IsNullOrWhiteSpace(newName))
+            {
+                string newDir = Path.Combine(usersDir, newName);
+                Directory.CreateDirectory(newDir);
+
+                LoginUser(newName);
+            }
+        }
+
+        private void ShowAddUserModal_Click(object sender, RoutedEventArgs e)
+        {
+            TxtNewUserName.Text = "";
+            TxtNewUserApiKey.Text = "";
+            TxtNewUserSteamId.Text = "";
+            TxtNewSteamLogin.Text = "";
+            TxtNewSteamPassword.Password = "";
+
             try
             {
-                SteamClient.Init(480); // Inicia a Steam
-                SteamFriends.ListenForFriendsMessages = true; //CRL +2H QUE SE RESOLVEU NUMA LINHA DE CÓDIGO FDS
-                SteamFriends.OnChatMessage += OnSteamChatMessage; // Liga o ouvinte de mensagens
+                Steamworks.SteamClient.Init(480);
+                if (Steamworks.SteamClient.IsValid)
+                {
+                    TxtNewUserSteamId.Text = Steamworks.SteamClient.SteamId.ToString();
+                    TxtNewUserName.Text = Steamworks.SteamClient.Name;
+                }
 
-                StatusLabel.Text = "Steam: Ligado (Local)";
+                string autoUser = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "AutoLoginUser", "") as string;
+                if (!string.IsNullOrEmpty(autoUser))
+                    TxtNewSteamLogin.Text = autoUser;
             }
-            catch { StatusLabel.Text = "Steam: Offline (Web Mode)"; }
+            catch { }
+            AddUserModal.Visibility = Visibility.Visible;
+            UserSelectionOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void CancelAddUser_Click(object sender, RoutedEventArgs e)
+        {
+            AddUserModal.Visibility = Visibility.Collapsed;
+            if (availableUsers.Count > 0) UserSelectionOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void ConfirmAddUser_Click(object sender, RoutedEventArgs e)
+        {
+            string name = TxtNewUserName.Text.Trim();
+            if (string.IsNullOrWhiteSpace(name)) { MessageBox.Show("Escreve um nome para o perfil!"); return; }
+
+            string newDir = Path.Combine(usersDir, name);
+            Directory.CreateDirectory(newDir);
+            CurrentUserDir = newDir;
+
+            // Guarda dados opcionais do Pichal UI
+            if (!string.IsNullOrWhiteSpace(TxtNewUserApiKey.Text)) SaveSteamApiKey(TxtNewUserApiKey.Text.Trim());
+            if (!string.IsNullOrWhiteSpace(TxtNewUserSteamId.Text)) SaveConnectedSteamId(TxtNewUserSteamId.Text.Trim());
+
+            // Guarda o Nome de Login da Steam (Para troca futura)
+            string steamLogin = TxtNewSteamLogin.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(steamLogin))
+            {
+                File.WriteAllText(Path.Combine(newDir, "steam_username.dat"), steamLogin);
+            }
+
+            string steamPass = TxtNewSteamPassword.Password;
+
+            AddUserModal.Visibility = Visibility.Collapsed;
+
+            // LÓGICA DE CRIAÇÃO
+            if (!string.IsNullOrWhiteSpace(steamLogin) && !string.IsNullOrWhiteSpace(steamPass))
+            {
+                // Se o user deu login e pass, fazemos o registo na Steam App agora!
+                _ = Task.Run(async () =>
+                {
+                    // 1. Força o login na Steam App
+                    await RegisterNewSteamAccountAsync(steamLogin, steamPass);
+
+                    // 2. Depois de logado, entra no perfil do Pichal
+                    await Dispatcher.InvokeAsync(() => LoginUser(name));
+                });
+            }
+            else
+            {
+                // Criação normal offline ou sem troca de conta
+                LoginUser(name);
+            }
+        }
+
+        void LoginUser(string username)
+        {
+            currentUser = new UserProfile { Username = username };
+            CurrentUserDir = Path.Combine(usersDir, username);
+            Directory.CreateDirectory(CurrentUserDir);
+            Directory.CreateDirectory(chatLogDir);
+
+            UserSelectionOverlay.Visibility = Visibility.Collapsed;
+            StatusLabel.Text = $"Utilizador: {username}";
+
+            InitializeUserData();
+        }
+
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            // Reinicia para escolher outro user
+            System.Diagnostics.Process.Start(Environment.ProcessPath!);
+            Application.Current.Shutdown();
+        }
+
+        void InitializeUserData()
+        {
+            LoadSavedTheme();
 
             // INÍCIO DO PROCESSO DE CARREGAMENTO
             _ = Task.Run(async () =>
             {
+                string usernameFile = Path.Combine(CurrentUserDir, "steam_username.dat");
+                if (File.Exists(usernameFile))
+                {
+                    string steamLogin = File.ReadAllText(usernameFile).Trim();
+                    if (!string.IsNullOrEmpty(steamLogin))
+                        await SwitchSteamAccountAsync(steamLogin);
+                }
+
                 // 1. Carregar Credenciais
                 LoadSteamApiKey();
                 var savedId = LoadConnectedSteamId();
@@ -2051,6 +2216,25 @@ namespace PichalUI
                 {
                     connectedSteamId = savedId;
                     await UpdateHeaderUI();
+                }
+
+                try
+                {
+                    Steamworks.SteamClient.Init(480);
+                    Steamworks.SteamFriends.ListenForFriendsMessages = true;
+                    Steamworks.SteamFriends.OnChatMessage += OnSteamChatMessage;
+
+                    // Atualiza UI com o novo user
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        ProfileName.Text = Steamworks.SteamClient.Name;
+                        StatusLabel.Text = $"Steam: {Steamworks.SteamClient.Name}";
+                        connectedSteamId = Steamworks.SteamClient.SteamId.ToString();
+                    });
+                }
+                catch
+                {
+                    await Dispatcher.InvokeAsync(() => StatusLabel.Text = "Steam: Offline / Web Mode");
                 }
 
                 // 2. SCAN AOS JOGOS (CRÍTICO: Isto tem de acontecer ANTES de pedir dados à Steam)
@@ -2077,7 +2261,189 @@ namespace PichalUI
             });
         }
 
-        private void Window_Closed(object sender, EventArgs e) { _controller?.Stop(); hwMonitor?.Close(); SteamClient.Shutdown(); }
+        async Task SwitchSteamAccountAsync(string steamLoginName)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+                LoadingText.Text = $"A preparar Steam para: {steamLoginName}...";
+            });
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+                    if (string.IsNullOrEmpty(steamPath)) throw new Exception("Steam não encontrada.");
+
+                    string vdfPath = Path.Combine(steamPath, "config", "loginusers.vdf");
+                    string exePath = Path.Combine(steamPath, "steam.exe");
+
+                    var procs = Process.GetProcessesByName("steam");
+                    if (procs.Length > 0)
+                    {
+                        foreach (var p in procs)
+                        {
+                            try
+                            {
+                                p.Kill();
+                            }
+                            catch { }
+                        }
+
+                        foreach (var p in Process.GetProcessesByName("steamwebhelper"))
+                        {
+                            try
+                            {
+                                p.Kill();
+                            }
+                            catch { }
+                        }
+
+                        await Task.Delay(2000);
+                    }
+
+                    if (File.Exists(vdfPath))
+                    {
+                        try
+                        {
+                            var vdf = KeyValue.LoadAsText(vdfPath);
+                            bool userFound = false;
+
+                            foreach (var child in vdf.Children)
+                            {
+                                string accName = child["AccountName"].Value;
+
+                                if (accName.Equals(steamLoginName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    child["MostRecent"].Value = "1";
+                                    child["AllowAutoLogin"].Value = "1";
+                                    child["RememberPassword"].Value = "1";
+                                    child["WantsOfflineMode"].Value = "0";
+                                    child["SkipOfflineModeWarning"].Value = "1";
+                                    child["Timestamp"].Value = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                                    userFound = true;
+                                }
+                                else
+                                {
+                                    child["MostRecent"].Value = "0";
+                                    child["AllowAutoLogin"].Value = "0"; // Impeque que outros tentem entrar (opcional)
+                                }
+                            }
+
+                            if (userFound)
+                            {
+                                vdf.SaveToFile(vdfPath, false);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            await Dispatcher.InvokeAsync(() => MessageBox.Show($"Aviso VDF: {ex.Message}"));
+                        }
+                    }
+
+                    Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "AutoLoginUser", steamLoginName);
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "RememberPassword", 1);
+                    try { Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam", true)?.DeleteValue("ActiveProcess", false); } catch { }
+
+                    if (File.Exists(exePath))
+                    {
+                        Process.Start(new ProcessStartInfo(exePath, $"-silent -login {steamLoginName}") { UseShellExecute = true });
+                    }
+
+                    await Dispatcher.InvokeAsync(() => LoadingText.Text = "À espera da Steam...");
+                    int retries = 0;
+                    while (retries < 60)
+                    {
+                        await Task.Delay(1000);
+                        if (await Task.Run(() => { try { Steamworks.SteamClient.Init(480); return Steamworks.SteamClient.IsValid; } catch { return false; } }))
+                        {
+                            break;
+                        }
+                        retries++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erro ao trocar conta Steam: " + ex.Message);
+                }
+            });
+            await Dispatcher.InvokeAsync(() => LoadingOverlay.Visibility = Visibility.Collapsed);
+        }
+
+        async Task RegisterNewSteamAccountAsync(string username, string password)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+                LoadingText.Text = $"A registar conta Steam: {username}...";
+            });
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    var procs = Process.GetProcessesByName("steam");
+                    if (procs.Length > 0)
+                    {
+                        try { Process.Start(new ProcessStartInfo("steam://exit") { UseShellExecute = true }); } catch { }
+
+                        await Task.Delay(2000);
+
+                        foreach (var p in procs)
+                        {
+                            try
+                            {
+                                p.Kill();
+                            }
+                            catch { }
+                        }
+
+                        foreach (var p in Process.GetProcessesByName("steamwebhelper"))
+                        {
+                            try
+                            {
+                                p.Kill();
+                            }
+                            catch { }
+                        }
+
+                        await Task.Delay(2000);
+                    }
+
+                    string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+                    if (string.IsNullOrEmpty(steamPath)) throw new Exception("Steam não encontrada.");
+                    string exePath = Path.Combine(steamPath, "steam.exe");
+
+                    if (File.Exists(exePath))
+                    {
+                        Process.Start(new ProcessStartInfo(exePath, $"-silent -login \"{username}\" \"{password}\"") { UseShellExecute = true });
+                    }
+
+                    await Dispatcher.InvokeAsync(() => LoadingText.Text = "A aguardar login na Steam... (Insere Steam Guard se pedido)");
+
+                    int attempts = 0;
+                    while (attempts < 120)
+                    {
+                        await Task.Delay(1000);
+                        if (await Task.Run(() => { try { Steamworks.SteamClient.Init(480); return Steamworks.SteamClient.IsValid; } catch { return false; } }))
+                        {
+                            break;
+                        }
+                        attempts++;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    await Dispatcher.InvokeAsync(() => MessageBox.Show("Erro ao registar conta: " + ex.Message));
+                }
+            });
+
+            await Dispatcher.InvokeAsync(() => LoadingOverlay.Visibility = Visibility.Collapsed);
+        }
+
+        private void Window_Closed(object sender, EventArgs e) { _controller?.Stop(); hwMonitor?.Close(); Steamworks.SteamClient.Shutdown(); }
 
         private void Controller_StateChanged(DualSenseInputState state)
         {
@@ -2846,7 +3212,7 @@ namespace PichalUI
 
             _ = Task.Run(async () =>
             {
-                var img = await SteamFriends.GetLargeAvatarAsync(_currentChatFriend.Id);
+                var img = await Steamworks.SteamFriends.GetLargeAvatarAsync(_currentChatFriend.Id);
                 if (img.HasValue)
                 {
                     var bmp = SteamImageToBitmap(img.Value);
@@ -2915,7 +3281,7 @@ namespace PichalUI
             {
                 _ = Task.Run(async () =>
                 {
-                    var img = await SteamFriends.GetLargeAvatarAsync(friend.Id);
+                    var img = await Steamworks.SteamFriends.GetLargeAvatarAsync(friend.Id);
                     if (img.HasValue)
                     {
                         var bmp = SteamImageToBitmap(img.Value);
@@ -3018,11 +3384,11 @@ namespace PichalUI
 
         private void UpdateSteamCallbacks(object? sender, EventArgs e)
         {
-            if (SteamClient.IsValid)
+            if (Steamworks.SteamClient.IsValid)
             {
                 try
                 {
-                    SteamClient.RunCallbacks();
+                    Steamworks.SteamClient.RunCallbacks();
                 }
                 catch
                 {
@@ -3076,7 +3442,6 @@ namespace PichalUI
         }
 
         // --- GESTÃO DE TEMAS ---
-        string themeFilePath => System.IO.Path.Combine(configDir, "current_theme.dat");
         void SaveTheme(string themeName)
         {
             try
@@ -3102,6 +3467,105 @@ namespace PichalUI
                 }
             }
             catch { }
+        }
+
+        public static class WifiHelper
+        {
+            // Tenta conectar e espera para ver se funcionou
+            public static async Task<bool> ConnectToNetwork(string ssid, string password)
+            {
+                try
+                {
+                    // 1. Apagar perfil antigo para garantir que a password nova entra
+                    RunNetsh($"wlan delete profile name=\"{ssid}\"");
+
+                    // 2. Criar XML do Perfil (WPA2-Personal AES - Padrão 99% dos routers)
+                    // O truque: hex=false para a password ser texto limpo
+                    string profileXml = $@"<?xml version=""1.0""?>
+<WLANProfile xmlns=""http://www.microsoft.com/networking/WLAN/profile/v1"">
+    <name>{ssid}</name>
+    <SSIDConfig>
+        <SSID>
+            <name>{ssid}</name>
+        </SSID>
+    </SSIDConfig>
+    <connectionType>ESS</connectionType>
+    <connectionMode>auto</connectionMode>
+    <MSM>
+        <security>
+            <authEncryption>
+                <authentication>WPA2PSK</authentication>
+                <encryption>AES</encryption>
+                <useOneX>false</useOneX>
+            </authEncryption>
+            <sharedKey>
+                <keyType>passPhrase</keyType>
+                <protected>false</protected>
+                <keyMaterial>{password}</keyMaterial>
+            </sharedKey>
+        </security>
+    </MSM>
+</WLANProfile>";
+
+                    string tempFile = Path.GetTempFileName();
+                    File.WriteAllText(tempFile, profileXml);
+
+                    // 3. Injetar perfil
+                    RunNetsh($"wlan add profile filename=\"{tempFile}\"");
+
+                    // 4. Conectar
+                    RunNetsh($"wlan connect name=\"{ssid}\"");
+
+                    File.Delete(tempFile);
+
+                    // 5. Verificar sucesso (Polling durante 5 segundos)
+                    for (int i = 0; i < 5; i++)
+                    {
+                        await Task.Delay(1000);
+                        if (IsConnectedTo(ssid)) return true;
+                    }
+                    return false;
+                }
+                catch { return false; }
+            }
+
+            // Helper para correr comandos invisíveis
+            private static void RunNetsh(string args)
+            {
+                var p = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = args,
+                        CreateNoWindow = true,
+                        UseShellExecute = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    }
+                };
+                p.Start();
+                p.WaitForExit();
+            }
+
+            // Verifica se estamos ligados à rede certa
+            public static bool IsConnectedTo(string ssid)
+            {
+                var p = new Process
+                {
+                    StartInfo = new ProcessStartInfo("netsh", "wlan show interfaces")
+                    {
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+                p.Start();
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+
+                // Procura "SSID : NomeDaRede" e "State : connected"
+                return output.Contains($"SSID") && output.Contains(ssid) && output.Contains(" connected");
+            }
         }
 
         async Task PlayStartupAnimation()
@@ -3243,104 +3707,7 @@ namespace PichalUI
             CarouselSlideTransform.BeginAnimation(TranslateTransform.YProperty, gamesSlideUp);
         }
 
-        public static class WifiHelper
-        {
-            // Tenta conectar e espera para ver se funcionou
-            public static async Task<bool> ConnectToNetwork(string ssid, string password)
-            {
-                try
-                {
-                    // 1. Apagar perfil antigo para garantir que a password nova entra
-                    RunNetsh($"wlan delete profile name=\"{ssid}\"");
 
-                    // 2. Criar XML do Perfil (WPA2-Personal AES - Padrão 99% dos routers)
-                    // O truque: hex=false para a password ser texto limpo
-                    string profileXml = $@"<?xml version=""1.0""?>
-<WLANProfile xmlns=""http://www.microsoft.com/networking/WLAN/profile/v1"">
-    <name>{ssid}</name>
-    <SSIDConfig>
-        <SSID>
-            <name>{ssid}</name>
-        </SSID>
-    </SSIDConfig>
-    <connectionType>ESS</connectionType>
-    <connectionMode>auto</connectionMode>
-    <MSM>
-        <security>
-            <authEncryption>
-                <authentication>WPA2PSK</authentication>
-                <encryption>AES</encryption>
-                <useOneX>false</useOneX>
-            </authEncryption>
-            <sharedKey>
-                <keyType>passPhrase</keyType>
-                <protected>false</protected>
-                <keyMaterial>{password}</keyMaterial>
-            </sharedKey>
-        </security>
-    </MSM>
-</WLANProfile>";
-
-                    string tempFile = Path.GetTempFileName();
-                    File.WriteAllText(tempFile, profileXml);
-
-                    // 3. Injetar perfil
-                    RunNetsh($"wlan add profile filename=\"{tempFile}\"");
-
-                    // 4. Conectar
-                    RunNetsh($"wlan connect name=\"{ssid}\"");
-
-                    File.Delete(tempFile);
-
-                    // 5. Verificar sucesso (Polling durante 5 segundos)
-                    for (int i = 0; i < 5; i++)
-                    {
-                        await Task.Delay(1000);
-                        if (IsConnectedTo(ssid)) return true;
-                    }
-                    return false;
-                }
-                catch { return false; }
-            }
-
-            // Helper para correr comandos invisíveis
-            private static void RunNetsh(string args)
-            {
-                var p = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "netsh",
-                        Arguments = args,
-                        CreateNoWindow = true,
-                        UseShellExecute = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    }
-                };
-                p.Start();
-                p.WaitForExit();
-            }
-
-            // Verifica se estamos ligados à rede certa
-            public static bool IsConnectedTo(string ssid)
-            {
-                var p = new Process
-                {
-                    StartInfo = new ProcessStartInfo("netsh", "wlan show interfaces")
-                    {
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-                p.Start();
-                string output = p.StandardOutput.ReadToEnd();
-                p.WaitForExit();
-
-                // Procura "SSID : NomeDaRede" e "State : connected"
-                return output.Contains($"SSID") && output.Contains(ssid) && output.Contains(" connected");
-            }
-        }
 
 
         // --- XINPUT NATIVE CLASS ---

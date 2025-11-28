@@ -407,7 +407,7 @@
                     RenderTransformOrigin="0.5,0.5">
                 <Border.RenderTransform>
                     <TranslateTransform x:Name="CarouselSlideTransform"
-                            Y="0"/>
+                                        Y="0"/>
                 </Border.RenderTransform>
                 <ListBox x:Name="GamesListBox"
                          Grid.Row="3"
@@ -1921,7 +1921,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.4.2 - alpha"
+                    <TextBlock Text="v0.4.3 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
@@ -2221,6 +2221,188 @@
                         Width="3000"
                         Height="2000"/>
             </Grid>
+        </Grid>
+
+        <Grid x:Name="UserSelectionOverlay"
+              Grid.RowSpan="5"
+              Background="#E6000000"
+              Visibility="Collapsed"
+              Panel.ZIndex="99998"
+              x:FieldModifier="public">
+            <Border Background="#1A1A1A"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="40"
+                    MinWidth="600">
+                <StackPanel>
+                    <TextBlock Text="Quem está a jogar?"
+                               Foreground="White"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,30"/>
+                    <ListBox x:Name="UserListBox"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             HorizontalAlignment="Center"
+                             ItemContainerStyle="{StaticResource FocusableItemStyle}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"
+                                           MaxWidth="600"
+                                           HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Click="UserButton_Click"
+                                        Tag="{Binding Username}"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Margin="10"
+                                        Width="140"
+                                        Height="160">
+                                    <StackPanel>
+                                        <Border Width="80"
+                                                Height="80"
+                                                CornerRadius="40"
+                                                Background="#333"
+                                                Margin="0,0,0,15">
+                                            <TextBlock Text="{Binding Username, StringFormat={}{0:0}}"
+                                                       FontSize="30"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Center"
+                                                       Foreground="Gray"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding Username}"
+                                                   Foreground="White"
+                                                   FontWeight="Bold"
+                                                   FontSize="16"
+                                                   HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Content="+ Novo Utilizador"
+                            Click="ShowAddUserModal_Click"
+                            Style="{StaticResource SettingsButtonStyle}"
+                            HorizontalAlignment="Center"
+                            Margin="0,30,0,0"
+                            Height="50"
+                            Width="200"
+                            Background="{DynamicResource AccentBrush}"
+                            Foreground="Black"
+                            FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="AddUserModal"
+              Grid.RowSpan="5"
+              Background="#CC000000"
+              Visibility="Collapsed"
+              Panel.ZIndex="99999"
+              x:FieldModifier="public">
+            <Border Background="#222"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="12"
+                    Width="500"
+                    VerticalAlignment="Center"
+                    Padding="30">
+                <StackPanel>
+                    <TextBlock Text="Criar Novo Perfil"
+                               Foreground="White"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Nome do Perfil"
+                               Foreground="Gray"
+                               Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtNewUserName"
+                             Height="40"
+                             FontSize="16"
+                             Padding="5"
+                             Background="#333"
+                             Foreground="White"
+                             BorderThickness="0"/>
+
+                    <TextBlock Text="Steam Web API Key (Opcional)"
+                               Foreground="Gray"
+                               Margin="0,15,0,5"/>
+                    <TextBox x:Name="TxtNewUserApiKey"
+                             Height="40"
+                             FontSize="14"
+                             Padding="5"
+                             Background="#333"
+                             Foreground="White"
+                             BorderThickness="0"/>
+
+                    <TextBlock Text="Steam ID 64 (Opcional - Auto se estiveres logado)"
+                               Foreground="Gray"
+                               Margin="0,15,0,5"/>
+                    <TextBox x:Name="TxtNewUserSteamId"
+                             Height="40"
+                             FontSize="14"
+                             Padding="5"
+                             Background="#333"
+                             Foreground="White"
+                             BorderThickness="0"/>
+
+                    <StackPanel>
+                        <TextBlock Text="Nome de Login Steam (Para Troca Automática)"
+                                   Foreground="Gray"
+                                   Margin="0,15,0,5"/>
+                        <TextBox x:Name="TxtNewSteamLogin"
+                                 Height="40"
+                                 FontSize="14"
+                                 Padding="5"
+                                 Background="#333"
+                                 Foreground="White"
+                                 BorderThickness="0"/>
+
+                        <TextBlock Text="Password Steam (Usada apenas 1 vez para registar)"
+                                Foreground="Gray"
+                                Margin="0,15,0,5"/>
+                        <PasswordBox x:Name="TxtNewSteamPassword"
+                                Height="40"
+                                FontSize="14"
+                                Padding="5"
+                                Background="#333"
+                                Foreground="White"
+                                BorderThickness="0"
+                                VerticalContentAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,30,0,0">
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,30,0,0">
+                        <Button Content="Cancelar"
+                                Click="CancelAddUser_Click"
+                                Style="{StaticResource SettingsButtonStyle}"
+                                Height="40"
+                                Width="100"
+                                Margin="0,0,10,0"/>
+                        <Button Content="Criar"
+                                Click="ConfirmAddUser_Click"
+                                Style="{StaticResource SettingsButtonStyle}"
+                                Height="40"
+                                Width="100"
+                                Background="{DynamicResource AccentBrush}"
+                                Foreground="Black"
+                                FontWeight="Bold"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>

@@ -19,6 +19,10 @@ PichalUI is a windows game launcher developed in WPF (.NET 9.0), designed to pro
 
 - **System Management**: Controls volume, Wi-Fi, and power options (Shutdown/Restard) without leaving the launcher.
 
+- **Integrated Browser**: An light weigth integrated browser to use while not exiting the app.
+
+- **User Selection**: You can put as many users as you want and you can easily change qhat profilw are you using.
+
 - **Future Features**: Some key features will be added in the future like:
     - **Epic Games and other Stores Integration**
     - **Windows Optimization**
