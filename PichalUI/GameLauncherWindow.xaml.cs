@@ -416,24 +416,17 @@ namespace PichalUI
     public class SettingsInputHandler : IInputHandler
     {
         readonly GameLauncherWindow w;
+        bool inContentArea = false;
+        int categoryIndex = 0; // Mantemos apenas o índice do menu lateral
 
-        // Estado da Navegação
-        private bool inContentArea = false; // false = Esquerda (Menu), true = Direita (Conteúdo)
-        private int categoryIndex = 0;      // Qual aba estamos (0, 1, 2)
-        private int contentIndex = 0;       // Qual item da direita estamos
+        public SettingsInputHandler(GameLauncherWindow window) { w = window; }
 
-        public SettingsInputHandler(GameLauncherWindow window)
-        {
-            w = window;
-        }
-
-        // Chamado quando entras nas Settings
         public void Reset()
         {
             inContentArea = false;
             categoryIndex = 0;
-            contentIndex = 0;
-            UpdateFocus();
+            UpdateTabSelection();
+            w.BtnTabGeneral.Focus(); // Foca sempre o primeiro botão ao entrar
         }
 
         public void OnUp()
@@ -444,21 +437,20 @@ namespace PichalUI
                 return;
             }
 
-            if (!inContentArea) // Menu Esquerdo
+            if (!inContentArea)
             {
+                // Navegação no Menu Lateral
                 if (categoryIndex > 0)
                 {
                     categoryIndex--;
                     UpdateTabSelection();
+                    GetCategoryButton(categoryIndex)?.Focus();
                 }
             }
-            else // Conteúdo Direito
+            else
             {
-                if (contentIndex > 0)
-                {
-                    contentIndex--;
-                    UpdateFocus();
-                }
+                // Navegação no Conteúdo (Nativo)
+                MoveFocus(FocusNavigationDirection.Up);
             }
         }
 
@@ -470,23 +462,20 @@ namespace PichalUI
                 return;
             }
 
-            if (!inContentArea) // Menu Esquerdo
+            if (!inContentArea)
             {
-                // Temos 3 categorias fixas
-                if (categoryIndex < 2)
+                // Navegação no Menu Lateral (4 categorias: 0,1,2,3)
+                if (categoryIndex < 3)
                 {
                     categoryIndex++;
                     UpdateTabSelection();
+                    GetCategoryButton(categoryIndex)?.Focus();
                 }
             }
-            else // Conteúdo Direito
+            else
             {
-                int maxItems = GetCurrentContentCount() - 1;
-                if (contentIndex < maxItems)
-                {
-                    contentIndex++;
-                    UpdateFocus();
-                }
+                // Navegação no Conteúdo (Nativo)
+                MoveFocus(FocusNavigationDirection.Down);
             }
         }
 
@@ -494,20 +483,20 @@ namespace PichalUI
         {
             if (w.WifiSelectorModal.Visibility == Visibility.Visible) return;
 
-            // Se estamos na esquerda, vamos para a direita
+            // Do Menu -> Para o Conteúdo
             if (!inContentArea)
             {
-                inContentArea = true;
-                contentIndex = 0; // Começa sempre no topo ao entrar
-                UpdateFocus();
+                // Tenta focar o primeiro elemento dentro do painel visível
+                if (FocusFirstContentElement())
+                {
+                    inContentArea = true;
+                }
             }
             else
             {
-                // Se já estamos na direita, e for um Slider, aumenta valor
-                if (GetFocusedElement() is Slider slider)
-                {
-                    slider.Value += slider.TickFrequency;
-                }
+                // Dentro do conteúdo (ex: Slider)
+                if (Keyboard.FocusedElement is Slider slider) slider.Value += slider.TickFrequency;
+                else MoveFocus(FocusNavigationDirection.Right);
             }
         }
 
@@ -517,16 +506,21 @@ namespace PichalUI
 
             if (inContentArea)
             {
-                // Se for Slider, diminui valor...
-                if (GetFocusedElement() is Slider slider && slider.Value > slider.Minimum)
+                if (Keyboard.FocusedElement is Slider slider)
                 {
                     slider.Value -= slider.TickFrequency;
-                    return; // Não sai do slider se estiver a diminuir
+                    return;
                 }
 
-                // ...senão, volta para o menu da esquerda
-                inContentArea = false;
-                UpdateFocus(); // Foca a categoria atual
+                // Tenta mover para a esquerda dentro do painel
+                bool moved = MoveFocus(FocusNavigationDirection.Left);
+
+                // Se não conseguir mover mais, volta para o Menu Lateral
+                if (!moved)
+                {
+                    inContentArea = false;
+                    GetCategoryButton(categoryIndex)?.Focus();
+                }
             }
         }
 
@@ -538,15 +532,16 @@ namespace PichalUI
                 return;
             }
 
-            var element = GetFocusedElement();
-
-            // Aciona Botões, Checkboxes e RadioButtons
-            if (element is System.Windows.Controls.Primitives.ButtonBase btn)
+            // Clica no botão focado
+            if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase btn)
             {
                 btn.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
             }
-
-            // Se for Slider, não faz nada (ou podia alternar modo de edição)
+            // Checkbox / RadioButton
+            else if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ToggleButton tb)
+            {
+                tb.IsChecked = !tb.IsChecked;
+            }
         }
 
         public void OnCancel()
@@ -554,107 +549,64 @@ namespace PichalUI
             if (w.WifiSelectorModal.Visibility == Visibility.Visible)
             {
                 w.CloseWifiModal_Click(null, null);
+                return;
             }
-            else if (inContentArea)
+
+            // Se estiver no conteúdo, volta ao menu
+            if (inContentArea)
             {
-                // Se estiver na direita, volta para a esquerda
                 inContentArea = false;
-                UpdateFocus();
+                GetCategoryButton(categoryIndex)?.Focus();
             }
             else
             {
-                // Se estiver na esquerda, sai das settings
-                w.currentInputHandler = null; // Volta ao anterior ou Home
-                w.SwapViewRight(); // Ou outra lógica de sair
+                // Se estiver no menu, sai das settings
+                w.SwapViewRight();
             }
         }
 
-        // --- HELPERS DE LÓGICA ---
+        // --- HELPERS ---
 
-        // Muda a aba visualmente e atualiza o conteúdo
         void UpdateTabSelection()
         {
-            if (categoryIndex == 0) w.BtnTabGeneral.IsChecked = true;
-            else if (categoryIndex == 1) w.BtnTabSystem.IsChecked = true;
-            else if (categoryIndex == 2) w.BtnTabPersonalization.IsChecked = true;
-
-            // Força atualização visual imediata
-            w.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+            w.BtnTabGeneral.IsChecked = categoryIndex == 0;
+            w.BtnTabSystem.IsChecked = categoryIndex == 1;
+            w.BtnTabPersonalization.IsChecked = categoryIndex == 2;
+            w.BtnTabAccount.IsChecked = categoryIndex == 3;
         }
 
-        // Aplica o foco real no elemento certo
-        void UpdateFocus()
+        RadioButton? GetCategoryButton(int index)
         {
-            if (!inContentArea)
-            {
-                // Foca o botão da categoria certa
-                if (categoryIndex == 0) w.BtnTabGeneral.Focus();
-                else if (categoryIndex == 1) w.BtnTabSystem.Focus();
-                else if (categoryIndex == 2) w.BtnTabPersonalization.Focus();
-            }
-            else
-            {
-                // Foca o elemento dentro do painel ativo
-                var panel = GetCurrentPanel();
-                if (panel != null)
-                {
-                    var controls = GetFocusableControls(panel);
-                    if (controls.Count > contentIndex)
-                    {
-                        controls[contentIndex].Focus();
-                    }
-                }
-            }
-        }
-
-        // Obtém o painel visível
-        Panel? GetCurrentPanel()
-        {
-            if (w.TabGeneral.Visibility == Visibility.Visible) return w.TabGeneral;
-            if (w.TabSystem.Visibility == Visibility.Visible) return w.TabSystem;
-            if (w.TabPersonalization.Visibility == Visibility.Visible) return w.TabPersonalization;
+            if (index == 0) return w.BtnTabGeneral;
+            if (index == 1) return w.BtnTabSystem;
+            if (index == 2) return w.BtnTabPersonalization;
+            if (index == 3) return w.BtnTabAccount;
             return null;
         }
 
-        // Encontra todos os botões/sliders/checkboxes dentro do painel
-        List<Control> GetFocusableControls(Panel parent)
+        bool FocusFirstContentElement()
         {
-            var list = new List<Control>();
-            foreach (var child in GetLogicalChildren(parent))
+            // Descobre qual o painel visível e foca o primeiro botão/slider
+            UIElement? panel = null;
+            if (w.TabGeneral.Visibility == Visibility.Visible) panel = w.TabGeneral;
+            else if (w.TabSystem.Visibility == Visibility.Visible) panel = w.TabSystem;
+            else if (w.TabPersonalization.Visibility == Visibility.Visible) panel = w.TabPersonalization;
+            else if (w.TabAccount.Visibility == Visibility.Visible) panel = w.TabAccount;
+
+            if (panel != null)
             {
-                if (child is Control c && c.Focusable && c.Visibility == Visibility.Visible && c.IsEnabled)
-                {
-                    // Ignora o botão "invisível" do Wi-Fi se não quiseres que ele conte, 
-                    // mas no nosso caso queremos focar o BtnWifiReal
-                    list.Add(c);
-                }
+                // Tenta mover foco para o primeiro elemento dentro do painel
+                return panel.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
             }
-            return list;
+            return false;
         }
 
-        // Helper recursivo para achar controlos dentro de Grids aninhadas
-        IEnumerable<DependencyObject> GetLogicalChildren(DependencyObject parent)
+        bool MoveFocus(FocusNavigationDirection dir)
         {
-            int count = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is Control c && c.Focusable)
-                    yield return c;
-
-                // Continua a descer na árvore (se for Grid, StackPanel, etc)
-                foreach (var grandChild in GetLogicalChildren(child))
-                    yield return grandChild;
-            }
+            var el = Keyboard.FocusedElement as UIElement;
+            if (el != null) return el.MoveFocus(new TraversalRequest(dir));
+            return false;
         }
-
-        int GetCurrentContentCount()
-        {
-            var p = GetCurrentPanel();
-            return p != null ? GetFocusableControls(p).Count : 0;
-        }
-
-        Control? GetFocusedElement() => Keyboard.FocusedElement as Control;
 
         void MoveListFocus(ListBox lb, int dir)
         {
@@ -861,6 +813,13 @@ namespace PichalUI
         UserProfile currentUser;
         List<UserProfile> availableUsers = new List<UserProfile>();
 
+        //---- Modo de Natal ----
+        DispatcherTimer snowTimer;
+        List<System.Windows.Shapes.Ellipse> activeSnowFlakes = new List<System.Windows.Shapes.Ellipse>();
+        bool isSnowing = false;
+        Random rng = new Random();
+        bool golemSpawned = false;
+
 
         public GameLauncherWindow()
         {
@@ -893,6 +852,11 @@ namespace PichalUI
             DispatcherTimer clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             clockTimer.Tick += (s, e) => { ClockTime.Text = DateTime.Now.ToString("HH:mm"); ClockDate.Text = DateTime.Now.ToString("ddd, dd MMM"); };
             clockTimer.Start();
+
+            snowTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) }; //Cria flocos de neve a cada 80ms
+            snowTimer.Tick += SnowTimer_Tick;
+
+            CheckChristmasSeason();
         }
 
         // --- NAVEGAÇÃO ENTRE VISTAS ---
@@ -1141,27 +1105,64 @@ namespace PichalUI
             catch (Exception ex) { MessageBox.Show("Erro ao lançar: " + ex.Message); }
         }
 
-        void PopulateGamesPanel()
+        async void PopulateGamesPanel()
         {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(PopulateGamesPanel);
+                return;
+            }
+
             if (isPopulating) return;
             isPopulating = true;
 
-            Dispatcher.Invoke(() =>
+            try
             {
-                try
+                if (!games.Any(g => g.Title == "Loja" && g.Source == "System"))
                 {
-                    if (!games.Any(g => g.Title == "Loja" && g.Source == "System"))
-                    {
-                        games.Add(new GameEntry { Title = "Loja", Source = "System", Cover = null });
-                    }
-
-                    GamesListBox.ItemsSource = null;
-                    GamesListBox.ItemsSource = games;
-
-                    if (games.Count > 0) SelectIndex(0);
+                    games.Add(new GameEntry { Title = "Loja", Source = "System", Cover = null });
                 }
-                finally { isPopulating = false; }
-            });
+
+                GamesListBox.ItemsSource = null;
+                GamesListBox.ItemsSource = games;
+
+                GamesListBox.UpdateLayout();
+                await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+
+                AnimateGamesEntrance();
+
+                await Task.Delay(2000);
+
+                if (games.Count > 0) SelectIndex(0);
+            }
+            finally { isPopulating = false; }
+        }
+
+        void AnimateGamesEntrance()
+        {
+            for (int i = 0; i < GamesListBox.Items.Count; i++)
+            {
+                var container = GamesListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+
+                if (container == null) continue;
+
+                container.Opacity = 0;
+                var transform = new TranslateTransform(0, 150);
+                container.RenderTransform = transform;
+
+                TimeSpan delay = TimeSpan.FromMilliseconds(i * 70);
+
+                var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700)) { BeginTime = delay };
+
+                var slide = new DoubleAnimation(150, 0, TimeSpan.FromMilliseconds(900))
+                {
+                    BeginTime = delay,
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                container.BeginAnimation(UIElement.OpacityProperty, fade);
+                transform.BeginAnimation(TranslateTransform.YProperty, slide);
+            }
         }
 
         public void ToggleStoreView(bool show)
@@ -1214,7 +1215,7 @@ namespace PichalUI
                 }
 
                 games = found;
-                PopulateGamesPanel();
+                await Dispatcher.InvokeAsync(() => PopulateGamesPanel());
 
                 if (games.Any(g => !string.IsNullOrEmpty(g.SteamAppId) && g.Cover == null))
                 {
@@ -2100,16 +2101,13 @@ namespace PichalUI
         {
             TxtNewUserName.Text = "";
             TxtNewUserApiKey.Text = "";
-            TxtNewUserSteamId.Text = "";
             TxtNewSteamLogin.Text = "";
-            TxtNewSteamPassword.Password = "";
 
             try
             {
                 Steamworks.SteamClient.Init(480);
                 if (Steamworks.SteamClient.IsValid)
                 {
-                    TxtNewUserSteamId.Text = Steamworks.SteamClient.SteamId.ToString();
                     TxtNewUserName.Text = Steamworks.SteamClient.Name;
                 }
 
@@ -2131,45 +2129,24 @@ namespace PichalUI
         private void ConfirmAddUser_Click(object sender, RoutedEventArgs e)
         {
             string name = TxtNewUserName.Text.Trim();
-            if (string.IsNullOrWhiteSpace(name)) { MessageBox.Show("Escreve um nome para o perfil!"); return; }
-
-            string newDir = Path.Combine(usersDir, name);
-            Directory.CreateDirectory(newDir);
-            CurrentUserDir = newDir;
-
-            // Guarda dados opcionais do Pichal UI
-            if (!string.IsNullOrWhiteSpace(TxtNewUserApiKey.Text)) SaveSteamApiKey(TxtNewUserApiKey.Text.Trim());
-            if (!string.IsNullOrWhiteSpace(TxtNewUserSteamId.Text)) SaveConnectedSteamId(TxtNewUserSteamId.Text.Trim());
-
-            // Guarda o Nome de Login da Steam (Para troca futura)
             string steamLogin = TxtNewSteamLogin.Text.Trim();
-            if (!string.IsNullOrWhiteSpace(steamLogin))
-            {
-                File.WriteAllText(Path.Combine(newDir, "steam_username.dat"), steamLogin);
-            }
-
-            string steamPass = TxtNewSteamPassword.Password;
+            if (string.IsNullOrWhiteSpace(name)) { MessageBox.Show("Nome obrigatório"); return; }
+            if (string.IsNullOrWhiteSpace(steamLogin)) { MessageBox.Show("Login Steam obrigatório"); return; }
 
             AddUserModal.Visibility = Visibility.Collapsed;
 
-            // LÓGICA DE CRIAÇÃO
-            if (!string.IsNullOrWhiteSpace(steamLogin) && !string.IsNullOrWhiteSpace(steamPass))
-            {
-                // Se o user deu login e pass, fazemos o registo na Steam App agora!
-                _ = Task.Run(async () =>
-                {
-                    // 1. Força o login na Steam App
-                    await RegisterNewSteamAccountAsync(steamLogin, steamPass);
+            // Cria user e inicia processo de login assistido
+            string newDir = Path.Combine(usersDir, name);
+            Directory.CreateDirectory(newDir);
+            CurrentUserDir = newDir;
+            if (!string.IsNullOrWhiteSpace(TxtNewUserApiKey.Text)) SaveSteamApiKey(TxtNewUserApiKey.Text.Trim());
+            File.WriteAllText(Path.Combine(newDir, "steam_username.dat"), steamLogin);
 
-                    // 2. Depois de logado, entra no perfil do Pichal
-                    await Dispatcher.InvokeAsync(() => LoginUser(name));
-                });
-            }
-            else
+            _ = Task.Run(async () =>
             {
-                // Criação normal offline ou sem troca de conta
-                LoginUser(name);
-            }
+                await RegisterNewSteamAccountAsync(steamLogin);
+                await Dispatcher.InvokeAsync(() => LoginUser(name));
+            });
         }
 
         void LoginUser(string username)
@@ -2255,7 +2232,7 @@ namespace PichalUI
                     await Dispatcher.InvokeAsync(() =>
                     {
                         if (selectedIndex >= 0) SelectIndex(selectedIndex);
-                        else if (games.Count > 0) SelectIndex(0);
+                        else if (games.Count > 0) PopulateGamesPanel();
                     });
                 }
             });
@@ -2371,12 +2348,12 @@ namespace PichalUI
             await Dispatcher.InvokeAsync(() => LoadingOverlay.Visibility = Visibility.Collapsed);
         }
 
-        async Task RegisterNewSteamAccountAsync(string username, string password)
+        async Task RegisterNewSteamAccountAsync(string username)
         {
             await Dispatcher.InvokeAsync(() =>
             {
                 LoadingOverlay.Visibility = Visibility.Visible;
-                LoadingText.Text = $"A registar conta Steam: {username}...";
+                LoadingText.Text = $"A abrir Steam para: {username}...";
             });
 
             await Task.Run(async () =>
@@ -2387,27 +2364,11 @@ namespace PichalUI
                     if (procs.Length > 0)
                     {
                         try { Process.Start(new ProcessStartInfo("steam://exit") { UseShellExecute = true }); } catch { }
+                        await Task.Delay(3000); // Dá tempo para sincronizar nuvem e fechar
 
-                        await Task.Delay(2000);
-
-                        foreach (var p in procs)
-                        {
-                            try
-                            {
-                                p.Kill();
-                            }
-                            catch { }
-                        }
-
-                        foreach (var p in Process.GetProcessesByName("steamwebhelper"))
-                        {
-                            try
-                            {
-                                p.Kill();
-                            }
-                            catch { }
-                        }
-
+                        // Se ainda estiver aberta, força o fecho
+                        foreach (var p in Process.GetProcessesByName("steam")) { try { p.Kill(); } catch { } }
+                        foreach (var p in Process.GetProcessesByName("steamwebhelper")) { try { p.Kill(); } catch { } }
                         await Task.Delay(2000);
                     }
 
@@ -2415,24 +2376,47 @@ namespace PichalUI
                     if (string.IsNullOrEmpty(steamPath)) throw new Exception("Steam não encontrada.");
                     string exePath = Path.Combine(steamPath, "steam.exe");
 
+                    //ToggleFullscreen();
+
                     if (File.Exists(exePath))
                     {
-                        Process.Start(new ProcessStartInfo(exePath, $"-silent -login \"{username}\" \"{password}\"") { UseShellExecute = true });
+                        throw new Exception($"Steam não encontrada em: {steamPath}");
                     }
 
-                    await Dispatcher.InvokeAsync(() => LoadingText.Text = "A aguardar login na Steam... (Insere Steam Guard se pedido)");
+                    Process.Start(new ProcessStartInfo(exePath, $"-silent -login \"{username}\"") { UseShellExecute = true });
 
-                    int attempts = 0;
-                    while (attempts < 120)
+                    await Dispatcher.InvokeAsync(() => LoadingText.Text = "Por favor, faz login na janela da Steam (QR/Senha).");
+
+                    bool loggedIn = false;
+
+                    for (int i = 0; i < 300; i++)
                     {
                         await Task.Delay(1000);
-                        if (await Task.Run(() => { try { Steamworks.SteamClient.Init(480); return Steamworks.SteamClient.IsValid; } catch { return false; } }))
+
+                        bool isRunning = await Task.Run(() =>
                         {
+                            try
+                            {
+                                Steamworks.SteamClient.Init(480);
+                                return Steamworks.SteamClient.IsValid;
+                            }
+                            catch { return false; }
+                        });
+
+                        if (isRunning)
+                        {
+                            loggedIn = true;
                             break;
                         }
-                        attempts++;
                     }
 
+                    if (loggedIn)
+                        ToggleFullscreen();
+
+                    if (!loggedIn)
+                    {
+                        throw new Exception("Tempo Esgotado. Não foi detetado login.");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -3624,17 +3608,19 @@ namespace PichalUI
             IntroLogo.BeginAnimation(UIElement.OpacityProperty, fadeOut);
 
             await Task.Delay(450);
-            StartupOverlay.Visibility = Visibility.Collapsed;
             IntroBackgroundGradient.RadiusX = 0;
 
-            var gamesFadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(1.5));
-            var gamesSlideUp = new DoubleAnimation(150, 0, TimeSpan.FromSeconds(1.9))
+            Carousel.Opacity = 1;
+            CarouselSlideTransform.Y = 0;
+
+            var flashOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1));
+
+            flashOut.Completed += (s, e) =>
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                StartupOverlay.Visibility = Visibility.Collapsed;
             };
 
-            Carousel.BeginAnimation(Border.OpacityProperty, gamesFadeIn);
-            CarouselSlideTransform.BeginAnimation(TranslateTransform.YProperty, gamesSlideUp);
+            IntroFlash.BeginAnimation(Border.OpacityProperty, flashOut);
         }
 
         async Task FoxyStartupAnimation()
@@ -3708,7 +3694,173 @@ namespace PichalUI
         }
 
 
+        // --- FUNÇÕES DO MODO NATAL ---
+        void CheckChristmasSeason()
+        {
+            var today = DateTime.Now;
 
+            bool isChristmas = (today.Month == 0) || (today.Month == 0);
+
+            if (isChristmas)
+                CompositionTarget.Rendering += CheckInactivityForSnow;
+        }
+
+        void CheckInactivityForSnow(object? sender, EventArgs e)
+        {
+            if (currentIndex != 0 || isShowingStoreView)
+            {
+                if (isSnowing) StopSnowing();
+                return;
+            }
+
+            if ((DateTime.UtcNow - lastNav).TotalSeconds > 5 && !isSnowing)
+                StartSnowing();
+            else if ((DateTime.UtcNow - lastNav).TotalSeconds < 0.5 && isSnowing)
+                StopSnowing();
+        }
+
+        void StartSnowing()
+        {
+            isSnowing = true;
+            ChristmasOverlay.Visibility = Visibility.Visible;
+
+            SnowCanvas.BeginAnimation(OpacityProperty, null);
+            SnowWindTransform.BeginAnimation(TranslateTransform.XProperty, null);
+            SnowFloor.BeginAnimation(OpacityProperty, null);
+            GolemWindSlide.BeginAnimation(TranslateTransform.XProperty, null);
+
+            SnowCanvas.Opacity = 1;
+            SnowWindTransform.X = 0;
+            GolemWindSlide.X = 0;
+
+            SnowCanvas.Children.Clear();
+            activeSnowFlakes.Clear();
+            snowTimer.Start();
+
+            SnowFloor.Opacity = 0;
+            var floorFade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(10));
+            SnowFloor.BeginAnimation(OpacityProperty, floorFade);
+
+            golemSpawned = false;
+            FrostGolem.Opacity = 0;
+
+            Task.Delay(8000).ContinueWith(_ =>
+            {
+                if (isSnowing) Dispatcher.Invoke(() => SpawnGolem());
+            });
+        }
+
+        void SpawnGolem()
+        {
+            if (golemSpawned) return;
+            golemSpawned = true;
+            FrostGolem.Opacity = 1;
+
+            BodyFloat.Y = 100;
+            var bodyMove = new DoubleAnimation(100, 0, TimeSpan.FromSeconds(1.5)) { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut } };
+            BodyFloat.BeginAnimation(TranslateTransform.YProperty, bodyMove);
+
+            ChestFloat.X = -50; ChestFloat.Y = 50;
+            var chestX = new DoubleAnimation(-50, 0, TimeSpan.FromSeconds(1.8)) { EasingFunction = new CubicEase() };
+            var chestY = new DoubleAnimation(50, 0, TimeSpan.FromSeconds(1.8)) { EasingFunction = new CubicEase() };
+            ChestFloat.BeginAnimation(TranslateTransform.XProperty, chestX);
+            ChestFloat.BeginAnimation(TranslateTransform.YProperty, chestY);
+
+            HeadFloat.Y = -100;
+            var headMove = new DoubleAnimation(-100, 0, TimeSpan.FromSeconds(2)) { EasingFunction = new BounceEase { Bounciness = 2, Bounces = 3 } };
+            HeadFloat.BeginAnimation(TranslateTransform.YProperty, headMove);
+
+            var particleAnim = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.5)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever };
+            MagicParticle1.BeginAnimation(OpacityProperty, particleAnim);
+
+            var particleAnim2 = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.7)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromSeconds(0.3) };
+            MagicParticle2.BeginAnimation(OpacityProperty, particleAnim2);
+
+            Task.Delay(2000).ContinueWith(_ =>
+            {
+                if (isSnowing && golemSpawned) Dispatcher.Invoke(() => StartGolemIdle());
+            });
+        }
+
+        void StartGolemIdle()
+        {
+            var hoverSlow = new DoubleAnimation(0, -5, TimeSpan.FromSeconds(3)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() };
+            var hoverFast = new DoubleAnimation(0, -3, TimeSpan.FromSeconds(2)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() };
+            var hoverHead = new DoubleAnimation(0, -6, TimeSpan.FromSeconds(4)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() };
+
+            BodyFloat.BeginAnimation(TranslateTransform.YProperty, hoverSlow);
+            ChestFloat.BeginAnimation(TranslateTransform.YProperty, hoverFast);
+            HeadFloat.BeginAnimation(TranslateTransform.YProperty, hoverHead);
+        }
+
+        void StopSnowing()
+        {
+            if (!isSnowing) return;
+            isSnowing = false;
+            golemSpawned = false;
+            snowTimer.Stop();
+
+            var windMove = new DoubleAnimation(0, 2000, TimeSpan.FromSeconds(0.5)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+            var fade = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.3));
+
+            SnowWindTransform.BeginAnimation(TranslateTransform.XProperty, windMove);
+            SnowCanvas.BeginAnimation(OpacityProperty, fade);
+            SnowFloor.BeginAnimation(OpacityProperty, fade);
+
+            if (FrostGolem.Opacity > 0)
+            {
+                GolemWindSlide.BeginAnimation(TranslateTransform.XProperty, windMove);
+
+                var shrink = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.4));
+                GolemScale.BeginAnimation(ScaleTransform.ScaleXProperty, shrink);
+                GolemScale.BeginAnimation(ScaleTransform.ScaleYProperty, shrink);
+            }
+
+            fade.Completed += (s, e) =>
+            {
+                ChristmasOverlay.Visibility = Visibility.Collapsed;
+                SnowCanvas.Children.Clear();
+                activeSnowFlakes.Clear();
+
+                FrostGolem.Opacity = 0;
+                BodyFloat.BeginAnimation(TranslateTransform.YProperty, null);
+                ChestFloat.BeginAnimation(TranslateTransform.XProperty, null);
+                ChestFloat.BeginAnimation(TranslateTransform.YProperty, null);
+                HeadFloat.BeginAnimation(TranslateTransform.YProperty, null);
+                GolemScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                GolemScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            };
+        }
+
+        void SnowTimer_Tick(object? sender, EventArgs e)
+        {
+            if (activeSnowFlakes.Count > 300) return;
+
+            double size = rng.NextDouble() * 4 + 2; // 2 a 6px
+            double opacity = rng.NextDouble() * 0.5 + 0.2;
+
+            var flake = new System.Windows.Shapes.Ellipse { Width = size, Height = size, Fill = Brushes.White, Opacity = opacity };
+
+            double startX = rng.Next(-200, (int)ActualWidth + 200);
+            Canvas.SetLeft(flake, startX);
+            Canvas.SetTop(flake, -10);
+
+            // Velocidade baseada no tamanho (Parallax: maiores caem mais depressa)
+            double durationSec = 10 - size; // 4s a 8s
+
+            var fall = new DoubleAnimation { To = ActualHeight + 50, Duration = TimeSpan.FromSeconds(durationSec) };
+
+            var drift = new DoubleAnimation { To = rng.Next(-50, 50), Duration = TimeSpan.FromSeconds(durationSec) };
+            var trans = new TranslateTransform();
+            flake.RenderTransform = trans;
+            trans.BeginAnimation(TranslateTransform.XProperty, drift);
+
+            fall.Completed += (s, ev) => { SnowCanvas.Children.Remove(flake); activeSnowFlakes.Remove(flake); };
+
+            SnowCanvas.Children.Add(flake);
+            activeSnowFlakes.Add(flake);
+            flake.BeginAnimation(Canvas.TopProperty, fall);
+        }
 
         // --- XINPUT NATIVE CLASS ---
         static class XInputNative

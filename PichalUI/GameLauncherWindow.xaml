@@ -1901,6 +1901,188 @@
                 </Grid>
             </Border>
 
+            <Grid x:Name="ChristmasOverlay"
+                  Grid.RowSpan="10"
+                  Panel.ZIndex="5000"
+                  IsHitTestVisible="False"
+                  Visibility="Collapsed">
+
+                <Canvas x:Name="SnowCanvas">
+                    <Canvas.RenderTransform>
+                        <TranslateTransform x:Name="SnowWindTransform"/>
+                    </Canvas.RenderTransform>
+                </Canvas>
+
+                <Border x:Name="SnowFloor"
+                        VerticalAlignment="Bottom"
+                        Height="80"
+                        Opacity="0"
+                        Margin="0,0,0,-20">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0"
+                                EndPoint="0,1">
+                            <GradientStop Color="#00FFFFFF"
+                                    Offset="0"/>
+                            <GradientStop Color="#40FFFFFF"
+                                    Offset="0.4"/>
+                            <GradientStop Color="#CCF0F8FF"
+                                    Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <BlurEffect Radius="20"/>
+                    </Border.Effect>
+                </Border>
+
+                <Canvas x:Name="FrostGolem"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Width="200"
+                        Height="300"
+                        Margin="0,0,50,0"
+                        Opacity="0">
+
+                    <Canvas.RenderTransform>
+                        <TransformGroup>
+                            <TranslateTransform x:Name="GolemWindSlide"
+                                    X="0"/>
+                            <ScaleTransform x:Name="GolemScale"
+                                    ScaleX="1"
+                                    ScaleY="1"/>
+                        </TransformGroup>
+                    </Canvas.RenderTransform>
+
+                    <Ellipse Width="120"
+                            Height="20"
+                            Canvas.Left="40"
+                            Canvas.Top="280"
+                            Opacity="0.5">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#8000FFFF"
+                                        Offset="0"/>
+                                <GradientStop Color="Transparent"
+                                        Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                        <Ellipse.Effect>
+                            <BlurEffect Radius="10"/>
+                        </Ellipse.Effect>
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever"
+                                            AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                From="0.2"
+                                                To="0.6"
+                                                Duration="0:0:2"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="Width"
+                                                From="100"
+                                                To="130"
+                                                Duration="0:0:2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+
+                    <Path x:Name="GolemBody"
+                          Data="M 20,0 L 80,-10 L 100,50 L 0,40 Z"
+                          Fill="#D0E0FF"
+                            Canvas.Left="50"
+                            Canvas.Top="180">
+                        <Path.Effect>
+                            <DropShadowEffect Color="#00A0FF"
+                                    BlurRadius="15"
+                                    ShadowDepth="0"
+                                    Opacity="0.4"/>
+                        </Path.Effect>
+                        <Path.RenderTransform>
+                            <TranslateTransform x:Name="BodyFloat"
+                                    Y="0"/>
+                        </Path.RenderTransform>
+                    </Path>
+
+                    <Path x:Name="GolemChest"
+                          Data="M 10,0 L 90,10 L 70,60 L 30,50 Z"
+                          Fill="#F0FFFF"
+                            Canvas.Left="55"
+                            Canvas.Top="130">
+                        <Path.Effect>
+                            <DropShadowEffect Color="White"
+                                    BlurRadius="5"
+                                    ShadowDepth="0"/>
+                        </Path.Effect>
+                        <Path.RenderTransform>
+                            <TranslateTransform x:Name="ChestFloat"
+                                    Y="0"/>
+                        </Path.RenderTransform>
+                    </Path>
+
+                    <Grid x:Name="GolemHead"
+                            Canvas.Left="70"
+                            Canvas.Top="70"
+                            Width="60"
+                            Height="70">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="HeadFloat"
+                                    Y="0"/>
+                        </Grid.RenderTransform>
+
+                        <Path Data="M 0,20 L 30,0 L 60,20 L 50,60 L 10,60 Z"
+                                Fill="#E0F0FF">
+                            <Path.Effect>
+                                <DropShadowEffect Color="#00FFFF"
+                                        BlurRadius="10"
+                                        ShadowDepth="0"
+                                        Opacity="0.5"/>
+                            </Path.Effect>
+                        </Path>
+
+                        <Rectangle Width="15"
+                                Height="4"
+                                Fill="#00FFFF"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Left"
+                                Margin="12,25,0,0">
+                            <Rectangle.Effect>
+                                <DropShadowEffect Color="#00FFFF"
+                                        BlurRadius="5"
+                                        ShadowDepth="0"/>
+                            </Rectangle.Effect>
+                        </Rectangle>
+                        <Rectangle Width="15"
+                                Height="4"
+                                Fill="#00FFFF"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Right"
+                                Margin="0,25,12,0">
+                            <Rectangle.Effect>
+                                <DropShadowEffect Color="#00FFFF"
+                                        BlurRadius="5"
+                                        ShadowDepth="0"/>
+                            </Rectangle.Effect>
+                        </Rectangle>
+                    </Grid>
+
+                    <Ellipse Width="4"
+                            Height="4"
+                            Fill="White"
+                            Canvas.Left="40"
+                            Canvas.Top="100"
+                            x:Name="MagicParticle1"
+                            Opacity="0"/>
+                    <Ellipse Width="3"
+                            Height="3"
+                            Fill="Cyan"
+                            Canvas.Left="160"
+                            Canvas.Top="200"
+                            x:Name="MagicParticle2"
+                            Opacity="0"/>
+
+                </Canvas>
+            </Grid>
             <Border Grid.Row="4"
                     Height="30"
                     Background="#06080C"
@@ -1928,7 +2110,6 @@
                 </Grid>
             </Border>
         </Grid>
-
         <Grid x:Name="LoadingOverlay"
               Grid.RowSpan="5"
               Background="#D9000000"
@@ -2321,7 +2502,7 @@
                                FontWeight="Bold"
                                Margin="0,0,0,20"/>
 
-                    <TextBlock Text="Nome do Perfil"
+                    <TextBlock Text="Nome do Perfil (Ex: Kiko)"
                                Foreground="Gray"
                                Margin="0,0,0,5"/>
                     <TextBox x:Name="TxtNewUserName"
@@ -2331,6 +2512,22 @@
                              Background="#333"
                              Foreground="White"
                              BorderThickness="0"/>
+
+                    <TextBlock Text="Login Steam (Para troca automática)"
+                               Foreground="{DynamicResource AccentBrush}"
+                               FontWeight="Bold"
+                               Margin="0,15,0,5"/>
+                    <TextBox x:Name="TxtNewSteamLogin"
+                             Height="40"
+                             FontSize="14"
+                             Padding="5"
+                             Background="#333"
+                             Foreground="White"
+                             BorderThickness="0"/>
+                    <TextBlock Text="*Apenas o nome de utilizador, não a password."
+                               Foreground="Gray"
+                               FontSize="10"
+                               Margin="0,2,0,0"/>
 
                     <TextBlock Text="Steam Web API Key (Opcional)"
                                Foreground="Gray"
@@ -2343,46 +2540,6 @@
                              Foreground="White"
                              BorderThickness="0"/>
 
-                    <TextBlock Text="Steam ID 64 (Opcional - Auto se estiveres logado)"
-                               Foreground="Gray"
-                               Margin="0,15,0,5"/>
-                    <TextBox x:Name="TxtNewUserSteamId"
-                             Height="40"
-                             FontSize="14"
-                             Padding="5"
-                             Background="#333"
-                             Foreground="White"
-                             BorderThickness="0"/>
-
-                    <StackPanel>
-                        <TextBlock Text="Nome de Login Steam (Para Troca Automática)"
-                                   Foreground="Gray"
-                                   Margin="0,15,0,5"/>
-                        <TextBox x:Name="TxtNewSteamLogin"
-                                 Height="40"
-                                 FontSize="14"
-                                 Padding="5"
-                                 Background="#333"
-                                 Foreground="White"
-                                 BorderThickness="0"/>
-
-                        <TextBlock Text="Password Steam (Usada apenas 1 vez para registar)"
-                                Foreground="Gray"
-                                Margin="0,15,0,5"/>
-                        <PasswordBox x:Name="TxtNewSteamPassword"
-                                Height="40"
-                                FontSize="14"
-                                Padding="5"
-                                Background="#333"
-                                Foreground="White"
-                                BorderThickness="0"
-                                VerticalContentAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Right"
-                                    Margin="0,30,0,0">
-                        </StackPanel>
-                    </StackPanel>
-
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Right"
                                 Margin="0,30,0,0">
@@ -2392,11 +2549,11 @@
                                 Height="40"
                                 Width="100"
                                 Margin="0,0,10,0"/>
-                        <Button Content="Criar"
+                        <Button Content="Criar e Entrar"
                                 Click="ConfirmAddUser_Click"
                                 Style="{StaticResource SettingsButtonStyle}"
                                 Height="40"
-                                Width="100"
+                                Width="140"
                                 Background="{DynamicResource AccentBrush}"
                                 Foreground="Black"
                                 FontWeight="Bold"/>
