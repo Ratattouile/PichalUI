@@ -49,11 +49,20 @@ namespace PichalUI
 
         public string Description { get; set; } = "";
         public int ProgressPercent { get; set; } = 0;
-        public List<string> Achievements { get; set; } = new List<string>();
+        public List<AchievementDetail> Achievements { get; set; } = new List<AchievementDetail>();
         public double PlaytimeHours { get; set; } = 0.0;
         public DateTime? LastPlayed { get; set; }
         public string StorePlatform { get; set; } = "";
         public string StoreId { get; set; } = "";
+    }
+
+    public class AchievementDetail
+    {
+        public string ApiName { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string IconUrl { get; set; } = "";
+        public bool Achieved { get; set; } = false;
     }
 
     public class FriendGameInfo
@@ -884,10 +893,34 @@ namespace PichalUI
                     await Dispatcher.InvokeAsync(() =>
                             {
                                 Info_AchievementsList.Items.Clear();
-                                if (g.Achievements.Count > 0)
-                                    foreach (var a in g.Achievements) Info_AchievementsList.Items.Add(new TextBlock { Text = a, Foreground = Brushes.White });
+
+                                if (g.Achievements != null && g.Achievements.Count > 0)
+                                {
+                                    foreach (var ach in g.Achievements)
+                                    {
+                                        var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 10) };
+
+                                        if (!string.IsNullOrEmpty(ach.IconUrl))
+                                        {
+                                            var img = new Image { Width = 40, Height = 40, Margin = new Thickness(0, 0, 10, 0) };
+                                            try { img.Source = new BitmapImage(new Uri(ach.IconUrl)); } catch { }
+                                            panel.Children.Add(img);
+                                        }
+
+                                        var textStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                                        textStack.Children.Add(new TextBlock { Text = ach.DisplayName, FontWeight = FontWeights.Bold, Foreground = Brushes.White });
+                                        if (!string.IsNullOrEmpty(ach.Description))
+                                            textStack.Children.Add(new TextBlock { Text = ach.Description, FontSize = 10, Foreground = Brushes.Gray });
+
+                                        panel.Children.Add(textStack);
+
+                                        Info_AchievementsList.Items.Add(panel);
+                                    }
+                                }
                                 else
-                                    Info_AchievementsList.Items.Add(new TextBlock { Text = "No achievements", Foreground = Brushes.Gray });
+                                {
+                                    Info_AchievementsList.Items.Add(new TextBlock { Text = "Sem conquistas", Foreground = Brushes.LightGray });
+                                }
                             });
                 });
             }
@@ -1008,7 +1041,8 @@ namespace PichalUI
                     Info_Screenshots.ItemsSource = null;
 
                     // Se tivermos achievements locais, mostra já
-                    if (g.Achievements.Count > 0) Info_AchievementsList.ItemsSource = g.Achievements;
+                    if (g.Achievements.Count > 0)
+                        Info_AchievementsList.ItemsSource = g.Achievements;
 
                     if (int.TryParse(g.SteamAppId, out int appid))
                         Info_Screenshots.ItemsSource = TryGetLocalSteamScreenshots(connectedSteamId ?? "", appid);
@@ -1415,7 +1449,7 @@ namespace PichalUI
                         await sem.WaitAsync();
                         try
                         {
-                            // A. PLAYTIME
+                            // PLAYTIME
                             if (playtimeByApp.TryGetValue(appid, out var minutes))
                             {
                                 g.PlaytimeHours = minutes / 60.0;
@@ -1427,15 +1461,35 @@ namespace PichalUI
                                 if (play.HasValue) g.PlaytimeHours = play.Value;
                             }
 
-                            // B. ACHIEVEMENTS
+                            // Reviews
+                            string reviewScore = await GetGameReviewSummaryAsync(appid);
+
+                            // Achievements c/ raridade
                             if (!string.IsNullOrEmpty(steamApiKey))
                             {
-                                var ach = await GetPlayerAchievementsAsync(connectedSteamId, appid);
-                                if (ach != null && ach.Count > 0) g.Achievements = ach;
+                                var myUnlockedNames = await GetPlayerAchievementsAsync(connectedSteamId, appid);
 
-                                // Calcula percentagem (Opcional, se quiseres barra de progresso precisa)
-                                int total = await GetTotalAchievementsCount(appid);
-                                if (total > 0) g.ProgressPercent = (int)((double)g.Achievements.Count / total * 100);
+                                var schema = await GetGameSchemaAsync(appid);
+
+                                if (myUnlockedNames.Count > 0 && schema.Count > 0)
+                                {
+                                    var fullList = new List<AchievementDetail>();
+
+                                    foreach (string apiName in myUnlockedNames)
+                                    {
+                                        if (schema.ContainsKey(apiName))
+                                        {
+                                            var ach = schema[apiName];
+                                            ach.Achieved = true;
+                                            fullList.Add(ach);
+                                        }
+                                        else
+                                        {
+                                            fullList.Add(new AchievementDetail { DisplayName = apiName, Achieved = true });
+                                        }
+                                    }
+                                    g.Achievements = fullList;
+                                }
                             }
 
                             // C. ATUALIZAR UI EM TEMPO REAL (Se este jogo estiver selecionado)
@@ -1447,8 +1501,13 @@ namespace PichalUI
                                     Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
                                     Info_CompletionPercent.Text = $"{g.ProgressPercent}%";
 
+                                    if (!string.IsNullOrEmpty(reviewScore))
+                                        Info_OwnedOn.Text = $"STEAM  •  {reviewScore.ToUpper()}";
+                                    else
+                                        Info_OwnedOn.Text = "STEAM";
+
                                     // Se achievements chegaram agora, atualiza a lista
-                                    if (g.Achievements.Count > 0 && Info_AchievementsList.Items.Count <= 1)
+                                    if (g.Achievements.Count > 0)
                                     {
                                         Info_AchievementsList.ItemsSource = null;
                                         Info_AchievementsList.ItemsSource = g.Achievements;
@@ -1639,6 +1698,41 @@ namespace PichalUI
             }
             catch { }
             return list;
+        }
+
+        async Task<Dictionary<string, AchievementDetail>> GetGameSchemaAsync(int appid)
+        {
+            var dict = new Dictionary<string, AchievementDetail>();
+            if (string.IsNullOrEmpty(steamApiKey)) return dict;
+
+            try
+            {
+                var url = $"https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key={steamApiKey}&appid={appid}&l=portuguese";
+                var root = await SteamApiGetJson(url);
+
+                if (root.HasValue &&
+                    root.Value.TryGetProperty("game", out var game) &&
+                    game.TryGetProperty("availableGameStats", out var stats) &&
+                    stats.TryGetProperty("achievements", out var achArray))
+                {
+                    foreach (var a in achArray.EnumerateArray())
+                    {
+                        string name = a.GetProperty("name").GetString() ?? "";
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            dict[name] = new AchievementDetail
+                            {
+                                ApiName = name,
+                                DisplayName = a.TryGetProperty("displayName", out var dn) ? dn.GetString() : name,
+                                Description = a.TryGetProperty("description", out var d) ? d.GetString() : "",
+                                IconUrl = a.TryGetProperty("icon", out var i) ? i.GetString() : ""
+                            };
+                        }
+                    }
+                }
+            }
+            catch { }
+            return dict;
         }
 
         async Task ConnectSteamFlowAsync()
@@ -1956,6 +2050,46 @@ namespace PichalUI
             return 0;
         }
 
+        async Task<Dictionary<string, double>> GetGlobalAchievementsPercentagesAsync(int appid)
+        {
+            var dict = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                var url = $"https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?gameid={appid}";
+                var root = await SteamApiGetJson(url);
+
+                if (root.HasValue && root.Value.TryGetProperty("achievementpercentages", out var ap) && ap.TryGetProperty("achievements", out var list))
+                {
+                    foreach (var item in list.EnumerateArray())
+                    {
+                        string name = item.GetProperty("name").GetString() ?? "";
+                        double percent = item.GetProperty("percent").GetDouble();
+                        if (!string.IsNullOrEmpty(name)) dict[name] = percent;
+                    }
+                }
+            }
+            catch { }
+            return dict;
+        }
+
+        async Task<string> GetGameReviewSummaryAsync(int appid)
+        {
+            try
+            {
+                var url = $"https://store.steampowered.com/appreviews/{appid}?json=1&language=all";
+                var root = await SteamApiGetJson(url);
+
+                if (root.HasValue && root.Value.TryGetProperty("query_summary", out var summary))
+                {
+                    string score = summary.GetProperty("review_score_desc").GetString() ?? "";
+                    return score;
+                }
+            }
+            catch { }
+            return "";
+        }
+
         ImageSource LoadBitmapImageFromFile(string path)
         {
             var bmp = new BitmapImage();
@@ -2044,12 +2178,12 @@ namespace PichalUI
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             ToggleFullscreen();
-            //_ = FoxyStartupAnimation();
             _controller = new PlayStationController();
             _controller.StateChanged += Controller_StateChanged;
             if (!_controller.Start()) { /* Log */ }
 
             await PlayStartupAnimation();
+            //await FoxyStartupAnimation();
 
             LoadUsers();
 

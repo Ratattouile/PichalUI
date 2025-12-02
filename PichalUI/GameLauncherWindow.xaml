@@ -1707,13 +1707,38 @@
                                              x:FieldModifier="public"
                                              Background="Transparent"
                                              BorderThickness="0"
-                                             ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
                                              ItemContainerStyle="{StaticResource FocusableItemStyle}"
                                              Margin="0,0,0,40"
                                              Focusable="True"
                                              MinHeight="40"
                                              MaxHeight="300"
-                                             Foreground="White"/>
+                                             Foreground="White">
+
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal"
+                                                        Margin="0,0,0,10">
+                                                    <Image Source="{Binding IconUrl}"
+                                                            Width="48"
+                                                            Height="48"
+                                                            Margin="0,0,10,0"/>
+
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                FontWeight="Bold"
+                                                                Foreground="White"
+                                                                FontSize="14"/>
+                                                        <TextBlock Text="{Binding Description}"
+                                                                Foreground="Gray"
+                                                                FontSize="11"
+                                                                TextWrapping="Wrap"
+                                                                MaxWidth="300"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
                                 </StackPanel>
                             </ScrollViewer>
                         </StackPanel>
@@ -1920,13 +1945,13 @@
                         Margin="0,0,0,-20">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0"
-                                EndPoint="0,1">
+                                             EndPoint="0,1">
                             <GradientStop Color="#00FFFFFF"
-                                    Offset="0"/>
+                                          Offset="0"/>
                             <GradientStop Color="#40FFFFFF"
-                                    Offset="0.4"/>
+                                          Offset="0.4"/>
                             <GradientStop Color="#CCF0F8FF"
-                                    Offset="1"/>
+                                          Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                     <Border.Effect>
@@ -1945,24 +1970,24 @@
                     <Canvas.RenderTransform>
                         <TransformGroup>
                             <TranslateTransform x:Name="GolemWindSlide"
-                                    X="0"/>
+                                                X="0"/>
                             <ScaleTransform x:Name="GolemScale"
-                                    ScaleX="1"
-                                    ScaleY="1"/>
+                                            ScaleX="1"
+                                            ScaleY="1"/>
                         </TransformGroup>
                     </Canvas.RenderTransform>
 
                     <Ellipse Width="120"
-                            Height="20"
-                            Canvas.Left="40"
-                            Canvas.Top="280"
-                            Opacity="0.5">
+                             Height="20"
+                             Canvas.Left="40"
+                             Canvas.Top="280"
+                             Opacity="0.5">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
                                 <GradientStop Color="#8000FFFF"
-                                        Offset="0"/>
+                                              Offset="0"/>
                                 <GradientStop Color="Transparent"
-                                        Offset="1"/>
+                                              Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
                         <Ellipse.Effect>
@@ -1972,15 +1997,15 @@
                             <EventTrigger RoutedEvent="Loaded">
                                 <BeginStoryboard>
                                     <Storyboard RepeatBehavior="Forever"
-                                            AutoReverse="True">
+                                                AutoReverse="True">
                                         <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                From="0.2"
-                                                To="0.6"
-                                                Duration="0:0:2"/>
+                                                         From="0.2"
+                                                         To="0.6"
+                                                         Duration="0:0:2"/>
                                         <DoubleAnimation Storyboard.TargetProperty="Width"
-                                                From="100"
-                                                To="130"
-                                                Duration="0:0:2"/>
+                                                         From="100"
+                                                         To="130"
+                                                         Duration="0:0:2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -1990,96 +2015,96 @@
                     <Path x:Name="GolemBody"
                           Data="M 20,0 L 80,-10 L 100,50 L 0,40 Z"
                           Fill="#D0E0FF"
-                            Canvas.Left="50"
-                            Canvas.Top="180">
+                          Canvas.Left="50"
+                          Canvas.Top="180">
                         <Path.Effect>
                             <DropShadowEffect Color="#00A0FF"
-                                    BlurRadius="15"
-                                    ShadowDepth="0"
-                                    Opacity="0.4"/>
+                                              BlurRadius="15"
+                                              ShadowDepth="0"
+                                              Opacity="0.4"/>
                         </Path.Effect>
                         <Path.RenderTransform>
                             <TranslateTransform x:Name="BodyFloat"
-                                    Y="0"/>
+                                                Y="0"/>
                         </Path.RenderTransform>
                     </Path>
 
                     <Path x:Name="GolemChest"
                           Data="M 10,0 L 90,10 L 70,60 L 30,50 Z"
                           Fill="#F0FFFF"
-                            Canvas.Left="55"
-                            Canvas.Top="130">
+                          Canvas.Left="55"
+                          Canvas.Top="130">
                         <Path.Effect>
                             <DropShadowEffect Color="White"
-                                    BlurRadius="5"
-                                    ShadowDepth="0"/>
+                                              BlurRadius="5"
+                                              ShadowDepth="0"/>
                         </Path.Effect>
                         <Path.RenderTransform>
                             <TranslateTransform x:Name="ChestFloat"
-                                    Y="0"/>
+                                                Y="0"/>
                         </Path.RenderTransform>
                     </Path>
 
                     <Grid x:Name="GolemHead"
-                            Canvas.Left="70"
-                            Canvas.Top="70"
-                            Width="60"
-                            Height="70">
+                          Canvas.Left="70"
+                          Canvas.Top="70"
+                          Width="60"
+                          Height="70">
                         <Grid.RenderTransform>
                             <TranslateTransform x:Name="HeadFloat"
-                                    Y="0"/>
+                                                Y="0"/>
                         </Grid.RenderTransform>
 
                         <Path Data="M 0,20 L 30,0 L 60,20 L 50,60 L 10,60 Z"
-                                Fill="#E0F0FF">
+                              Fill="#E0F0FF">
                             <Path.Effect>
                                 <DropShadowEffect Color="#00FFFF"
-                                        BlurRadius="10"
-                                        ShadowDepth="0"
-                                        Opacity="0.5"/>
+                                                  BlurRadius="10"
+                                                  ShadowDepth="0"
+                                                  Opacity="0.5"/>
                             </Path.Effect>
                         </Path>
 
                         <Rectangle Width="15"
-                                Height="4"
-                                Fill="#00FFFF"
-                                VerticalAlignment="Top"
-                                HorizontalAlignment="Left"
-                                Margin="12,25,0,0">
+                                   Height="4"
+                                   Fill="#00FFFF"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"
+                                   Margin="12,25,0,0">
                             <Rectangle.Effect>
                                 <DropShadowEffect Color="#00FFFF"
-                                        BlurRadius="5"
-                                        ShadowDepth="0"/>
+                                                  BlurRadius="5"
+                                                  ShadowDepth="0"/>
                             </Rectangle.Effect>
                         </Rectangle>
                         <Rectangle Width="15"
-                                Height="4"
-                                Fill="#00FFFF"
-                                VerticalAlignment="Top"
-                                HorizontalAlignment="Right"
-                                Margin="0,25,12,0">
+                                   Height="4"
+                                   Fill="#00FFFF"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,25,12,0">
                             <Rectangle.Effect>
                                 <DropShadowEffect Color="#00FFFF"
-                                        BlurRadius="5"
-                                        ShadowDepth="0"/>
+                                                  BlurRadius="5"
+                                                  ShadowDepth="0"/>
                             </Rectangle.Effect>
                         </Rectangle>
                     </Grid>
 
                     <Ellipse Width="4"
-                            Height="4"
-                            Fill="White"
-                            Canvas.Left="40"
-                            Canvas.Top="100"
-                            x:Name="MagicParticle1"
-                            Opacity="0"/>
+                             Height="4"
+                             Fill="White"
+                             Canvas.Left="40"
+                             Canvas.Top="100"
+                             x:Name="MagicParticle1"
+                             Opacity="0"/>
                     <Ellipse Width="3"
-                            Height="3"
-                            Fill="Cyan"
-                            Canvas.Left="160"
-                            Canvas.Top="200"
-                            x:Name="MagicParticle2"
-                            Opacity="0"/>
+                             Height="3"
+                             Fill="Cyan"
+                             Canvas.Left="160"
+                             Canvas.Top="200"
+                             x:Name="MagicParticle2"
+                             Opacity="0"/>
 
                 </Canvas>
             </Grid>
@@ -2103,7 +2128,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.4.3 - alpha"
+                    <TextBlock Text="v0.4.5 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
