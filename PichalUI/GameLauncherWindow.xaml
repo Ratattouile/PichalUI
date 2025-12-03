@@ -398,6 +398,87 @@
                 </Grid>
             </Border>
 
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        Margin="20,0,0,5"
+                        VerticalAlignment="Top"
+                        Panel.ZIndex="10">
+
+                <StackPanel.Resources>
+                    <Style TargetType="RadioButton"
+                           x:Key="FilterPillStyle">
+                        <Setter Property="Background"
+                                Value="#33FFFFFF"/>
+                        <Setter Property="Foreground"
+                                Value="White"/>
+                        <Setter Property="FontSize"
+                                Value="14"/>
+                        <Setter Property="FontWeight"
+                                Value="SemiBold"/>
+                        <Setter Property="Margin"
+                                Value="0,0,10,0"/>
+                        <Setter Property="Padding"
+                                Value="20,8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="RadioButton">
+                                    <Border x:Name="Bd"
+                                            Background="{TemplateBinding Background}"
+                                            CornerRadius="20">
+                                        <ContentPresenter HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Margin="{TemplateBinding Padding}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked"
+                                                 Value="True">
+                                            <Setter TargetName="Bd"
+                                                    Property="Background"
+                                                    Value="White"/>
+                                            <Setter Property="Foreground"
+                                                    Value="Black"/>
+                                        </Trigger>
+                                        <Trigger Property="IsFocused"
+                                                 Value="True">
+                                            <Setter TargetName="Bd"
+                                                    Property="BorderBrush"
+                                                    Value="{DynamicResource AccentBrush}"/>
+                                            <Setter TargetName="Bd"
+                                                    Property="BorderThickness"
+                                                    Value="2"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </StackPanel.Resources>
+
+                <RadioButton Content="Tudo"
+                             IsChecked="True"
+                             Click="Filter_Click"
+                             Tag="All"
+                             Style="{StaticResource FilterPillStyle}"
+                             Focusable="True"/>
+                <RadioButton Content="Recentes"
+                             Click="Filter_Click"
+                             Tag="Recent"
+                             Style="{StaticResource FilterPillStyle}"
+                             Focusable="True"/>
+                <RadioButton Content="Mais Jogados"
+                             Click="Filter_Click"
+                             Tag="MostPlayed"
+                             Style="{StaticResource FilterPillStyle}"
+                             Focusable="True"/>
+                <RadioButton Content="Backlog"
+                             Click="Filter_Click"
+                             Tag="NeverPlayed"
+                             Style="{StaticResource FilterPillStyle}"
+                             Focusable="True"/>
+
+            </StackPanel>
+
             <Border Grid.Row="2"
                     x:Name="Carousel"
                     Height="340"
@@ -1109,26 +1190,27 @@
                     </Grid.ColumnDefinitions>
 
                     <ListBox x:Name="FriendListBox"
-                             x:FieldModifier="public"
+                            x:FieldModifier="public"
                              SelectionChanged="FriendListBox_SelectionChanged"
                              Width="Auto"
-                             Background="Transparent"
-                             BorderThickness="0"
+                            Background="Transparent"
+                            BorderThickness="0"
                              ScrollViewer.VerticalScrollBarVisibility="Hidden"
                              VirtualizingStackPanel.IsVirtualizing="True"
                              VirtualizingStackPanel.VirtualizationMode="Recycling"
                              KeyboardNavigation.TabNavigation="Local"
                              SelectionMode="Single"
                              Grid.Column="1"
-                             HorizontalAlignment="Left"
-                             Padding="0"
-                             Margin="3">
+                            HorizontalAlignment="Left"
+                            Padding="0"
+                            Margin="3">
+
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="FocusVisualStyle"
                                         Value="{x:Null}"/>
                                 <Setter Property="Foreground"
-                                        Value="{DynamicResource TextPrimaryBrush}"/>
+                                        Value="White"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="ListBoxItem">
@@ -1141,15 +1223,17 @@
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsSelected"
-                                                         Value="True">
+                                                        Value="True">
                                                     <Setter TargetName="Bd"
                                                             Property="Background"
                                                             Value="{DynamicResource AccentBrush}"/>
                                                     <Setter Property="FontWeight"
                                                             Value="Bold"/>
+                                                    <Setter Property="Foreground"
+                                                            Value="Black"/>
                                                 </Trigger>
                                                 <Trigger Property="IsMouseOver"
-                                                         Value="True">
+                                                        Value="True">
                                                     <Setter TargetName="Bd"
                                                             Property="Background"
                                                             Value="#33FFFFFF"/>
@@ -1160,6 +1244,7 @@
                                 </Setter>
                             </Style>
                         </ListBox.ItemContainerStyle>
+
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="8"
@@ -1168,31 +1253,31 @@
                                         Background="{DynamicResource PanelBackgroundBrush}">
                                     <DockPanel>
                                         <Grid Width="40"
-                                              Height="40"
-                                              Margin="0,0,12,0"
-                                              VerticalAlignment="Center">
+                                                Height="40"
+                                                Margin="0,0,12,0"
+                                                VerticalAlignment="Center">
                                             <Image Source="{Binding AvatarFull}"
-                                                   Stretch="UniformToFill">
+                                                    Stretch="UniformToFill">
                                                 <Image.Clip>
                                                     <RectangleGeometry Rect="0,0,40,40"
-                                                                       RadiusX="4"
-                                                                       RadiusY="4"/>
+                                                            RadiusX="4"
+                                                            RadiusY="4"/>
                                                 </Image.Clip>
                                             </Image>
                                             <Ellipse Width="10"
-                                                     Height="10"
-                                                     HorizontalAlignment="Right"
-                                                     VerticalAlignment="Bottom"
-                                                     Fill="{Binding StatusColor}"
-                                                     Stroke="{DynamicResource PanelBackgroundBrush}"
-                                                     StrokeThickness="1"/>
+                                                    Height="10"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Bottom"
+                                                    Fill="{Binding StatusColor}"
+                                                    Stroke="{DynamicResource PanelBackgroundBrush}"
+                                                    StrokeThickness="1"/>
                                         </Grid>
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="{Binding PersonaName}"
-                                                       FontSize="14"/>
+                                                    FontSize="14"/>
                                             <TextBlock Text="{Binding StatusText}"
-                                                       FontSize="11"
-                                                       Opacity="0.7"/>
+                                                    FontSize="11"
+                                                    Opacity="0.7"/>
                                         </StackPanel>
                                     </DockPanel>
                                 </Border>
@@ -1207,17 +1292,17 @@
                             ClipToBounds="True">
                         <Grid>
                             <TextBlock Text="Seleciona um amigo"
-                                       Foreground="Gray"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       FontSize="16">
+                                    Foreground="Gray"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="16">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility"
                                                 Value="Collapsed"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ElementName=FriendListBox, Path=SelectedIndex}"
-                                                         Value="-1">
+                                                    Value="-1">
                                                 <Setter Property="Visibility"
                                                         Value="Visible"/>
                                             </DataTrigger>
@@ -1233,7 +1318,7 @@
                                                 Value="Visible"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ElementName=FriendListBox, Path=SelectedIndex}"
-                                                         Value="-1">
+                                                    Value="-1">
                                                 <Setter Property="Visibility"
                                                         Value="Collapsed"/>
                                             </DataTrigger>
@@ -1241,98 +1326,113 @@
                                     </Style>
                                 </Grid.Style>
 
-                                <Image Source="{Binding GameCoverUrl}"
-                                       Stretch="UniformToFill"
-                                       Opacity="0.3"
-                                       Visibility="{Binding GameCoverVisibility}">
-                                    <Image.Effect>
-                                        <BlurEffect Radius="40"/>
-                                    </Image.Effect>
-                                </Image>
-
                                 <ScrollViewer VerticalScrollBarVisibility="Hidden"
-                                              Margin="25">
+                                        Margin="40">
                                     <StackPanel>
+
                                         <StackPanel Orientation="Horizontal"
-                                                    Margin="0,0,0,30">
-                                            <Border CornerRadius="50"
-                                                    Width="100"
-                                                    Height="100">
-                                                <Border.Effect>
-                                                    <DropShadowEffect Color="{Binding StatusColor.Color}"
-                                                                      BlurRadius="20"
-                                                                      Opacity="0.6"/>
-                                                </Border.Effect>
-                                                <Image Source="{Binding AvatarFull}"
-                                                       Stretch="UniformToFill">
-                                                    <Image.Clip>
-                                                        <EllipseGeometry Center="50,50"
-                                                                         RadiusX="40"
-                                                                         RadiusY="40"/>
-                                                    </Image.Clip>
-                                                </Image>
-                                            </Border>
+                                                Margin="0,0,0,40">
+
+                                            <Grid Margin="0,0,25,0">
+                                                <Border CornerRadius="60"
+                                                        Width="120"
+                                                        Height="120">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect Color="Black"
+                                                                BlurRadius="20"
+                                                                Opacity="0.5"/>
+                                                    </Border.Effect>
+                                                    <Image Source="{Binding AvatarFull}"
+                                                            Stretch="UniformToFill">
+                                                        <Image.Clip>
+                                                            <EllipseGeometry Center="60,60"
+                                                                    RadiusX="60"
+                                                                    RadiusY="60"/>
+                                                        </Image.Clip>
+                                                    </Image>
+                                                </Border>
+
+                                                <Border Background="#111"
+                                                        BorderBrush="{DynamicResource AccentBrush}"
+                                                        BorderThickness="2"
+                                                        CornerRadius="20"
+                                                        Width="40"
+                                                        Height="40"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Bottom">
+                                                    <TextBlock Text="{Binding SteamLevel}"
+                                                            Foreground="White"
+                                                            FontWeight="Bold"
+                                                               FontSize="14"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                                </Border>
+                                            </Grid>
+
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding PersonaName}"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                                           FontSize="32"
-                                                           FontWeight="Bold"
-                                                           Margin="0,0,20,0"/>
-                                                <Border Background="{Binding StatusColor}"
-                                                        CornerRadius="4"
-                                                        HorizontalAlignment="Left"
-                                                        Padding="8,2"
+                                                        Foreground="White"
+                                                        FontSize="42"
+                                                        FontWeight="Bold"/>
+
+                                                <StackPanel Orientation="Horizontal"
                                                         Margin="0,5,0,0">
-                                                    <TextBlock Text="{Binding StatusText}"
-                                                               Foreground="Black"
-                                                               FontWeight="Bold"
-                                                               FontSize="12"/>
-                                                </Border>
-                                                <TextBlock Text="{Binding MutualFriendsText}"
-                                                           Foreground="Gray"
-                                                           FontSize="12"
-                                                           Margin="0,5,0,0"
-                                                           FontStyle="Italic"/>
+                                                    <Border Background="{Binding StatusColor}"
+                                                            CornerRadius="4"
+                                                            Padding="8,4"
+                                                            Margin="0,0,10,0">
+                                                        <TextBlock Text="{Binding StatusText}"
+                                                                Foreground="Black"
+                                                                FontWeight="Bold"
+                                                                FontSize="12"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding MutualFriendsText}"
+                                                            Foreground="Gray"
+                                                            FontSize="14"
+                                                            VerticalAlignment="Center"
+                                                            FontStyle="Italic"/>
+                                                </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
 
                                         <StackPanel Visibility="{Binding GameCoverVisibility}"
-                                                    Margin="0,0,0,30">
+                                                Margin="0,0,0,30">
                                             <TextBlock Text="A JOGAR AGORA"
-                                                       Foreground="Gray"
-                                                       FontSize="12"
-                                                       FontWeight="Bold"
-                                                       Margin="0,0,0,10"/>
+                                                    Foreground="Gray"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    Margin="0,0,0,10"/>
                                             <Border Background="#22FFFFFF"
                                                     CornerRadius="8"
-                                                    Padding="0">
+                                                    Padding="20">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
+
                                                     <Image Source="{Binding GameCoverUrl}"
-                                                           Width="80"
-                                                           Height="120"
-                                                           Stretch="UniformToFill"
-                                                           Margin="0">
+                                                            Width="120"
+                                                            Height="60"
+                                                            Stretch="UniformToFill"
+                                                            Margin="0,0,20,0">
                                                         <Image.Clip>
-                                                            <RectangleGeometry Rect="0,0,80,120"
-                                                                               RadiusX="8"
-                                                                               RadiusY="8"/>
+                                                            <RectangleGeometry Rect="0,0,120,60"
+                                                                    RadiusX="4"
+                                                                    RadiusY="4"/>
                                                         </Image.Clip>
                                                     </Image>
+
                                                     <StackPanel Grid.Column="1"
-                                                                VerticalAlignment="Center"
-                                                                Margin="15,0">
+                                                            VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding GameExtraInfo}"
-                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                                   FontSize="20"
-                                                                   FontWeight="Bold"
-                                                                   TextWrapping="Wrap"/>
-                                                        <TextBlock Text="Na Steam"
-                                                                   Foreground="{DynamicResource AccentBrush}"
-                                                                   Margin="0,5,0,0"/>
+                                                                Foreground="White"
+                                                                FontSize="24"
+                                                                FontWeight="Bold"/>
+                                                        <TextBlock Text="{Binding RichPresence}"
+                                                                Foreground="{DynamicResource AccentBrush}"
+                                                                FontSize="14"
+                                                                Margin="0,5,0,0"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
@@ -1340,14 +1440,15 @@
 
                                         <StackPanel Margin="0,0,0,30">
                                             <TextBlock Text="ATIVIDADE RECENTE"
-                                                       Foreground="Gray"
-                                                       FontSize="12"
-                                                       FontWeight="Bold"
-                                                       Margin="0,0,0,10"/>
+                                                    Foreground="Gray"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    Margin="0,0,0,10"/>
+
                                             <ListBox ItemsSource="{Binding RecentGames}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
-                                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                                 <ListBox.ItemsPanel>
                                                     <ItemsPanelTemplate>
                                                         <StackPanel Orientation="Horizontal"/>
@@ -1369,110 +1470,61 @@
                                                 <ListBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <StackPanel Margin="0,0,15,0"
-                                                                    Width="93">
+                                                                Width="110">
                                                             <Border CornerRadius="6"
-                                                                    Height="140"
+                                                                    Height="160"
                                                                     Background="#222"
                                                                     ClipToBounds="True">
                                                                 <Image Source="{Binding CoverUrl}"
-                                                                       Width="93"
-                                                                       Height="140"
-                                                                       Stretch="UniformToFill">
-                                                                    <Image.Clip>
-                                                                        <RectangleGeometry Rect="0,0,93,140"
-                                                                                           RadiusX="8"
-                                                                                           RadiusY="8"/>
-                                                                    </Image.Clip>
-                                                                </Image>
+                                                                        Width="110"
+                                                                        Height="160"
+                                                                        Stretch="UniformToFill"/>
                                                             </Border>
                                                             <TextBlock Text="{Binding Name}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       TextTrimming="CharacterEllipsis"
-                                                                       Margin="0,5,0,0"/>
+                                                                    Foreground="White"
+                                                                    FontSize="12"
+                                                                    FontWeight="SemiBold"
+                                                                    TextTrimming="CharacterEllipsis"
+                                                                    Margin="0,8,0,0"/>
                                                             <TextBlock Text="{Binding Playtime2Weeks}"
-                                                                       Foreground="Gray"
-                                                                       FontSize="10"/>
+                                                                    Foreground="Gray"
+                                                                    FontSize="11"/>
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </ListBox.ItemTemplate>
                                             </ListBox>
-                                            <TextBlock Text="Nenhuma atividade recente ou perfil privado."
-                                                       Foreground="Gray"
-                                                       FontStyle="Italic"
-                                                       Opacity="0.6"
-                                                       Margin="0,10,0,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility"
-                                                                Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding RecentGames.Count}"
-                                                                         Value="0">
-                                                                <Setter Property="Visibility"
-                                                                        Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
                                         </StackPanel>
 
-                                        <TextBlock Text="DETALHES TÉCNICOS"
-                                                   Foreground="Gray"
-                                                   FontSize="12"
-                                                   FontWeight="Bold"
-                                                   Margin="0,0,0,10"/>
-                                        <Border Background="#11FFFFFF"
-                                                CornerRadius="8"
-                                                Padding="15">
-                                            <StackPanel>
-                                                <Grid Margin="0,0,0,10">
-                                                    <TextBlock Text="Steam ID"
-                                                               Foreground="Gray"/>
-                                                    <TextBlock Text="{Binding SteamId}"
-                                                               Foreground="White"
-                                                               HorizontalAlignment="Right"
-                                                               FontWeight="SemiBold"/>
-                                                </Grid>
-                                                <Grid>
-                                                    <TextBlock Text="Link Perfil"
-                                                               Foreground="Gray"/>
-                                                    <TextBlock Text="Public"
-                                                               Foreground="White"
-                                                               HorizontalAlignment="Right"
-                                                               FontWeight="SemiBold"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Convidar"
+                                                    Height="50"
+                                                    Width="160"
+                                                    Margin="0,0,15,0"
+                                                    Style="{StaticResource SettingsButtonStyle}"
+                                                    Focusable="True"
+                                                    Command="{Binding DataContext.InviteFriendCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding SteamId}"/>
 
-                                        <Button Content="Convidar"
-                                                Height="50"
-                                                Width="160"
-                                                Margin="0,0,15,0"
-                                                Style="{StaticResource SettingsButtonStyle}"
-                                                Focusable="True"
-                                                Command="{Binding DataContext.InviteFriendCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                CommandParameter="{Binding SteamId}"/>
+                                            <Button Content="Ver Perfil Completo"
+                                                    Height="50"
+                                                    Width="200"
+                                                    Background="{DynamicResource AccentBrush}"
+                                                    Foreground="Black"
+                                                    FontWeight="Bold"
+                                                    FontSize="16"
+                                                    BorderThickness="0"
+                                                    Focusable="True"
+                                                    Command="{Binding DataContext.OpenFriendProfileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding ProfileUrl}">
+                                                <Button.Resources>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="CornerRadius"
+                                                                Value="8"/>
+                                                    </Style>
+                                                </Button.Resources>
+                                            </Button>
+                                        </StackPanel>
 
-                                        <Button Content="Ver Perfil Completo"
-                                                Height="50"
-                                                Margin="0,30,0,0"
-                                                Background="{DynamicResource AccentBrush}"
-                                                Foreground="Black"
-                                                FontWeight="Bold"
-                                                FontSize="16"
-                                                BorderThickness="0"
-                                                Command="{Binding DataContext.OpenFriendProfileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                CommandParameter="{Binding ProfileUrl}">
-                                            <Button.Resources>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="CornerRadius"
-                                                            Value="8"/>
-                                                </Style>
-                                            </Button.Resources>
-                                        </Button>
                                     </StackPanel>
                                 </ScrollViewer>
                             </Grid>
@@ -1484,7 +1536,7 @@
             <Border Grid.Row="3"
                     x:Name="InfoArea"
                     Background="Transparent"
-                    Padding="8"
+                    Padding="0"
                     Visibility="Collapsed"
                     RenderTransformOrigin="0.5,0.5"
                     Opacity="0"
@@ -1511,7 +1563,7 @@
                         </Border.Background>
                     </Border>
 
-                    <Grid Margin="60,40,60,40">
+                    <Grid Margin="60,40,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="450"/>
                             <ColumnDefinition Width="50"/>
@@ -1601,7 +1653,9 @@
 
                             <StackPanel Orientation="Horizontal">
                                 <Grid VerticalAlignment="Center">
-                                    <ProgressBar Value="{Binding ElementName=Info_CompletionPercent, Path=Tag}"
+                                    <ProgressBar x:Name="Info_CompletionBar"
+                                                 Value="0"
+                                                 Minimum="0"
                                                  Maximum="100"
                                                  Width="300"
                                                  Height="10"
@@ -1653,6 +1707,22 @@
                                                  ItemContainerStyle="{StaticResource FocusableItemStyle}"
                                                  Margin="0,0,0,0"
                                                  Focusable="True">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,0,0,0"
+                                                          ToolTip="{Binding PersonaName}">
+                                                        <Border CornerRadius="20"
+                                                                Width="40"
+                                                                Height="40">
+                                                            <Border.Background>
+                                                                <ImageBrush ImageSource="{Binding AvatarFull}"
+                                                                            Stretch="UniformToFill"/>
+                                                            </Border.Background>
+                                                        </Border>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+
                                             <ListBox.ItemsPanel>
                                                 <ItemsPanelTemplate>
                                                     <WrapPanel Orientation="Horizontal"/>
@@ -1662,7 +1732,7 @@
                                     </StackPanel>
 
                                     <TextBlock Text="AMIGOS QUE TÊM O JOGO"
-                                               Foreground="Gray"
+                                               Foreground="{DynamicResource AccentBrush}"
                                                FontWeight="Bold"
                                                FontSize="16"
                                                Margin="0,0,0,15"/>
@@ -1674,7 +1744,7 @@
                                              ItemContainerStyle="{StaticResource FocusableItemStyle}"
                                              Margin="0,0,0,0"
                                              Focusable="True"
-                                             MaxHeight="300">
+                                             Height="150">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="0,0,0,0"
@@ -1712,28 +1782,29 @@
                                              Margin="0,0,0,40"
                                              Focusable="True"
                                              MinHeight="40"
-                                             MaxHeight="300"
+                                             MaxHeight="296"
                                              Foreground="White">
 
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal"
-                                                        Margin="0,0,0,10">
+                                                            Margin="0,0,0,0"
+                                                            VerticalAlignment="Center">
                                                     <Image Source="{Binding IconUrl}"
-                                                            Width="48"
-                                                            Height="48"
-                                                            Margin="0,0,10,0"/>
+                                                           Width="45"
+                                                           Height="45"
+                                                           Margin="0,0,10,0"/>
 
                                                     <StackPanel VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding DisplayName}"
-                                                                FontWeight="Bold"
-                                                                Foreground="White"
-                                                                FontSize="14"/>
+                                                                   FontWeight="Bold"
+                                                                   Foreground="White"
+                                                                   FontSize="14"/>
                                                         <TextBlock Text="{Binding Description}"
-                                                                Foreground="Gray"
-                                                                FontSize="11"
-                                                                TextWrapping="Wrap"
-                                                                MaxWidth="300"/>
+                                                                   Foreground="Gray"
+                                                                   FontSize="11"
+                                                                   TextWrapping="Wrap"
+                                                                   MaxWidth="300"/>
                                                     </StackPanel>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -1764,7 +1835,7 @@
                                                 <Border Background="#22FFFFFF"
                                                         CornerRadius="8"
                                                         Padding="20"
-                                                        Margin="0,0,0,15"
+                                                        Margin="0,0,0,0"
                                                         HorizontalAlignment="Stretch">
                                                     <StackPanel>
                                                         <TextBlock Text="{Binding Title}"
@@ -1772,7 +1843,8 @@
                                                                    FontWeight="Bold"
                                                                    FontSize="16"
                                                                    TextTrimming="CharacterEllipsis"
-                                                                   MaxWidth="400"/>
+                                                                   MaxWidth="400"
+                                                                   TextAlignment="Left"/>
                                                         <TextBlock Text="{Binding Date}"
                                                                    Foreground="Gray"
                                                                    FontSize="12"
@@ -1792,9 +1864,9 @@
                                              x:FieldModifier="public"
                                              Background="Transparent"
                                              BorderThickness="0"
-                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                              ItemContainerStyle="{StaticResource FocusableItemStyle}"
-                                             Margin="0,0,0,30"
+                                             Margin="0,0,0,0"
                                              Focusable="True">
                                         <ListBox.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -1806,7 +1878,7 @@
                                                 <Border CornerRadius="6"
                                                         Width="160"
                                                         Height="90"
-                                                        Margin="0,0,10,10"
+                                                        Margin="0,0,0,0"
                                                         Background="#222">
                                                     <Image Source="{Binding}"
                                                            Stretch="UniformToFill"/>
@@ -1831,7 +1903,7 @@
                                 MaxWidth="800"
                                 MaxHeight="600"
                                 Margin="50"
-                                Padding="30">
+                                Padding="20">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -2128,7 +2200,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.4.5 - alpha"
+                    <TextBlock Text="v0.4.9 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
@@ -2213,7 +2285,7 @@
                              Grid.Row="1"
                              Background="Transparent"
                              BorderThickness="0"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Disabled"
                              Margin="0,0,0,15">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
@@ -2585,6 +2657,120 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
+        </Grid>
+
+        <Grid x:Name="WelcomeOverlay"
+              Grid.RowSpan="5"
+              Background="#F2050505"
+              Visibility="Collapsed"
+              Panel.ZIndex="20000"
+              x:FieldModifier="public">
+
+            <Image x:Name="WelcomeBgImage"
+                   Stretch="UniformToFill"
+                   Opacity="0.3">
+                <Image.Effect>
+                    <BlurEffect Radius="50"/>
+                </Image.Effect>
+            </Image>
+
+            <Grid Margin="100,60">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center"
+                            Margin="0,0,50,0">
+                    <TextBlock x:Name="WelcomeGreeting"
+                               Text="Bem-vindo de volta!"
+                               FontSize="32"
+                               Foreground="Gray"
+                               FontWeight="Light"/>
+
+                    <TextBlock x:Name="WelcomeUser"
+                               Text="Ratatouille"
+                               FontSize="56"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               Margin="0,0,0,30"/>
+
+                    <Border Background="#33FFFFFF"
+                            CornerRadius="8"
+                            Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="SUGESTÃO INTELIGENTE"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontWeight="Bold"
+                                       FontSize="14"
+                                       Margin="0,0,0,10"/>
+
+                            <TextBlock x:Name="WelcomeReason"
+                                       Text="Como tens jogado muitos RPGs ultimamente, achamos que está na hora de continuares a tua aventura em..."
+                                       Foreground="White"
+                                       FontSize="18"
+                                       TextWrapping="Wrap"
+                                       LineHeight="26"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,40,0,0">
+                        <Button x:Name="BtnWelcomePlay"
+                                Content="JOGAR AGORA"
+                                Click="WelcomePlay_Click"
+                                Style="{StaticResource PlayButtonStyle}"
+                                Width="220"
+                                Height="60"
+                                FontSize="18"
+                                Margin="0,0,20,0"/>
+
+                        <Button x:Name="BtnWelcomeClose"
+                                Content="Ir para a Biblioteca"
+                                Click="WelcomeClose_Click"
+                                Style="{StaticResource SettingsButtonStyle}"
+                                Width="200"
+                                Height="60"
+                                FontSize="16"
+                                Background="Transparent"
+                                BorderBrush="White"
+                                BorderThickness="1"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Grid Grid.Column="1"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+                    <Border CornerRadius="12"
+                            Width="400"
+                            Height="600">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black"
+                                              BlurRadius="40"
+                                              ShadowDepth="10"
+                                              Opacity="0.6"/>
+                        </Border.Effect>
+                        <Border.Background>
+                            <ImageBrush x:Name="WelcomeGameCover"
+                                        Stretch="UniformToFill"/>
+                        </Border.Background>
+
+                        <Grid VerticalAlignment="Bottom"
+                              Background="#CC000000"
+                              Height="100">
+                            <TextBlock x:Name="WelcomeGameTitle"
+                                       Text="ELDEN RING"
+                                       Foreground="White"
+                                       FontSize="32"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

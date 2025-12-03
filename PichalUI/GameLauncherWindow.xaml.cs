@@ -46,7 +46,7 @@ namespace PichalUI
         public ImageSource? Cover { get; set; }
         public ImageSource? Icon { get; set; }
         public float Scale = 1.0f;
-
+        public string Genre { get; set; } = "";
         public string Description { get; set; } = "";
         public int ProgressPercent { get; set; } = 0;
         public List<AchievementDetail> Achievements { get; set; } = new List<AchievementDetail>();
@@ -90,7 +90,7 @@ namespace PichalUI
         public string FullContent { get; set; } = "";
     }
 
-    public class PlayerSummary
+    public class PlayerSummary : System.ComponentModel.INotifyPropertyChanged
     {
         public string SteamId { get; set; } = "";
         public string PersonaName { get; set; } = "Unknown";
@@ -98,10 +98,13 @@ namespace PichalUI
         public string ProfileUrl { get; set; } = "";
         public int PersonaState { get; set; } = 0;
         public string GameExtraInfo { get; set; } = "";
-
         public string GameId { get; set; } = "";
+        public bool IsOnline { get; set; } = false;
 
         public string StatusText => !string.IsNullOrEmpty(GameExtraInfo) ? $"A jogar: {GameExtraInfo}" : (PersonaState > 0 ? "Online" : "Offline");
+
+        public int SteamLevel { get; set; } = 0;
+        public string RichPresence { get; set; } = "";
 
         public SolidColorBrush StatusColor
         {
@@ -113,6 +116,7 @@ namespace PichalUI
             }
         }
 
+        // NOVO: URL da Capa do Jogo que está a jogar (ou vazio)
         public string GameCoverUrl
         {
             get
@@ -129,6 +133,7 @@ namespace PichalUI
         // Propriedade para controlar se mostramos a imagem do jogo ou não
         public Visibility GameCoverVisibility => !string.IsNullOrEmpty(GameId) && GameId != "0" ? Visibility.Visible : Visibility.Collapsed;
 
+        // NOVO: Dados Extra (Amigos em Comum, etc) - Vamos preencher depois
         private string _mutualFriendsText = "A calcular...";
         public string MutualFriendsText
         {
@@ -626,6 +631,45 @@ namespace PichalUI
         }
     }
 
+    public class WelcomeInputHandler : IInputHandler
+    {
+        readonly GameLauncherWindow w;
+        public WelcomeInputHandler(GameLauncherWindow window) { w = window; }
+
+        public void EnterAtStart()
+        {
+            // Foca o botão principal assim que abre
+            w.BtnWelcomePlay.Focus();
+        }
+
+        public void OnLeft()
+        {
+            // Alterna entre os dois botões
+            if (w.BtnWelcomeClose.IsFocused) w.BtnWelcomePlay.Focus();
+        }
+
+        public void OnRight()
+        {
+            if (w.BtnWelcomePlay.IsFocused) w.BtnWelcomeClose.Focus();
+        }
+
+        public void OnUp() { } // Não faz nada
+        public void OnDown() { } // Não faz nada
+
+        public void OnAccept()
+        {
+            // Clica no que estiver focado
+            if (w.BtnWelcomePlay.IsFocused) w.WelcomePlay_Click(null, null);
+            else if (w.BtnWelcomeClose.IsFocused) w.WelcomeClose_Click(null, null);
+        }
+
+        public void OnCancel()
+        {
+            // O botão B/Esc fecha o menu
+            w.WelcomeClose_Click(null, null);
+        }
+    }
+
     public static class WifiScanner
     {
         // Executa comandos de terminal invisíveis
@@ -729,6 +773,7 @@ namespace PichalUI
         FriendsInputHandler friendsInputHandler;
         InfoInputHandler infoInputHandler;
         SettingsInputHandler settingsInputHandler;
+        WelcomeInputHandler welcomeInputHandler;
 
         private PlayStationController? _controller;
 
@@ -737,6 +782,7 @@ namespace PichalUI
         private bool isLoading = false;
 
         // Dados
+        List<GameEntry> _allGamesMasterList = new List<GameEntry>();
         List<GameEntry> games = new List<GameEntry>();
         List<GameEntry> storeGames = new List<GameEntry>();
         public int selectedIndex = -1;
@@ -829,6 +875,9 @@ namespace PichalUI
         Random rng = new Random();
         bool golemSpawned = false;
 
+        // ---- Sistema de Recomendação Inteligente ----
+        GameEntry? _recommendedGame;
+
 
         public GameLauncherWindow()
         {
@@ -844,6 +893,7 @@ namespace PichalUI
             friendsInputHandler = new FriendsInputHandler(this);
             infoInputHandler = new InfoInputHandler(this);
             settingsInputHandler = new SettingsInputHandler(this);
+            welcomeInputHandler = new WelcomeInputHandler(this);
             currentInputHandler = gamesInputHandler;
 
             BtnConnectSteam.Click += (s, e) => _ = Task.Run(() => ConnectSteamFlowAsync());
@@ -1031,6 +1081,7 @@ namespace PichalUI
                     HeroTitle.Text = g.Title;
                     Info_OwnedOn.Text = g.Source; Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
                     Info_CompletionPercent.Text = $"{g.ProgressPercent}%";
+                    Info_CompletionBar.Value = g.ProgressPercent;
                     Info_LastPlayed.Text = g.LastPlayed.HasValue ? $"Jogado: {g.LastPlayed:d}" : "Nunca";
 
                     // Reset das listas para não mostrar dados velhos
@@ -1046,6 +1097,16 @@ namespace PichalUI
 
                     if (int.TryParse(g.SteamAppId, out int appid))
                         Info_Screenshots.ItemsSource = TryGetLocalSteamScreenshots(connectedSteamId ?? "", appid);
+                }
+
+                if (g.Cover != null)
+                {
+                    Task.Run(async () =>
+                    {
+                        Color domin = await GetDominantColorAsync(g.Cover);
+
+                        await Dispatcher.InvokeAsync(() => AnimateThemeToColor(domin));
+                    });
                 }
             });
 
@@ -1139,7 +1200,7 @@ namespace PichalUI
             catch (Exception ex) { MessageBox.Show("Erro ao lançar: " + ex.Message); }
         }
 
-        async void PopulateGamesPanel()
+        void PopulateGamesPanel()
         {
             if (!Dispatcher.CheckAccess())
             {
@@ -1160,43 +1221,81 @@ namespace PichalUI
                 GamesListBox.ItemsSource = null;
                 GamesListBox.ItemsSource = games;
 
+                GamesListBox.CacheMode = new BitmapCache();
+
                 GamesListBox.UpdateLayout();
-                await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
 
-                AnimateGamesEntrance();
+                for (int i = 0; i < GamesListBox.Items.Count; i++)
+                {
+                    var container = GamesListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+                    if (container != null)
+                    {
+                        container.Opacity = 0;
+                        container.RenderTransform = new TranslateTransform(0, 250);
+                    }
+                }
 
-                await Task.Delay(2000);
-
-                if (games.Count > 0) SelectIndex(0);
+                var startTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+                startTimer.Tick += (s, e) =>
+                {
+                    startTimer.Stop();
+                    AnimateGamesEntrance();
+                };
+                startTimer.Start();
             }
-            finally { isPopulating = false; }
+            finally
+            {
+                isPopulating = false;
+            }
         }
 
         void AnimateGamesEntrance()
         {
+            double maxDuration = 0;
+
             for (int i = 0; i < GamesListBox.Items.Count; i++)
             {
                 var container = GamesListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
                 if (container == null) continue;
 
+                // Preparação
                 container.Opacity = 0;
-                var transform = new TranslateTransform(0, 150);
+                var transform = new TranslateTransform(0, 250);
                 container.RenderTransform = transform;
 
-                TimeSpan delay = TimeSpan.FromMilliseconds(i * 70);
+                // Tempos (Mais rápido entre jogos = mais fluido)
+                TimeSpan delay = TimeSpan.FromMilliseconds(i * 40);
+                TimeSpan duration = TimeSpan.FromMilliseconds(600);
 
-                var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(700)) { BeginTime = delay };
+                var fade = new DoubleAnimation(0, 1, duration) { BeginTime = delay };
 
-                var slide = new DoubleAnimation(150, 0, TimeSpan.FromMilliseconds(900))
+                var slide = new DoubleAnimation(250, 0, duration)
                 {
                     BeginTime = delay,
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                    EasingFunction = new QuarticEase { EasingMode = EasingMode.EaseOut }
                 };
 
                 container.BeginAnimation(UIElement.OpacityProperty, fade);
                 transform.BeginAnimation(TranslateTransform.YProperty, slide);
+
+                double totalTime = delay.TotalMilliseconds + duration.TotalMilliseconds;
+                if (totalTime > maxDuration) maxDuration = totalTime;
             }
+
+            // LIMPEZA E SELEÇÃO
+            var cleanupTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(maxDuration + 100) };
+            cleanupTimer.Tick += (s, e) =>
+            {
+                cleanupTimer.Stop();
+
+                GamesListBox.CacheMode = null;
+
+                if (games.Count > 0)
+                {
+                    SelectIndex(0);
+                }
+            };
+            cleanupTimer.Start();
         }
 
         public void ToggleStoreView(bool show)
@@ -1249,6 +1348,10 @@ namespace PichalUI
                 }
 
                 games = found;
+
+                _allGamesMasterList = games.ToList();
+                games = _allGamesMasterList.OrderBy(g => g.Title).ToList();
+
                 await Dispatcher.InvokeAsync(() => PopulateGamesPanel());
 
                 if (games.Any(g => !string.IsNullOrEmpty(g.SteamAppId) && g.Cover == null))
@@ -1402,6 +1505,44 @@ namespace PichalUI
             await Dispatcher.InvokeAsync(() => ToggleStoreView(true));
         }
 
+        // --- FASE 1: CARGA RÁPIDA (Playtime e Last Played) ---
+        async Task FetchBasicStatsAsync()
+        {
+            if (string.IsNullOrEmpty(connectedSteamId) || string.IsNullOrEmpty(steamApiKey)) return;
+
+            try
+            {
+                // Pedido ÚNICO que traz todos os jogos de uma vez
+                var url = $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={steamApiKey}&steamid={connectedSteamId}&include_appinfo=1&include_played_free_games=1";
+                var root = await SteamApiGetJson(url);
+
+                if (root.HasValue && root.Value.TryGetProperty("response", out var resp) && resp.TryGetProperty("games", out var gamesArr))
+                {
+                    foreach (var gEl in gamesArr.EnumerateArray())
+                    {
+                        int appid = gEl.GetProperty("appid").GetInt32();
+
+                        // Encontra o jogo na nossa lista local
+                        var game = games.FirstOrDefault(x => x.SteamAppId == appid.ToString());
+                        if (game != null)
+                        {
+                            // Preenche apenas o essencial para a Recomendação funcionar
+                            if (gEl.TryGetProperty("playtime_forever", out var pt))
+                                game.PlaytimeHours = pt.GetInt32() / 60.0;
+
+                            if (gEl.TryGetProperty("rtime_last_played", out var last))
+                            {
+                                var unixTime = last.GetInt64();
+                                if (unixTime > 0)
+                                    game.LastPlayed = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
         async Task FetchSteamDataForAllGamesAsync()
         {
             if (string.IsNullOrEmpty(connectedSteamId)) return;
@@ -1490,6 +1631,8 @@ namespace PichalUI
                                     }
                                     g.Achievements = fullList;
                                 }
+                                int total = await GetTotalAchievementsCount(appid);
+                                if (total > 0) g.ProgressPercent = (int)((double)myUnlockedNames.Count / total * 100);
                             }
 
                             // C. ATUALIZAR UI EM TEMPO REAL (Se este jogo estiver selecionado)
@@ -1500,6 +1643,7 @@ namespace PichalUI
                                     // Só atualiza os textos para não piscar a imagem
                                     Info_Playtime.Text = $"{g.PlaytimeHours:0.0} hrs";
                                     Info_CompletionPercent.Text = $"{g.ProgressPercent}%";
+                                    Info_CompletionBar.Value = g.ProgressPercent;
 
                                     if (!string.IsNullOrEmpty(reviewScore))
                                         Info_OwnedOn.Text = $"STEAM  •  {reviewScore.ToUpper()}";
@@ -1514,6 +1658,9 @@ namespace PichalUI
                                     }
                                 }
                             });
+
+                            var storeDetails = await GetGameGenreAsync(appid);
+                            g.Genre = storeDetails;
                         }
                         catch { }
                         finally { sem.Release(); }
@@ -1579,6 +1726,9 @@ namespace PichalUI
 
                 // Atualiza o texto na UI
                 await Dispatcher.InvokeAsync(() => friend.MutualFriendsText = $"{mutualCount} Amigos em Comum");
+
+                int level = await GetSteamLevelAsync(friend.SteamId);
+                await Dispatcher.InvokeAsync(() => friend.SteamLevel = level);
             }
             catch
             {
@@ -2166,6 +2316,22 @@ namespace PichalUI
             return null;
         }
 
+        async Task<int> GetSteamLevelAsync(string steamId64)
+        {
+            if (string.IsNullOrEmpty(steamApiKey)) return 0;
+            try
+            {
+                var url = $"https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key={steamApiKey}&steamid={steamId64}";
+                var root = await SteamApiGetJson(url);
+                if (root.HasValue && root.Value.TryGetProperty("response", out var r) && r.TryGetProperty("player_level", out var lvl))
+                {
+                    return lvl.GetInt32();
+                }
+            }
+            catch { }
+            return 0;
+        }
+
         // --- DUALSENSE & WINDOW ---
         async Task StartupAndLogin()
         {
@@ -2329,13 +2495,42 @@ namespace PichalUI
                     await UpdateHeaderUI();
                 }
 
-                try
-                {
-                    Steamworks.SteamClient.Init(480);
-                    Steamworks.SteamFriends.ListenForFriendsMessages = true;
-                    Steamworks.SteamFriends.OnChatMessage += OnSteamChatMessage;
+                bool success = false;
 
-                    // Atualiza UI com o novo user
+                // 1. Se já estiver ligada, não fazemos Init de novo (evita o crash)
+                if (Steamworks.SteamClient.IsValid)
+                {
+                    success = true;
+                }
+                else
+                {
+                    // 2. Se não estiver, tentamos ligar (com retries caso a Steam esteja a abrir)
+                    for (int i = 0; i < 5; i++) // Tenta durante 5 segundos
+                    {
+                        try
+                        {
+                            Steamworks.SteamClient.Init(480);
+                            if (Steamworks.SteamClient.IsValid)
+                            {
+                                success = true;
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            await Task.Delay(1000); // Espera 1s antes de tentar de novo
+                        }
+                    }
+                }
+
+                if (success)
+                {
+                    // 3. Configura o Chat (Remove primeiro para não duplicar eventos)
+                    Steamworks.SteamFriends.OnChatMessage -= OnSteamChatMessage;
+                    Steamworks.SteamFriends.OnChatMessage += OnSteamChatMessage;
+                    Steamworks.SteamFriends.ListenForFriendsMessages = true;
+
+                    // 4. Atualiza a UI
                     await Dispatcher.InvokeAsync(() =>
                     {
                         ProfileName.Text = Steamworks.SteamClient.Name;
@@ -2343,31 +2538,37 @@ namespace PichalUI
                         connectedSteamId = Steamworks.SteamClient.SteamId.ToString();
                     });
                 }
-                catch
+                else
                 {
                     await Dispatcher.InvokeAsync(() => StatusLabel.Text = "Steam: Offline / Web Mode");
                 }
 
                 // 2. SCAN AOS JOGOS (CRÍTICO: Isto tem de acontecer ANTES de pedir dados à Steam)
-                // Isto preenche a lista 'games' com o que tens instalado.
                 await RescanGamesAsync();
 
-                // 3. Se tivermos login, vamos buscar os dados EXTRA (Playtime, Amigos, etc.)
+                // 3. CARREGA ESTATÍSTICAS BÁSICAS (Rápido - 1 Pedido)
                 if (!string.IsNullOrEmpty(connectedSteamId))
                 {
-                    // Lança as tarefas pesadas em paralelo
-                    var t1 = FetchSteamDataForAllGamesAsync(); // Preenche Playtime e Achievements
-                    var t2 = FetchAndShowFriendsAsync();       // Preenche a lista de amigos (Cache)
+                    await FetchBasicStatsAsync();
+                }
 
-                    await Task.WhenAll(t1, t2);
-
-                    // 4. Atualização Final da UI
-                    // Força um refresh ao jogo selecionado para mostrar os dados que acabaram de chegar
-                    await Dispatcher.InvokeAsync(() =>
+                // 4. MOSTRA O WELCOME SCREEN IMEDIATAMENTE! 🚀
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    if (games.Count > 0)
                     {
-                        if (selectedIndex >= 0) SelectIndex(selectedIndex);
-                        else if (games.Count > 0) PopulateGamesPanel();
-                    });
+                        PopulateGamesPanel();
+                        GenerateRecommendation();
+                    }
+                });
+
+                // 5. Se tivermos login, vamos buscar os dados EXTRA (Playtime, Amigos, etc.)
+                if (!string.IsNullOrEmpty(connectedSteamId))
+                {
+                    if (_cachedFriendsList.Count == 0) await FetchAndShowFriendsAsync();
+
+                    // Carrega detalhes pesados (Reviews, Géneros, etc)
+                    await FetchSteamDataForAllGamesAsync();
                 }
             });
         }
@@ -3587,6 +3788,8 @@ namespace PichalUI
             catch { }
         }
 
+
+
         public static class WifiHelper
         {
             // Tenta conectar e espera para ver se funcionou
@@ -3994,6 +4197,413 @@ namespace PichalUI
             SnowCanvas.Children.Add(flake);
             activeSnowFlakes.Add(flake);
             flake.BeginAnimation(Canvas.TopProperty, fall);
+        }
+
+        async Task<Color> GetDominantColorAsync(ImageSource imageSource)
+        {
+            return await Task.Run(() =>
+    {
+        try
+        {
+            if (imageSource is BitmapSource bitmap)
+            {
+                // Se a imagem for muito grande, o cálculo é lento.
+                // Na prática, lemos apenas alguns pixels para ser instantâneo.
+
+                // Verifica formato (tem de ser compatível para ler bytes)
+                if (bitmap.Format != PixelFormats.Bgra32 && bitmap.Format != PixelFormats.Rgba64)
+                {
+                    // Se não for compatível, retorna uma cor padrão (ex: Accent original)
+                    return (Color)ColorConverter.ConvertFromString("#FF4758");
+                }
+
+                int stride = (bitmap.PixelWidth * bitmap.Format.BitsPerPixel + 7) / 8;
+                int size = bitmap.PixelHeight * stride;
+                byte[] pixels = new byte[size];
+                bitmap.CopyPixels(pixels, stride, 0);
+
+                long r = 0, g = 0, b = 0;
+                int count = 0;
+
+                // Saltamos pixels para performance (lê 1 a cada 100 pixels)
+                for (int i = 0; i < size; i += 400)
+                {
+                    if (i + 3 >= size) break;
+
+                    // Ignora cores muito escuras ou muito brancas (para apanhar a cor "viva")
+                    byte blue = pixels[i];
+                    byte green = pixels[i + 1];
+                    byte red = pixels[i + 2];
+
+                    // Filtro de luminosidade simples
+                    if ((red + green + blue) > 50 && (red + green + blue) < 700)
+                    {
+                        b += blue;
+                        g += green;
+                        r += red;
+                        count++;
+                    }
+                }
+
+                if (count > 0)
+                {
+                    return Color.FromRgb((byte)(r / count), (byte)(g / count), (byte)(b / count));
+                }
+            }
+        }
+        catch { }
+
+        // Cor de fallback se falhar
+        return (Color)ColorConverter.ConvertFromString("#FF4758");
+    });
+        }
+
+        void AnimateThemeToColor(Color targetColor)
+        {
+            // 1. Calcular variações da cor para o Fundo (Gradiente)
+            // Fundo Topo: Quase preto, com um toque da cor
+            Color bgTop = Color.FromRgb(
+                (byte)(targetColor.R * 0.1),
+                (byte)(targetColor.G * 0.1),
+                (byte)(targetColor.B * 0.1));
+
+            // Fundo Base: Cor escura
+            Color bgBottom = Color.FromRgb(
+                (byte)(targetColor.R * 0.3),
+                (byte)(targetColor.G * 0.3),
+                (byte)(targetColor.B * 0.3));
+
+            // 2. Animar o Accent (Botões, Bordas, Seleção)
+            // Nota: Para animar recursos dinâmicos, temos de aceder ao SolidColorBrush existente
+            if (this.Resources["AccentBrush"] is SolidColorBrush accentBrush)
+            {
+                var colorAnim = new ColorAnimation(targetColor, TimeSpan.FromSeconds(0.6));
+                accentBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnim);
+            }
+            else
+            {
+                // Se por algum motivo não for animável, recria (sem animação)
+                this.Resources["AccentBrush"] = new SolidColorBrush(targetColor);
+            }
+
+            // 3. Animar o Fundo (Gradiente)
+            if (MainBackground.Background is LinearGradientBrush grad)
+            {
+                // Assumindo que tens 2 GradientStops como definimos antes
+                if (grad.GradientStops.Count >= 2)
+                {
+                    var anim1 = new ColorAnimation(bgTop, TimeSpan.FromSeconds(1));
+                    var anim2 = new ColorAnimation(bgBottom, TimeSpan.FromSeconds(1));
+
+                    grad.GradientStops[0].BeginAnimation(GradientStop.ColorProperty, anim1);
+                    grad.GradientStops[1].BeginAnimation(GradientStop.ColorProperty, anim2);
+                }
+            }
+        }
+
+        private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is RadioButton btn && btn.Tag is string filterType)
+            {
+                ApplyGameFilter(filterType);
+            }
+        }
+
+        void ApplyGameFilter(string type)
+        {
+            if (_allGamesMasterList.Count == 0) return;
+
+            List<GameEntry> filtered = new List<GameEntry>();
+
+            switch (type)
+            {
+                case "Recent":
+                    filtered = _allGamesMasterList.Where(g => g.LastPlayed.HasValue).OrderByDescending(g => g.LastPlayed).ToList();
+                    break;
+                case "MostPlayed":
+                    filtered = _allGamesMasterList.OrderByDescending(g => g.PlaytimeHours).ToList();
+                    break;
+                case "NeverPlayed":
+                    filtered = _allGamesMasterList.Where(g => g.PlaytimeHours < 0.2 && g.LastPlayed == null).OrderBy(g => g.Title).ToList();
+                    break;
+                case "All":
+                default:
+                    filtered = _allGamesMasterList.OrderBy(g => g.Title).ToList();
+                    break;
+            }
+
+            games = filtered;
+
+            PopulateGamesPanel();
+        }
+
+        async Task<string> GetGameGenreAsync(int appid)
+        {
+            try
+            {
+                var url = $"https://store.steampowered.com/api/appdetails?appids={appid}&l=portuguese";
+                var root = await SteamApiGetJson(url);
+                if (root.HasValue && root.Value.TryGetProperty(appid.ToString(), out var appData))
+                {
+                    if (appData.TryGetProperty("data", out var data))
+                    {
+                        // Géneros
+                        var genresList = new List<string>();
+                        if (data.TryGetProperty("genres", out var genresArr))
+                        {
+                            foreach (var g in genresArr.EnumerateArray())
+                                genresList.Add(g.GetProperty("description").GetString() ?? "");
+                        }
+                        string genresStr = string.Join(" • ", genresList.Take(4));
+                        return genresStr;
+                    }
+                }
+            }
+            catch { }
+            return "";
+        }
+
+        string PickRandom(string[] options) => options[rng.Next(options.Length)];
+        // ---- Sistema de Recomendação ----
+        void GenerateRecommendation()
+        {
+            if (games.Count == 0) return;
+
+            GameEntry? suggestion = null;
+            string reason = "";
+            var now = DateTime.Now;
+            // Random já está definido na classe como 'rng'
+
+            // --- 1. FATOR SOCIAL (Prioridade Máxima) ---
+            // Se amigos estão a jogar, a pressão social ganha.
+            if (suggestion == null && _cachedFriendsList != null)
+            {
+                var playingFriends = _cachedFriendsList
+                    .Where(f => !string.IsNullOrEmpty(f.GameId) && f.GameId != "0")
+                    .ToList();
+
+                if (playingFriends.Count > 0)
+                {
+                    var friend = playingFriends[rng.Next(playingFriends.Count)];
+                    var match = games.FirstOrDefault(g => g.SteamAppId == friend.GameId);
+
+                    if (match != null)
+                    {
+                        suggestion = match;
+                        reason = PickRandom(new[] {
+                    $"O {friend.PersonaName} está a jogar isto agora. Não o deixes jogar sozinho!",
+                    $"Parece que o {friend.PersonaName} está viciado nisto. Bora juntar?",
+                    $"Junta-te ao {friend.PersonaName}, ele está online agora mesmo.",
+                    $"A equipa precisa de ti! O {friend.PersonaName} já está lá."
+                });
+                    }
+                }
+            }
+
+            // --- 2. FATOR "O VÍCIO ATUAL" (Recentes + Muito Jogado) ---
+            if (suggestion == null)
+            {
+                var obsession = games
+                    .Where(g => g.LastPlayed.HasValue && (now - g.LastPlayed.Value).TotalDays <= 2 && g.PlaytimeHours > 15)
+                    .OrderByDescending(g => g.LastPlayed)
+                    .FirstOrDefault();
+
+                if (obsession != null && rng.NextDouble() > 0.2)
+                {
+                    suggestion = obsession;
+                    reason = PickRandom(new[] {
+                $"Não consegues largar este, pois não? Já levas {obsession.PlaytimeHours:0} horas.",
+                $"Estavas no meio de algo importante aqui. Vamos continuar?",
+                $"O vício é real. Só mais um bocadinho...",
+                $"Ainda tens muito para fazer em {obsession.Title}. De volta à ação!"
+            });
+                }
+            }
+
+            // --- 3. FATOR "GÉNERO FAVORITO" (NOVO - Inteligência Real) ---
+            // Analisa a biblioteca toda para ver o que mais gostas
+            if (suggestion == null && rng.NextDouble() > 0.3)
+            {
+                // Dicionário para contar horas por género
+                var genreScores = new Dictionary<string, double>();
+
+                foreach (var g in games)
+                {
+                    if (string.IsNullOrEmpty(g.Genre) || g.PlaytimeHours < 1) continue;
+
+                    // Divide "Action • RPG" em partes
+                    var tags = g.Genre.Split(new[] { '•', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var tag in tags)
+                    {
+                        if (tag.Length < 3) continue; // Ignora palavras curtas
+                        if (!genreScores.ContainsKey(tag)) genreScores[tag] = 0;
+                        genreScores[tag] += g.PlaytimeHours; // Soma as horas jogadas nesse género
+                    }
+                }
+
+                // Qual o género vencedor?
+                var topGenre = genreScores.OrderByDescending(x => x.Value).FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(topGenre.Key))
+                {
+                    // Procura um jogo desse género que tenhas JOGADO POUCO (< 5h)
+                    var hiddenGem = games
+                        .Where(g => (g.Genre ?? "").Contains(topGenre.Key) && g.PlaytimeHours < 5 && g.PlaytimeHours > 0)
+                        .OrderBy(x => rng.Next())
+                        .FirstOrDefault();
+
+                    if (hiddenGem != null)
+                    {
+                        suggestion = hiddenGem;
+                        reason = PickRandom(new[] {
+                    $"A IA detetou que és fã de {topGenre.Key}, mas deixaste este jogo de parte.",
+                    $"Gostas de {topGenre.Key}? Então tens de dar uma oportunidade a este.",
+                    $"Com base nas tuas {topGenre.Value:0} horas em {topGenre.Key}, vais adorar isto.",
+                    $"Uma pérola de {topGenre.Key} escondida na tua biblioteca."
+                });
+                    }
+                }
+            }
+
+            // --- 4. FATOR "COMPLETIONIST" ---
+            if (suggestion == null)
+            {
+                var almostDone = games
+                    .Where(g => g.ProgressPercent >= 70 && g.ProgressPercent < 100)
+                    .OrderByDescending(g => g.LastPlayed)
+                    .FirstOrDefault();
+
+                if (almostDone != null && rng.NextDouble() > 0.4)
+                {
+                    suggestion = almostDone;
+                    reason = PickRandom(new[] {
+                $"Estás a {almostDone.ProgressPercent}% da perfeição. Não desistas agora!",
+                $"Faltam poucas conquistas para a Platina. Vamos a isso?",
+                $"Tão perto do fim... Acaba o que começaste!"
+            });
+                }
+            }
+
+            // --- 5. FATOR "CONTEXTO TEMPORAL" (Dia/Hora) ---
+            if (suggestion == null)
+            {
+                string targetTag = "";
+                string[] timePhrases = new string[0];
+
+                // Madrugada (Terror)
+                if (now.Hour >= 0 && now.Hour < 5)
+                {
+                    targetTag = "Horror";
+                    timePhrases = new[] { "Está escuro lá fora... tens coragem?", "Jogos de terror batem diferente a esta hora.", "Não olhes para trás..." };
+                }
+                // Manhã Fim de Semana (Aventura/Mundo Aberto)
+                else if (now.Hour >= 8 && now.Hour < 13 && (now.DayOfWeek == DayOfWeek.Saturday || now.DayOfWeek == DayOfWeek.Sunday))
+                {
+                    targetTag = "Open World"; // ou Adventure
+                    timePhrases = new[] { "Fim de semana de manhã pede uma grande aventura.", "Tens o dia todo. Explora um mundo novo.", "Café e exploração. Combinação perfeita." };
+                }
+                // Sexta/Sábado Noite (Multiplayer/Ação)
+                else if ((now.DayOfWeek == DayOfWeek.Friday || now.DayOfWeek == DayOfWeek.Saturday) && now.Hour >= 20)
+                {
+                    targetTag = "Action";
+                    timePhrases = new[] { "A noite é jovem! Ação intensa para começar o fim de semana.", "Sexta à noite é para destruir tudo.", "Aumenta o volume e entra na ação." };
+                }
+
+                if (!string.IsNullOrEmpty(targetTag))
+                {
+                    var vibeGame = games.Where(g => (g.Genre ?? "").Contains(targetTag)).OrderBy(x => rng.Next()).FirstOrDefault();
+                    if (vibeGame != null)
+                    {
+                        suggestion = vibeGame;
+                        reason = PickRandom(timePhrases);
+                    }
+                }
+            }
+
+            // --- 6. FATOR "BACKLOG" (Nunca Jogado) ---
+            if (suggestion == null)
+            {
+                var shame = games
+                    .Where(g => g.PlaytimeHours < 0.2 && g.LastPlayed == null)
+                    .OrderBy(x => rng.Next())
+                    .FirstOrDefault();
+
+                if (shame != null)
+                {
+                    suggestion = shame;
+                    reason = PickRandom(new[] {
+                "Compraste este jogo e nunca o abriste. Hoje é o dia!",
+                "Está a ganhar pó na biblioteca. Merece uma oportunidade.",
+                "Ainda está no plástico. Vamos estrear?",
+                "Gastaste dinheiro nisto, convém jogar!"
+            });
+                }
+            }
+
+            // --- 7. FALLBACK (Último Jogado) ---
+            if (suggestion == null)
+            {
+                suggestion = games.OrderByDescending(g => g.LastPlayed).FirstOrDefault();
+                reason = PickRandom(new[] { "Bem-vindo de volta.", "Pronto para continuar?", "O teu jogo habitual." });
+            }
+
+            // --- APLICAR NA UI ---
+            if (suggestion != null)
+            {
+                _recommendedGame = suggestion;
+
+                string user = currentUser?.Username ?? "Gamer";
+                WelcomeUser.Text = user;
+                WelcomeReason.Text = reason;
+                WelcomeGameTitle.Text = suggestion.Title.ToUpper();
+
+                if (suggestion.Cover != null)
+                {
+                    WelcomeGameCover.ImageSource = suggestion.Cover;
+                    WelcomeBgImage.Source = suggestion.Cover;
+                }
+
+                // Prepara o botão para saber qual o índice
+                int idx = games.IndexOf(suggestion);
+                if (idx != -1) BtnWelcomePlay.Tag = idx;
+
+                WelcomeOverlay.Visibility = Visibility.Visible;
+
+                // Ativa input
+                currentInputHandler = welcomeInputHandler;
+                welcomeInputHandler.EnterAtStart();
+            }
+            else
+            {
+                WelcomeClose_Click(null, null);
+            }
+        }
+
+        public void WelcomePlay_Click(object sender, RoutedEventArgs e)
+        {
+            if (_recommendedGame != null)
+            {
+                int idx = games.IndexOf(_recommendedGame);
+                if (idx != -1)
+                {
+                    SelectIndex(idx);
+                    LaunchSelected();
+                }
+            }
+            WelcomeOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        public void WelcomeClose_Click(object sender, RoutedEventArgs e)
+        {
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.5));
+            fadeOut.Completed += (s, ev) =>
+            {
+                WelcomeOverlay.Visibility = Visibility.Collapsed;
+
+                currentInputHandler = gamesInputHandler;
+                GamesListBox.Focus();
+            };
+            WelcomeOverlay.BeginAnimation(OpacityProperty, fadeOut);
         }
 
         // --- XINPUT NATIVE CLASS ---
