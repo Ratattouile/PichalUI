@@ -54,6 +54,13 @@ namespace PichalUI
         public DateTime? LastPlayed { get; set; }
         public string StorePlatform { get; set; } = "";
         public string StoreId { get; set; } = "";
+
+        public bool IsInstalled { get; set; } = true;
+
+
+        public bool IsStoreItem { get; set; } = false; // Diz se é um jogo da loja ou da biblioteca
+        public string PriceDisplay { get; set; } = ""; // Ex: "29.99€" ou "Free"
+        public int DiscountPercent { get; set; } = 0;  // Ex: 50 (para -50%)
     }
 
     public class AchievementDetail
@@ -1171,9 +1178,31 @@ namespace PichalUI
                 return;
             }
 
-            if (isShowingStoreView)
+            if (g.IsStoreItem)
             {
-                if (int.TryParse(g.SteamAppId, out int appid)) StartSteamInstall(appid);
+                try
+                {
+                    // Abre na Steam instalada (Melhor experiência)
+                    Process.Start(new ProcessStartInfo($"steam://store/{g.SteamAppId}") { UseShellExecute = true });
+                }
+                catch
+                {
+                    // Fallback para Browser
+                    Process.Start(new ProcessStartInfo($"https://store.steampowered.com/app/{g.SteamAppId}/") { UseShellExecute = true });
+                }
+                return;
+            }
+
+            if (!g.IsInstalled && !string.IsNullOrEmpty(g.SteamAppId))
+            {
+                if (MessageBox.Show($"Este jogo não está instalado.\nQueres instalar '{g.Title}'?", "Instalar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo($"steam://install/{g.SteamAppId}") { UseShellExecute = true });
+                    }
+                    catch { }
+                }
                 return;
             }
 
@@ -1301,24 +1330,43 @@ namespace PichalUI
         public void ToggleStoreView(bool show)
         {
             isShowingStoreView = show;
-            Dispatcher.Invoke(() =>
+
+            if (show)
             {
-                if (show)
+                // MODO LOJA: Carrega Destaques da Steam
+                Dispatcher.Invoke(() =>
                 {
-                    StatusLabel.Text = "MODO LOJA (ESC para voltar)";
-                    GamesListBox.ItemsSource = null;
-                    GamesListBox.ItemsSource = storeGames;
-                    if (storeGames.Count > 0) SelectIndex(0);
-                }
-                else
+                    StatusLabel.Text = "A carregar Loja Steam...";
+                    LoadingOverlay.Visibility = Visibility.Visible;
+                });
+
+                _ = Task.Run(async () =>
                 {
-                    StatusLabel.Text = "Biblioteca";
-                    GamesListBox.ItemsSource = null;
-                    GamesListBox.ItemsSource = games;
-                    if (games.Count > 0) SelectIndex(0);
-                }
-            });
+                    // 1. Busca a Loja Real
+                    storeGames = await GetSteamStoreFeaturedAsync();
+
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        // 2. Mostra na Lista
+                        GamesListBox.ItemsSource = null;
+                        GamesListBox.ItemsSource = storeGames;
+
+                        StatusLabel.Text = "MODO LOJA (ESC para Sair)";
+                        LoadingOverlay.Visibility = Visibility.Collapsed;
+
+                        if (storeGames.Count > 0) SelectIndex(0);
+                    });
+                });
+            }
+            else
+            {
+                // MODO BIBLIOTECA (Volta aos teus jogos)
+                PopulateGamesPanel(); // Usa a tua função normal de popular
+                StatusLabel.Text = "Biblioteca";
+                InfoArea.Visibility = Visibility.Visible;
+            }
         }
+
 
         // --- LÓGICA STEAM & SISTEMA ---
 
@@ -1349,8 +1397,14 @@ namespace PichalUI
 
                 games = found;
 
+                if (steamConnected)
+                {
+                    await Dispatcher.InvokeAsync(() => StatusLabel.Text = "A sincronizar biblioteca Steam...");
+                    await MergeUninstalledGamesAsync();
+                }
+
                 _allGamesMasterList = games.ToList();
-                games = _allGamesMasterList.OrderBy(g => g.Title).ToList();
+                games = _allGamesMasterList.OrderBy(g => g.Title).Where(g => g.IsInstalled == true).ToList();
 
                 await Dispatcher.InvokeAsync(() => PopulateGamesPanel());
 
@@ -1385,6 +1439,51 @@ namespace PichalUI
             {
                 SetLoading(false);
             }
+        }
+
+        async Task MergeUninstalledGamesAsync()
+        {
+            if (string.IsNullOrEmpty(steamApiKey) || string.IsNullOrEmpty(connectedSteamId)) return;
+
+            try
+            {
+                var url = $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={steamApiKey}&steamid={connectedSteamId}&include_appinfo=1&include_played_free_games=1";
+                var root = await SteamApiGetJson(url);
+
+                if (root.HasValue && root.Value.TryGetProperty("response", out var resp) && resp.TryGetProperty("games", out var gamesArr))
+                {
+                    foreach (var g in gamesArr.EnumerateArray())
+                    {
+                        string appid = g.GetProperty("appid").GetInt32().ToString();
+                        string name = g.GetProperty("name").GetString() ?? "App";
+
+                        bool alreadyExists = games.Any(x => x.SteamAppId == appid);
+
+                        if (!alreadyExists)
+                        {
+                            // Se não existe, adiciona como "Nuvem"
+                            var entry = new GameEntry
+                            {
+                                Title = name,
+                                SteamAppId = appid,
+                                Source = "Steam Library",
+                                IsInstalled = false,
+                                Cover = null
+                            };
+
+                            try
+                            {
+                                string coverUrl = $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/library_600x900.jpg";
+                                _ = TryDownloadStoreCover(entry, coverUrl);
+                            }
+                            catch { }
+
+                            games.Add(entry);
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         List<GameEntry> ScanSteamLibraries()
@@ -2007,6 +2106,88 @@ namespace PichalUI
                 };
             }
             return new PlayerSummary();
+        }
+
+        // --- API LOJA ---
+        async Task<List<GameEntry>> GetSteamStoreFeaturedAsync()
+        {
+            var storeList = new List<GameEntry>();
+            try
+            {
+                // API Pública (CC=PT para preços em Euros e região Portugal)
+                var url = "https://store.steampowered.com/api/featuredcategories?CC=PT&l=portuguese";
+                var root = await SteamApiGetJson(url);
+
+                if (root.HasValue)
+                {
+                    // Categorias interessantes
+                    string[] categories = { "top_sellers", "specials", "new_releases" };
+
+                    foreach (var catName in categories)
+                    {
+                        if (root.Value.TryGetProperty(catName, out var cat) && cat.TryGetProperty("items", out var items))
+                        {
+                            foreach (var item in items.EnumerateArray())
+                            {
+                                string title = item.GetProperty("name").GetString() ?? "";
+                                int appid = item.GetProperty("id").GetInt32();
+                                string image = item.GetProperty("large_capsule_image").GetString() ?? "";
+
+                                string price = "N/A";
+                                int discount = 0;
+
+                                // Ler Preço e Desconto
+                                if (item.TryGetProperty("final_price", out var p))
+                                {
+                                    int val = p.GetInt32();
+                                    price = val == 0 ? "Grátis" : $"{(val / 100.0):0.00}€";
+                                }
+                                if (item.TryGetProperty("discount_percent", out var d))
+                                {
+                                    discount = d.GetInt32();
+                                }
+
+                                // Evita duplicados
+                                if (!storeList.Any(x => x.SteamAppId == appid.ToString()))
+                                {
+                                    var entry = new GameEntry
+                                    {
+                                        Title = title,
+                                        SteamAppId = appid.ToString(),
+                                        Source = "Loja Steam", // Fonte diferente
+                                        IsStoreItem = true,    // Marca como item de loja
+                                        PriceDisplay = price,
+                                        DiscountPercent = discount
+                                    };
+
+                                    // Inicia download da capa em background
+                                    _ = TryDownloadStoreCover(entry, image);
+
+                                    storeList.Add(entry);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return storeList; // Retorna a lista misturada de Top Sellers e Promoções
+        }
+
+        async Task TryDownloadStoreCover(GameEntry g, string url)
+        {
+            try
+            {
+                using var res = await http.GetAsync(url);
+                if (res.IsSuccessStatusCode)
+                {
+                    using var st = await res.Content.ReadAsStreamAsync();
+                    var bmp = LoadBitmapImageFromStream(st);
+                    // Atualiza a UI quando a imagem chegar
+                    await Dispatcher.InvokeAsync(() => g.Cover = bmp);
+                }
+            }
+            catch { }
         }
 
         // --- HELPERS ---
@@ -4326,9 +4507,12 @@ namespace PichalUI
                 case "NeverPlayed":
                     filtered = _allGamesMasterList.Where(g => g.PlaytimeHours < 0.2 && g.LastPlayed == null).OrderBy(g => g.Title).ToList();
                     break;
+                case "NotInstalled":
+                    filtered = _allGamesMasterList.OrderBy(g => g.Title).Where(g => g.IsInstalled == false).ToList();
+                    break;
                 case "All":
                 default:
-                    filtered = _allGamesMasterList.OrderBy(g => g.Title).ToList();
+                    filtered = _allGamesMasterList.OrderBy(g => g.Title).Where(g => g.IsInstalled == true).ToList();
                     break;
             }
 
@@ -4363,8 +4547,8 @@ namespace PichalUI
             return "";
         }
 
+        // ---- PICHAL BRAIN ----
         string PickRandom(string[] options) => options[rng.Next(options.Length)];
-        // ---- Sistema de Recomendação ----
         void GenerateRecommendation()
         {
             if (games.Count == 0) return;
@@ -4372,8 +4556,25 @@ namespace PichalUI
             GameEntry? suggestion = null;
             string reason = "";
             var now = DateTime.Now;
-            // Random já está definido na classe como 'rng'
 
+            bool isOutubro = (now.Month == 10);
+
+            if (isOutubro)
+            {
+                var halloween = games.Where(g => (g.Genre ?? "").Contains("Terror")).OrderBy(x => rng.Next()).FirstOrDefault();
+
+                if (halloween != null)
+                {
+                    suggestion = halloween;
+                    reason = PickRandom(new[]
+                    {
+                        "hor hor hor hor hor hor",
+                        "Halloween?",
+                        "Estás com medo? Estás tão cagado que já cheira a merda aqui.",
+                        $"Chegou a noite certa para um joguinho de Terror. Vem jogar {halloween.Title}."
+                    });
+                }
+            }
             // --- 1. FATOR SOCIAL (Prioridade Máxima) ---
             // Se amigos estão a jogar, a pressão social ganha.
             if (suggestion == null && _cachedFriendsList != null)
