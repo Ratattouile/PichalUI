@@ -3302,21 +3302,30 @@ namespace PichalUI
         }
 
         // --- TEMAS / BACKGROUND ---
-        void ApplyThemeColors(Color accent, Color textSecondary, Color bgStart, Color bgEnd, Color panelBg)
+        void ApplyThemeColors(Color accent, Color textSecondary, Color bgStart, Color bgEnd, Color panelBg, Color textPrimary)
         {
             // 1. Atualiza o Background (Gradiente)
             var brush = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
-            brush.GradientStops.Add(new GradientStop(bgStart, 0.0)); // Offset ajustado para suavidade
+            brush.GradientStops.Add(new GradientStop(bgStart, 0.0));
             brush.GradientStops.Add(new GradientStop(bgEnd, 0.8));
             MainBackground.Background = brush;
 
-            // Atualiza os Recursos Dinâmicos
+            // 2. Remove recursos antigos para forçar atualização
             this.Resources.Remove("AccentBrush");
             this.Resources.Remove("PanelBackgroundBrush");
+            this.Resources.Remove("textSecondary"); // Atenção ao nome (case sensitive no XAML?)
+            this.Resources.Remove("TextPrimaryBrush"); // O novo recurso
 
+            // 3. Adiciona os novos
             this.Resources.Add("AccentBrush", new SolidColorBrush(accent));
             this.Resources.Add("PanelBackgroundBrush", new SolidColorBrush(panelBg));
 
+            // Corrigi o nome para 'TextSecondaryBrush' se usares esse padrão no XAML, 
+            // mas mantive 'textSecondary' se for o que já usas.
+            this.Resources.Add("textSecondary", new SolidColorBrush(textSecondary));
+
+            // O novo Texto Principal
+            this.Resources.Add("TextPrimaryBrush", new SolidColorBrush(textPrimary));
         }
 
         private void BtnThemeRed_Click(object sender, RoutedEventArgs e)
@@ -3327,7 +3336,7 @@ namespace PichalUI
             var bgEnd = (Color)ColorConverter.ConvertFromString("#A81826");   // Cor viva do fundo
             var pnl = (Color)ColorConverter.ConvertFromString("#D9101010");
 
-            ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl);
+            ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl, Colors.White);
             SaveTheme("Red");
         }
 
@@ -3339,7 +3348,7 @@ namespace PichalUI
             var bgEnd = (Color)ColorConverter.ConvertFromString("#003566");
             var pnl = (Color)ColorConverter.ConvertFromString("#D9051020");
 
-            ApplyThemeColors(accent, Colors.LightBlue, bgStart, bgEnd, pnl);
+            ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl, Colors.White);
             SaveTheme("Blue");
         }
 
@@ -3351,7 +3360,7 @@ namespace PichalUI
             var bgEnd = (Color)ColorConverter.ConvertFromString("#111111");
             var pnl = (Color)ColorConverter.ConvertFromString("#E6000000");
 
-            ApplyThemeColors(accent, Colors.DarkGray, bgStart, bgEnd, pnl);
+            ApplyThemeColors(accent, Colors.DarkGray, bgStart, bgEnd, pnl, Colors.White);
             SaveTheme("Dark");
         }
 
@@ -3372,7 +3381,7 @@ namespace PichalUI
             // Usei uma cor de texto secundária amarela/dourada clara.
             var textSecondary = (Color)ColorConverter.ConvertFromString("#FFD4AF37");
 
-            ApplyThemeColors(accent, textSecondary, bgStart, bgEnd, pnl);
+            ApplyThemeColors(accent, textSecondary, bgStart, bgEnd, pnl, Colors.White);
             SaveTheme("Pichal");
         }
 
@@ -3964,6 +3973,7 @@ namespace PichalUI
                     case "Dark": BtnThemeDark_Click(null, null); break;
                     case "Pichal": BtnThemePichal_Click(null, null); break;
                     case "Red": BtnThemeRed_Click(null, null); break;
+                    case "Test": Test_Click(); break;
                 }
             }
             catch { }
@@ -4780,6 +4790,8 @@ namespace PichalUI
             }
         }
 
+
+
         public void WelcomePlay_Click(object sender, RoutedEventArgs e)
         {
             if (_recommendedGame != null)
@@ -4806,6 +4818,126 @@ namespace PichalUI
             };
             WelcomeOverlay.BeginAnimation(OpacityProperty, fadeOut);
         }
+
+        public void ThemeEditor(string themeCode)
+        {
+            string[] splitCodeByClass = themeCode.Split(',');
+
+            // Agora suportamos até 6 cores (a 6ª é o Texto Principal)
+            int count = splitCodeByClass.Length;
+            if (count < 5) return;
+
+            Color[] newTheme = new Color[6]; // Aumentámos para 6 slots
+
+            for (int i = 0; i < count; i++)
+            {
+                string hex = splitCodeByClass[i].Trim();
+                if (hex.Length == 8)
+                {
+                    byte a = Convert.ToByte(hex.Substring(0, 2), 16);
+                    byte r = Convert.ToByte(hex.Substring(2, 2), 16);
+                    byte g = Convert.ToByte(hex.Substring(4, 2), 16);
+                    byte b = Convert.ToByte(hex.Substring(6, 2), 16);
+
+                    // Garante que não passamos do limite do array
+                    if (i < 6) newTheme[i] = Color.FromArgb(a, r, g, b);
+                }
+            }
+
+            // Se o tema for antigo (só 5 cores), define Branco para o texto principal
+            if (count < 6) newTheme[5] = Colors.White;
+
+            ApplyThemeColors(newTheme[0], newTheme[1], newTheme[2], newTheme[3], newTheme[4], newTheme[5]);
+        }
+
+        string ColorToHexConverter(int a, int r, int g, int b)
+        {
+            return a.ToString("X2") + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
+        }
+
+        public string GenerateThemeCode(Color c1, Color c2, Color c3, Color c4, Color c5, Color c6)
+        {
+            Color[] colors = { c1, c2, c3, c4, c5, c6 };
+            List<string> hexCodes = new List<string>();
+
+            foreach (Color c in colors)
+            {
+                string hex = c.A.ToString("X2") + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
+                hexCodes.Add(hex);
+            }
+
+            return string.Join(",", hexCodes);
+        }
+
+        private void Test_Click()
+        {
+            // Exemplo de teste
+            string str = "FF2D64D2,B4FF3232,FF0AC80A,FFFFFF00,C8505050";
+
+            try
+            {
+                ThemeEditor(str);
+                Console.WriteLine("Tema aplicado com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erro ao aplicar tema: " + ex.Message);
+            }
+        }
+
+        private void OpenThemeCreator_Click(object sender, RoutedEventArgs e)
+        {
+            // Passamos 'this' para ele conseguir aplicar o tema de volta
+            var creator = new ThemeCreatorWindow(this);
+            creator.ShowDialog(); // ShowDialog impede que mexas no launcher enquanto crias o tema
+        }
+
+        public void UpdateSingleThemeColor(int slotIndex, Color newColor)
+        {
+            try
+            {
+                if (slotIndex == 0) this.Resources["AccentBrush"] = new SolidColorBrush(newColor);
+
+                else if (slotIndex == 1)
+                {
+                    // Garante que o nome bate certo com o teu XAML (textSecondary vs TextSecondaryBrush)
+                    this.Resources["textSecondary"] = new SolidColorBrush(newColor);
+                }
+
+                else if (slotIndex == 2)
+                {
+                    EnsureGradientBackground();
+                    if (MainBackground.Background is LinearGradientBrush g) g.GradientStops[0].Color = newColor;
+                }
+
+                else if (slotIndex == 3)
+                {
+                    EnsureGradientBackground();
+                    if (MainBackground.Background is LinearGradientBrush g && g.GradientStops.Count > 1)
+                        g.GradientStops[1].Color = newColor;
+                }
+
+                else if (slotIndex == 4) this.Resources["PanelBackgroundBrush"] = new SolidColorBrush(newColor);
+
+                // --- NOVO SLOT 5: Texto Principal ---
+                else if (slotIndex == 5) this.Resources["TextPrimaryBrush"] = new SolidColorBrush(newColor);
+            }
+            catch { }
+        }
+
+        // Helper para evitar crashes se o fundo não for Gradiente
+        void EnsureGradientBackground()
+        {
+            if (!(MainBackground.Background is LinearGradientBrush))
+            {
+                // Recria o gradiente padrão se estiver em falta
+                var brush = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+                brush.GradientStops.Add(new GradientStop(Colors.Black, 0.0));
+                brush.GradientStops.Add(new GradientStop(Colors.Black, 0.8));
+                MainBackground.Background = brush;
+            }
+        }
+
 
         // --- XINPUT NATIVE CLASS ---
         static class XInputNative

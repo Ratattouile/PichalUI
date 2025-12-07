@@ -21,6 +21,8 @@
                          Color="White"/>
         <SolidColorBrush x:Key="PanelBackgroundBrush"
                          Color="#D9101010"/>
+        <SolidColorBrush x:Key="textSecondary"
+                         Color="Gray"/>
 
         <Style TargetType="Button">
             <Setter Property="FocusVisualStyle"
@@ -316,7 +318,7 @@
                     <TextBlock x:Name="HeaderTitle"
                                Text="Pichal UI"
                                FontSize="18"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"
                                Margin="16,0"
                                Grid.Column="0"/>
@@ -326,7 +328,7 @@
                                 VerticalAlignment="Center">
                         <TextBlock x:Name="ClockTime"
                                    Text="12:00"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Center"/>
@@ -348,7 +350,7 @@
                         <TextBlock x:Name="ProfileName"
                                    Text="User"
                                    FontSize="18"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
@@ -375,7 +377,7 @@
                                FontSize="22"
                                Text="Home"
                                FontWeight="Bold"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"
                                Margin="16,6"
                                Grid.Column="0"/>
@@ -383,7 +385,7 @@
                                FontSize="22"
                                Text="Friends"
                                FontWeight="Bold"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource textSecondary}"
                                VerticalAlignment="Center"
                                Margin="16,6"
                                Grid.Column="1"/>
@@ -391,7 +393,7 @@
                                FontSize="22"
                                Text="Settings"
                                FontWeight="Bold"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource textSecondary}"
                                VerticalAlignment="Center"
                                Margin="16,6"
                                Grid.Column="2"/>
@@ -611,12 +613,12 @@
                                                     HorizontalAlignment="Center">
                                             <TextBlock Text="⌂"
                                                        FontSize="40"
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Center"/>
                                             <TextBlock Text="LOJA"
                                                        FontSize="14"
                                                        FontWeight="Bold"
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
@@ -624,7 +626,7 @@
                                 <Canvas>
                                     <TextBlock x:Name="SideTitle"
                                                Text="{Binding Title}"
-                                               Foreground="White"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                                FontSize="14"
                                                FontWeight="SemiBold"
                                                TextWrapping="Wrap"
@@ -700,7 +702,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Definições"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                FontSize="42"
                                FontWeight="Bold"
                                VerticalAlignment="Top"
@@ -764,7 +766,7 @@
                                                    FontSize="18"
                                                    FontWeight="SemiBold"/>
                                         <TextBlock Text="Saída de áudio do sistema"
-                                                   Foreground="Gray"
+                                                   Foreground="{DynamicResource textSecondary}"
                                                    FontSize="12"/>
                                     </StackPanel>
                                     <Slider x:Name="VolumeSlider"
@@ -793,7 +795,7 @@
                                                    FontSize="18"
                                                    FontWeight="SemiBold"/>
                                         <TextBlock Text="Overlay de desempenho em jogo"
-                                                   Foreground="Gray"
+                                                   Foreground="{DynamicResource textSecondary}"
                                                    FontSize="12"/>
                                     </StackPanel>
                                     <CheckBox x:Name="ToggleFPS"
@@ -812,11 +814,11 @@
                                     <StackPanel>
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Disco Local (C:)"
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        FontWeight="SemiBold"/>
                                             <TextBlock x:Name="StorageText"
                                                        Text="Calculando..."
-                                                       Foreground="Gray"
+                                                       Foreground="{DynamicResource textSecondary}"
                                                        HorizontalAlignment="Right"/>
                                         </Grid>
                                         <Grid Height="10">
@@ -852,7 +854,7 @@
                                                    FontWeight="SemiBold"/>
                                         <TextBlock x:Name="WifiStatusText"
                                                    Text="Estado da conexão"
-                                                   Foreground="Gray"
+                                                   Foreground="{DynamicResource textSecondary}"
                                                    FontSize="12"/>
                                     </StackPanel>
                                     <Border Grid.Column="1"
@@ -873,7 +875,7 @@
                                             </Style>
                                         </Border.Style>
                                         <TextBlock Text="Configurar >"
-                                                   Foreground="White"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                    FontWeight="Bold"/>
                                     </Border>
                                     <Button x:Name="BtnWifiReal"
@@ -890,10 +892,10 @@
                                     <StackPanel>
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Processador (CPU)"
-                                                       Foreground="Gray"/>
+                                                       Foreground="{DynamicResource textSecondary}"/>
                                             <TextBlock x:Name="CpuInfoText"
                                                        Text="A ler..."
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Right"
                                                        MaxWidth="350"
                                                        TextTrimming="CharacterEllipsis"
@@ -902,10 +904,10 @@
 
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Placa Gráfica (GPU)"
-                                                       Foreground="Gray"/>
+                                                       Foreground="{DynamicResource textSecondary}"/>
                                             <TextBlock x:Name="GpuInfoText"
                                                        Text="A ler..."
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Right"
                                                        MaxWidth="350"
                                                        TextTrimming="CharacterEllipsis"
@@ -914,19 +916,19 @@
 
                                         <Grid Margin="0,0,0,10">
                                             <TextBlock Text="Resolução"
-                                                       Foreground="Gray"/>
+                                                       Foreground="{DynamicResource textSecondary}"/>
                                             <TextBlock x:Name="MonitorInfoText"
                                                        Text="-"
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Right"/>
                                         </Grid>
 
                                         <Grid>
                                             <TextBlock Text="Memória RAM"
-                                                       Foreground="Gray"/>
+                                                       Foreground="{DynamicResource textSecondary}"/>
                                             <TextBlock x:Name="RamInfoText"
                                                        Text="-"
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Right"/>
                                         </Grid>
                                     </StackPanel>
@@ -992,6 +994,12 @@
                                         Click="BtnThemeDark_Click"
                                         Style="{StaticResource SettingsButtonStyle}"
                                         Focusable="True"/>
+                                <Button Content="Editar Tema"
+                                        Height="50"
+                                        Margin="0,0,0,10"
+                                        Click="OpenThemeCreator_Click"
+                                        Style="{StaticResource SettingsButtonStyle}"
+                                        Focusable="True"/>
                             </StackPanel>
 
                             <StackPanel x:Name="TabAccount"
@@ -1023,7 +1031,7 @@
                                                 <TextBlock Text="{Binding ElementName=ProfileName, Path=Text}"
                                                            FontSize="24"
                                                            FontWeight="Bold"
-                                                           Foreground="White"/>
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 <TextBlock Text="Sessão Iniciada"
                                                            Foreground="{DynamicResource AccentBrush}"
                                                            FontSize="12"/>
@@ -1040,7 +1048,7 @@
                                 </Border>
 
                                 <TextBlock Text="Integrações"
-                                           Foreground="Gray"
+                                           Foreground="{DynamicResource textSecondary}"
                                            Margin="0,0,0,10"/>
                                 <Button Content="Associar Spotify (Em Breve)"
                                         Height="45"
@@ -1078,7 +1086,7 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="Redes Wi-Fi"
-                                           Foreground="White"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                            FontSize="28"
                                            FontWeight="Bold"
                                            Margin="0,0,0,20"/>
@@ -1105,11 +1113,11 @@
                                                                 Padding="15">
                                                             <Grid>
                                                                 <TextBlock Text="{Binding SSID}"
-                                                                           Foreground="White"
+                                                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                                                            FontWeight="Bold"
                                                                            FontSize="16"/>
                                                                 <TextBlock Text="{Binding SignalStrength}"
-                                                                           Foreground="Gray"
+                                                                           Foreground="{DynamicResource textSecondary}"
                                                                            HorizontalAlignment="Right"/>
                                                             </Grid>
                                                         </Border>
@@ -1135,13 +1143,13 @@
                                             Visibility="Collapsed"
                                             Margin="0,20,0,0">
                                     <TextBlock Text="Password da Rede:"
-                                               Foreground="Gray"
+                                               Foreground="{DynamicResource textSecondary}"
                                                Margin="0,0,0,5"/>
                                     <PasswordBox x:Name="WifiPasswordBox"
                                                  Height="40"
                                                  FontSize="16"
                                                  Background="#333"
-                                                 Foreground="White"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
                                                  BorderThickness="0"
                                                  Padding="10,5"
                                                  VerticalContentAlignment="Center"/>
@@ -1156,7 +1164,7 @@
                                             Width="100"
                                             Height="40"
                                             Background="Transparent"
-                                            Foreground="White"
+                                            Foreground="{DynamicResource TextPrimaryBrush}"
                                             Margin="0,0,10,0"/>
 
                                     <Button x:Name="BtnConnectWifi"
@@ -1297,7 +1305,7 @@
                             ClipToBounds="True">
                         <Grid>
                             <TextBlock Text="Seleciona um amigo"
-                                       Foreground="Gray"
+                                       Foreground="{DynamicResource textSecondary}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        FontSize="16">
@@ -1366,7 +1374,7 @@
                                                         HorizontalAlignment="Right"
                                                         VerticalAlignment="Bottom">
                                                     <TextBlock Text="{Binding SteamLevel}"
-                                                               Foreground="White"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                                                FontWeight="Bold"
                                                                FontSize="14"
                                                                HorizontalAlignment="Center"
@@ -1376,7 +1384,7 @@
 
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding PersonaName}"
-                                                           Foreground="White"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                                            FontSize="42"
                                                            FontWeight="Bold"/>
 
@@ -1392,7 +1400,7 @@
                                                                    FontSize="12"/>
                                                     </Border>
                                                     <TextBlock Text="{Binding MutualFriendsText}"
-                                                               Foreground="Gray"
+                                                               Foreground="{DynamicResource textSecondary}"
                                                                FontSize="14"
                                                                VerticalAlignment="Center"
                                                                FontStyle="Italic"/>
@@ -1403,7 +1411,7 @@
                                         <StackPanel Visibility="{Binding GameCoverVisibility}"
                                                     Margin="0,0,0,30">
                                             <TextBlock Text="A JOGAR AGORA"
-                                                       Foreground="Gray"
+                                                       Foreground="{DynamicResource textSecondary}"
                                                        FontSize="12"
                                                        FontWeight="Bold"
                                                        Margin="0,0,0,10"/>
@@ -1431,7 +1439,7 @@
                                                     <StackPanel Grid.Column="1"
                                                                 VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding GameExtraInfo}"
-                                                                   Foreground="White"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                                    FontSize="24"
                                                                    FontWeight="Bold"/>
                                                         <TextBlock Text="{Binding RichPresence}"
@@ -1445,7 +1453,7 @@
 
                                         <StackPanel Margin="0,0,0,30">
                                             <TextBlock Text="ATIVIDADE RECENTE"
-                                                       Foreground="Gray"
+                                                       Foreground="{DynamicResource textSecondary}"
                                                        FontSize="12"
                                                        FontWeight="Bold"
                                                        Margin="0,0,0,10"/>
@@ -1486,13 +1494,13 @@
                                                                        Stretch="UniformToFill"/>
                                                             </Border>
                                                             <TextBlock Text="{Binding Name}"
-                                                                       Foreground="White"
+                                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                                        FontSize="12"
                                                                        FontWeight="SemiBold"
                                                                        TextTrimming="CharacterEllipsis"
                                                                        Margin="0,8,0,0"/>
                                                             <TextBlock Text="{Binding Playtime2Weeks}"
-                                                                       Foreground="Gray"
+                                                                       Foreground="{DynamicResource textSecondary}"
                                                                        FontSize="11"/>
                                                         </StackPanel>
                                                     </DataTemplate>
@@ -1583,7 +1591,7 @@
                                        Text="Nome do Jogo"
                                        FontSize="56"
                                        FontWeight="Bold"
-                                       Foreground="White"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                        TextWrapping="Wrap"
                                        Margin="0,0,0,15"
                                        LineHeight="60">
@@ -1612,7 +1620,7 @@
                                            VerticalAlignment="Center"
                                            FontSize="16"/>
                                 <TextBlock Text=" • "
-                                           Foreground="Gray"
+                                           Foreground="{DynamicResource textSecondary}"
                                            VerticalAlignment="Center"
                                            Margin="10,0"
                                            FontSize="16"/>
@@ -1643,7 +1651,7 @@
                                         Click="OpenGameOptions_Click"
                                         Style="{StaticResource SettingsButtonStyle}"
                                         Background="#33FFFFFF"
-                                        Foreground="White"
+                                        Foreground="{DynamicResource TextPrimaryBrush}"
                                         FontSize="32"
                                         FontWeight="Bold"
                                         Focusable="True">
@@ -1671,7 +1679,7 @@
                                 <TextBlock x:Name="Info_CompletionPercent"
                                            Text="45%"
                                            Tag="45"
-                                           Foreground="White"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                            FontWeight="Bold"
                                            Margin="20,0,0,0"
                                            FontSize="24"/>
@@ -1788,7 +1796,7 @@
                                              Focusable="True"
                                              MinHeight="40"
                                              MaxHeight="296"
-                                             Foreground="White">
+                                             Foreground="{DynamicResource TextPrimaryBrush}">
 
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
@@ -1803,10 +1811,10 @@
                                                     <StackPanel VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding DisplayName}"
                                                                    FontWeight="Bold"
-                                                                   Foreground="White"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                                    FontSize="14"/>
                                                         <TextBlock Text="{Binding Description}"
-                                                                   Foreground="Gray"
+                                                                   Foreground="{DynamicResource textSecondary}"
                                                                    FontSize="11"
                                                                    TextWrapping="Wrap"
                                                                    MaxWidth="300"/>
@@ -1844,14 +1852,14 @@
                                                         HorizontalAlignment="Stretch">
                                                     <StackPanel>
                                                         <TextBlock Text="{Binding Title}"
-                                                                   Foreground="White"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                                    FontWeight="Bold"
                                                                    FontSize="16"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    MaxWidth="400"
                                                                    TextAlignment="Left"/>
                                                         <TextBlock Text="{Binding Date}"
-                                                                   Foreground="Gray"
+                                                                   Foreground="{DynamicResource textSecondary}"
                                                                    FontSize="12"
                                                                    Margin="0,5,0,0"/>
                                                     </StackPanel>
@@ -1918,14 +1926,14 @@
                                 </Grid.RowDefinitions>
                                 <TextBlock x:Name="NewsModalTitle"
                                            Text="Título da Notícia"
-                                           Foreground="White"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                            FontSize="28"
                                            FontWeight="Bold"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,10"/>
                                 <TextBlock x:Name="NewsModalDate"
                                            Text="Data"
-                                           Foreground="Gray"
+                                           Foreground="{DynamicResource textSecondary}"
                                            FontSize="14"
                                            Margin="0,0,0,20"
                                            Grid.Row="1"/>
@@ -1933,7 +1941,7 @@
                                               Margin="0,0,0,20">
                                     <TextBlock x:Name="NewsModalContent"
                                                Text="Conteúdo..."
-                                               Foreground="#DDD"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                                FontSize="16"
                                                TextWrapping="Wrap"
                                                LineHeight="24"/>
@@ -1965,7 +1973,7 @@
                                 Padding="20">
                             <StackPanel>
                                 <TextBlock Text="Opções"
-                                           Foreground="White"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                            FontSize="24"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Center"
@@ -2205,7 +2213,7 @@
                             Width="100"
                             Height="20"
                             Margin="10,0"/>
-                    <TextBlock Text="v0.4.9 - alpha"
+                    <TextBlock Text="v0.4.11 - alpha"
                                Foreground="Gray"
                                Grid.Column="2"
                                VerticalAlignment="Center"/>
@@ -2220,7 +2228,7 @@
                         HorizontalAlignment="Center">
                 <TextBlock x:Name="LoadingText"
                            Text="A carregar..."
-                           Foreground="White"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            FontSize="24"
                            FontWeight="Bold"
                            HorizontalAlignment="Center"
@@ -2280,7 +2288,7 @@
                         </Image>
                         <TextBlock x:Name="ChatFriendName"
                                    Text="Nome do Amigo"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    VerticalAlignment="Center"/>
@@ -2315,7 +2323,7 @@
                                             MaxWidth="350">
                                         <StackPanel>
                                             <TextBlock Text="{Binding Message}"
-                                                       Foreground="White"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        TextWrapping="Wrap"
                                                        FontSize="14"/>
                                             <TextBlock Text="{Binding Time}"
@@ -2338,7 +2346,7 @@
                         <TextBox x:Name="ChatInputBox"
                                  Height="40"
                                  Background="#333"
-                                 Foreground="White"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
                                  BorderThickness="0"
                                  VerticalContentAlignment="Center"
                                  Padding="10,0"
@@ -2398,7 +2406,7 @@
                                FontSize="14"/>
                     <TextBlock x:Name="NotifMessage"
                                Text="Mensagem Recebida"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                FontSize="12"
                                TextTrimming="CharacterEllipsis"
                                MaxWidth="300"/>
@@ -2522,7 +2530,7 @@
                     MinWidth="600">
                 <StackPanel>
                     <TextBlock Text="Quem está a jogar?"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                FontSize="32"
                                FontWeight="Bold"
                                HorizontalAlignment="Center"
@@ -2558,10 +2566,10 @@
                                                        FontSize="30"
                                                        VerticalAlignment="Center"
                                                        HorizontalAlignment="Center"
-                                                       Foreground="Gray"/>
+                                                       Foreground="{DynamicResource textSecondary}"/>
                                         </Border>
                                         <TextBlock Text="{Binding Username}"
-                                                   Foreground="White"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                    FontWeight="Bold"
                                                    FontSize="16"
                                                    HorizontalAlignment="Center"/>
@@ -2599,20 +2607,20 @@
                     Padding="30">
                 <StackPanel>
                     <TextBlock Text="Criar Novo Perfil"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                FontSize="24"
                                FontWeight="Bold"
                                Margin="0,0,0,20"/>
 
                     <TextBlock Text="Nome do Perfil (Ex: Kiko)"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource textSecondary}"
                                Margin="0,0,0,5"/>
                     <TextBox x:Name="TxtNewUserName"
                              Height="40"
                              FontSize="16"
                              Padding="5"
                              Background="#333"
-                             Foreground="White"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderThickness="0"/>
 
                     <TextBlock Text="Login Steam (Para troca automática)"
@@ -2624,22 +2632,22 @@
                              FontSize="14"
                              Padding="5"
                              Background="#333"
-                             Foreground="White"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderThickness="0"/>
                     <TextBlock Text="*Apenas o nome de utilizador, não a password."
-                               Foreground="Gray"
+                               Foreground="{DynamicResource textSecondary}"
                                FontSize="10"
                                Margin="0,2,0,0"/>
 
                     <TextBlock Text="Steam Web API Key (Opcional)"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource textSecondary}"
                                Margin="0,15,0,5"/>
                     <TextBox x:Name="TxtNewUserApiKey"
                              Height="40"
                              FontSize="14"
                              Padding="5"
                              Background="#333"
-                             Foreground="White"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderThickness="0"/>
 
                     <StackPanel Orientation="Horizontal"
@@ -2690,13 +2698,13 @@
                     <TextBlock x:Name="WelcomeGreeting"
                                Text="Bem-vindo de volta!"
                                FontSize="32"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource textSecondary}"
                                FontWeight="Light"/>
 
                     <TextBlock x:Name="WelcomeUser"
                                Text="Ratatouille"
                                FontSize="56"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                FontWeight="Bold"
                                Margin="0,0,0,30"/>
 
@@ -2712,7 +2720,7 @@
 
                             <TextBlock x:Name="WelcomeReason"
                                        Text="Como tens jogado muitos RPGs ultimamente, achamos que está na hora de continuares a tua aventura em..."
-                                       Foreground="White"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                        FontSize="18"
                                        TextWrapping="Wrap"
                                        LineHeight="26"/>
@@ -2765,7 +2773,7 @@
                               Height="100">
                             <TextBlock x:Name="WelcomeGameTitle"
                                        Text="ELDEN RING"
-                                       Foreground="White"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                        FontSize="32"
                                        FontWeight="Bold"
                                        HorizontalAlignment="Center"
