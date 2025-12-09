@@ -2,189 +2,296 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Criador de Temas"
-        Height="500"
-        Width="700"
+        Height="550"
+        Width="800"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="#151515"
         Foreground="White">
 
-  <Window.Resources>
-    <Style TargetType="Slider">
-      <Setter Property="Margin"
-              Value="0,5,0,15"/>
-      <Setter Property="IsSnapToTickEnabled"
-              Value="True"/>
-      <Setter Property="TickFrequency"
-              Value="1"/>
-      <Setter Property="Maximum"
-              Value="255"/>
-      <Setter Property="SmallChange"
-              Value="1"/>
-    </Style>
-    <Style TargetType="TextBlock">
-      <Setter Property="Foreground"
-              Value="#AAAAAA"/>
-      <Setter Property="FontSize"
-              Value="12"/>
-      <Setter Property="Margin"
-              Value="0,0,0,2"/>
-    </Style>
-  </Window.Resources>
+        <Window.Resources>
+                <Style TargetType="Slider">
+                        <Setter Property="Margin"
+                                Value="0,5,0,15"/>
+                        <Setter Property="IsSnapToTickEnabled"
+                                Value="True"/>
+                        <Setter Property="TickFrequency"
+                                Value="1"/>
+                        <Setter Property="Maximum"
+                                Value="255"/>
+                        <Setter Property="SmallChange"
+                                Value="1"/>
+                </Style>
+                <Style TargetType="TextBlock">
+                        <Setter Property="Foreground"
+                                Value="#AAAAAA"/>
+                        <Setter Property="FontSize"
+                                Value="12"/>
+                        <Setter Property="Margin"
+                                Value="0,0,0,2"/>
+                </Style>
+        </Window.Resources>
 
-  <Grid Margin="20">
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="200"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
+        <Grid Margin="20">
+                <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-    <StackPanel Grid.Column="0">
-      <TextBlock Text="SELECIONA A COR:"
-                 FontWeight="Bold"
-                 Foreground="White"
-                 Margin="0,0,0,10"/>
-      <CheckBox x:Name="ChkLivePreview"
-                Content="Ver em Tempo Real"
-                IsChecked="True"
-                Foreground="White"
-                Margin="20,0,0,0"
-                VerticalAlignment="Center">
-        <CheckBox.LayoutTransform>
-          <ScaleTransform ScaleX="1.2"
-                          ScaleY="1.2"/>
-        </CheckBox.LayoutTransform>
-      </CheckBox>
+                <ScrollViewer Grid.Column="0"
+                              VerticalScrollBarVisibility="Hidden"
+                              Margin="0,0,20,0">
+                        <StackPanel>
 
-      <Button x:Name="BtnSlot1"
-          Click="Slot_Click"
-          Tag="0"
-          Content="Destaque (Accent)"
-          Height="40"
-          Margin="0,0,0,10"/>
+                                <TextBlock Text="ESTILO DE FUNDO"
+                                                FontWeight="Bold"
+                                                Foreground="#FFF"
+                                                Margin="0,0,0,5"/>
+                                <ComboBox x:Name="CmbGradientType"
+                                                SelectionChanged="GradientType_Changed"
+                                                Height="35"
+                                                Margin="0,0,0,20">
+                                        <ComboBoxItem Content="Linear (Clássico)"
+                                                        Tag="0"
+                                                        IsSelected="True"/>
+                                        <ComboBoxItem Content="Radial (Explosão)"
+                                                        Tag="1"/>
+                                </ComboBox>
 
-      <Button x:Name="BtnSlot6"
-          Click="Slot_Click"
-          Tag="5"
-          Content="Texto Principal"
-          Height="40"
-          Margin="0,0,0,10"/>
+                                <TextBlock Text="AMBIENTE"
+                                                FontWeight="Bold"
+                                                Foreground="#888"
+                                                Margin="0,10,0,5"/>
+                                <Button x:Name="BtnSlot3"
+                                                Click="Slot_Click"
+                                                Tag="2"
+                                                Content="Fundo: Topo / Centro"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot4"
+                                                Click="Slot_Click"
+                                                Tag="3"
+                                                Content="Fundo: Base / Bordas"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot5"
+                                                Click="Slot_Click"
+                                                Tag="4"
+                                                Content="Vidro dos Painéis"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot9"
+                                                Click="Slot_Click"
+                                                Tag="8"
+                                                Content="Cor Terciária / Bordas"
+                                                Height="35"
+                                                Margin="0,0,0,20"/>
 
-      <Button x:Name="BtnSlot2"
-          Click="Slot_Click"
-          Tag="1"
-          Content="Texto Secundário"
-          Height="40"
-          Margin="0,0,0,10"/>
-      <Button x:Name="BtnSlot3"
-          Click="Slot_Click"
-          Tag="2"
-          Content="Fundo (Topo)"
-          Height="40"
-          Margin="0,0,0,10"/>
-      <Button x:Name="BtnSlot4"
-          Click="Slot_Click"
-          Tag="3"
-          Content="Fundo (Base)"
-          Height="40"
-          Margin="0,0,0,10"/>
-      <Button x:Name="BtnSlot5"
-          Click="Slot_Click"
-          Tag="4"
-          Content="Painéis (Vidro)"
-          Height="40"
-          Margin="0,0,0,10"/>
+                                <TextBlock Text="INTERFACE"
+                                                FontWeight="Bold"
+                                                Foreground="#888"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot1"
+                                                Click="Slot_Click"
+                                                Tag="0"
+                                                Content="Cor de Destaque (Accent)"
+                                                Height="35"
+                                                Margin="0,0,0,20"
+                                                BorderBrush="White"
+                                                BorderThickness="1"/>
 
-      <Border Height="1"
-              Background="#333"
-              Margin="0,20"/>
+                                <TextBlock Text="TIPOGRAFIA GERAL"
+                                                FontWeight="Bold"
+                                                Foreground="#888"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot6"
+                                                Click="Slot_Click"
+                                                Tag="5"
+                                                Content="Texto Principal (Global)"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot2"
+                                                Click="Slot_Click"
+                                                Tag="1"
+                                                Content="Texto Secundário (Global)"
+                                                Height="35"
+                                                Margin="0,0,0,20"/>
 
-      <TextBlock Text="COR SELECIONADA:"
-                 FontWeight="Bold"
-                 Foreground="White"/>
-      <Border x:Name="PreviewBox"
-              Height="60"
-              CornerRadius="8"
-              Background="White"
-              Margin="0,10,0,0">
-        <Border.Effect>
-          <DropShadowEffect Color="Black"
-                            BlurRadius="10"
-                            Opacity="0.5"/>
-        </Border.Effect>
-      </Border>
-    </StackPanel>
+                                <TextBlock Text="DETALHES DO JOGO"
+                                                FontWeight="Bold"
+                                                Foreground="#888"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot7"
+                                                Click="Slot_Click"
+                                                Tag="6"
+                                                Content="Título Grande (Hero)"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot10"
+                                                Click="Slot_Click"
+                                                Tag="9"
+                                                Content="Info: Texto Principal"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot11"
+                                                Click="Slot_Click"
+                                                Tag="10"
+                                                Content="Info: Texto Detalhe"
+                                                Height="35"
+                                                Margin="0,0,0,20"/>
 
+                                <TextBlock Text="SOCIAL / CHAT"
+                                                FontWeight="Bold"
+                                                Foreground="#888"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot12"
+                                                Click="Slot_Click"
+                                                Tag="11"
+                                                Content="Perfil: Nome Amigo"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot13"
+                                                Click="Slot_Click"
+                                                Tag="12"
+                                                Content="Perfil: Estado (Status)"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot8"
+                                                Click="Slot_Click"
+                                                Tag="7"
+                                                Content="Mensagens do Chat"
+                                                Height="35"
+                                                Margin="0,0,0,20"/>
 
-    <Border Grid.Column="1"
-            Background="#222"
-            CornerRadius="10"
-            Padding="20"
-            Margin="20,0,0,0">
-      <StackPanel>
-        <TextBlock Text="AJUSTAR COR"
-                   FontSize="18"
-                   FontWeight="Bold"
-                   Foreground="White"
-                   Margin="0,0,0,20"/>
+                                <TextBlock Text="BOTÕES"
+                                                FontWeight="Bold"
+                                                Foreground="#888"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot14"
+                                                Click="Slot_Click"
+                                                Tag="13"
+                                                Content="Texto: Normal"
+                                                Height="35"
+                                                Margin="0,0,0,5"/>
+                                <Button x:Name="BtnSlot15"
+                                                Click="Slot_Click"
+                                                Tag="14"
+                                                Content="Texto: Focado/Hover"
+                                                Height="35"
+                                                Margin="0,0,0,20"/>
 
-        <TextBlock Text="Vermelho (R)"/>
-        <Slider x:Name="SliderR"
-                ValueChanged="Slider_ValueChanged"/>
+                                <TextBlock Text="COR ATUAL:"
+                                                FontWeight="Bold"
+                                                Foreground="White"
+                                                Margin="0,20,0,5"/>
+                                <Border x:Name="PreviewBox"
+                                                Height="40"
+                                                CornerRadius="4"
+                                                Background="White"/>
+                        </StackPanel>
+                </ScrollViewer>
 
-        <TextBlock Text="Verde (G)"/>
-        <Slider x:Name="SliderG"
-                ValueChanged="Slider_ValueChanged"/>
+                <Border Grid.Column="1"
+                        Background="#222"
+                        CornerRadius="10"
+                        Padding="20">
+                        <StackPanel>
+                                <Grid Margin="0,0,0,20">
+                                        <TextBlock Text="AJUSTAR COR"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="White"
+                                                   VerticalAlignment="Center"/>
 
-        <TextBlock Text="Azul (B)"/>
-        <Slider x:Name="SliderB"
-                ValueChanged="Slider_ValueChanged"/>
+                                        <CheckBox x:Name="ChkLivePreview"
+                                                  Content="Ver em Tempo Real"
+                                                  IsChecked="True"
+                                                  Foreground="White"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center">
+                                                <CheckBox.LayoutTransform>
+                                                        <ScaleTransform ScaleX="1.2"
+                                                                        ScaleY="1.2"/>
+                                                </CheckBox.LayoutTransform>
+                                        </CheckBox>
+                                </Grid>
 
-        <TextBlock Text="Transparência (Alpha) - 255 é Sólido"/>
-        <Slider x:Name="SliderA"
-                ValueChanged="Slider_ValueChanged"/>
+                                <TextBlock Text="Vermelho (R)"/>
+                                <Slider x:Name="SliderR"
+                                        ValueChanged="Slider_ValueChanged"/>
 
-        <Border Height="1"
-                Background="#444"
-                Margin="0,20"/>
+                                <TextBlock Text="Verde (G)"/>
+                                <Slider x:Name="SliderG"
+                                        ValueChanged="Slider_ValueChanged"/>
 
-        <TextBlock Text="CÓDIGO DO TEMA:"
-                   FontWeight="Bold"
-                   Foreground="White"/>
-        <TextBox x:Name="TxtResultCode"
-                 Height="40"
-                 FontSize="14"
-                 VerticalContentAlignment="Center"
-                 Background="#111"
-                 Foreground="#00FF00"
-                 BorderThickness="0"
-                 Padding="10,0"
-                 IsReadOnly="True"
-                 Margin="0,5,0,15"/>
+                                <TextBlock Text="Azul (B)"/>
+                                <Slider x:Name="SliderB"
+                                        ValueChanged="Slider_ValueChanged"/>
 
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
+                                <TextBlock Text="Transparência (Alpha) - 255 é Sólido"/>
+                                <Slider x:Name="SliderA"
+                                        ValueChanged="Slider_ValueChanged"/>
 
-          <Button Content="Copiar Código"
-                  Click="BtnCopy_Click"
-                  Height="40"
-                  Margin="0,0,5,0"
-                  Background="#444"
-                  Foreground="White"
-                  BorderThickness="0"/>
-          <Button Content="Aplicar Agora"
-                  Click="BtnApply_Click"
-                  Grid.Column="1"
-                  Height="40"
-                  Margin="5,0,0,0"
-                  Background="#FF4758"
-                  Foreground="White"
-                  FontWeight="Bold"
-                  BorderThickness="0"/>
+                                <Border Height="1"
+                                        Background="#444"
+                                        Margin="0,20"/>
+
+                                <TextBlock Text="CÓDIGO DO TEMA:"
+                                           FontWeight="Bold"
+                                           Foreground="White"/>
+
+                                <Grid Margin="0,5,0,15">
+                                        <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox x:Name="TxtResultCode"
+                                                 Grid.Column="0"
+                                                 Height="40"
+                                                 FontSize="14"
+                                                 VerticalContentAlignment="Center"
+                                                 Background="#111"
+                                                 Foreground="#00FF00"
+                                                 BorderThickness="1"
+                                                 BorderBrush="#333"
+                                                 Padding="10,0"
+                                                 IsReadOnly="False"/>
+
+                                        <Button Content="Carregar"
+                                                Grid.Column="1"
+                                                Click="BtnLoad_Click"
+                                                Height="40"
+                                                Margin="5,0,0,0"
+                                                Background="#333"
+                                                Foreground="White"
+                                                BorderThickness="0"/>
+                                </Grid>
+
+                                <Grid>
+                                        <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button Content="Copiar Código"
+                                                Click="BtnCopy_Click"
+                                                Height="40"
+                                                Margin="0,0,5,0"
+                                                Background="#444"
+                                                Foreground="White"
+                                                BorderThickness="0"/>
+                                        <Button Content="Aplicar Agora"
+                                                Click="BtnApply_Click"
+                                                Grid.Column="1"
+                                                Height="40"
+                                                Margin="5,0,0,0"
+                                                Background="#FF4758"
+                                                Foreground="White"
+                                                FontWeight="Bold"
+                                                BorderThickness="0"/>
+                                </Grid>
+                        </StackPanel>
+                </Border>
         </Grid>
-      </StackPanel>
-    </Border>
-  </Grid>
 </Window>

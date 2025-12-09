@@ -19,10 +19,29 @@
                          Color="#FF4758"/>
         <SolidColorBrush x:Key="TextPrimaryBrush"
                          Color="White"/>
-        <SolidColorBrush x:Key="PanelBackgroundBrush"
-                         Color="#D9101010"/>
         <SolidColorBrush x:Key="textSecondary"
                          Color="Gray"/>
+        <SolidColorBrush x:Key="PanelBackgroundBrush"
+                         Color="#D9101010"/>
+        <SolidColorBrush x:Key="HeroTitleBrush"
+                         Color="White"/>
+        <SolidColorBrush x:Key="ChatBrush"
+                         Color="Gray"/>
+        <SolidColorBrush x:Key="TertiaryBrush"
+                         Color="#40808080"/>
+
+        <SolidColorBrush x:Key="InfoPrimaryBrush"
+                         Color="White"/>
+        <SolidColorBrush x:Key="InfoSecondaryBrush"
+                         Color="Gray"/>
+        <SolidColorBrush x:Key="FriendNameBrush"
+                         Color="White"/>
+        <SolidColorBrush x:Key="FriendStatusBrush"
+                         Color="Gray"/>
+        <SolidColorBrush x:Key="ButtonTextNormalBrush"
+                         Color="White"/>
+        <SolidColorBrush x:Key="ButtonTextHoverBrush"
+                         Color="Black"/>
 
         <Style TargetType="Button">
             <Setter Property="FocusVisualStyle"
@@ -38,7 +57,7 @@
             <Setter Property="Background"
                     Value="#33FFFFFF"/>
             <Setter Property="Foreground"
-                    Value="{DynamicResource TextPrimaryBrush}"/>
+                    Value="{DynamicResource ButtonTextNormalBrush}"/>
             <Setter Property="FontSize"
                     Value="14"/>
             <Setter Property="BorderThickness"
@@ -61,6 +80,8 @@
                                 <Setter TargetName="border"
                                         Property="Background"
                                         Value="#55FFFFFF"/>
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource ButtonTextHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsFocused"
                                      Value="True">
@@ -68,7 +89,7 @@
                                         Property="Background"
                                         Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground"
-                                        Value="White"/>
+                                        Value="{DynamicResource ButtonTextHoverBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -334,7 +355,7 @@
                                    HorizontalAlignment="Center"/>
                         <TextBlock x:Name="ClockDate"
                                    Text="Sáb, 22 Nov"
-                                   Foreground="LightGray"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    FontSize="12"
                                    HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -413,7 +434,7 @@
                         <Setter Property="Background"
                                 Value="#33FFFFFF"/>
                         <Setter Property="Foreground"
-                                Value="White"/>
+                                Value="{DynamicResource TextPrimaryBrush}"/>
                         <Setter Property="FontSize"
                                 Value="14"/>
                         <Setter Property="FontWeight"
@@ -1173,7 +1194,7 @@
                                             Width="120"
                                             Height="40"
                                             Background="{DynamicResource AccentBrush}"
-                                            Foreground="Black"
+                                            Foreground="{DynamicResource textSecondary}"
                                             FontWeight="Bold">
                                         <Button.Resources>
                                             <Style TargetType="Border">
@@ -1223,7 +1244,7 @@
                                 <Setter Property="FocusVisualStyle"
                                         Value="{x:Null}"/>
                                 <Setter Property="Foreground"
-                                        Value="White"/>
+                                        Value="{DynamicResource TextPrimaryBrush}"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="ListBoxItem">
@@ -1243,7 +1264,7 @@
                                                     <Setter Property="FontWeight"
                                                             Value="Bold"/>
                                                     <Setter Property="Foreground"
-                                                            Value="Black"/>
+                                                            Value="{DynamicResource TextPrimaryBrush}"/>
                                                 </Trigger>
                                                 <Trigger Property="IsMouseOver"
                                                          Value="True">
@@ -1384,7 +1405,7 @@
 
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding PersonaName}"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           Foreground="{DynamicResource FriendNameBrush}"
                                                            FontSize="42"
                                                            FontWeight="Bold"/>
 
@@ -1395,12 +1416,12 @@
                                                             Padding="8,4"
                                                             Margin="0,0,10,0">
                                                         <TextBlock Text="{Binding StatusText}"
-                                                                   Foreground="Black"
+                                                                   Foreground="{DynamicResource FriendStatusBrush}"
                                                                    FontWeight="Bold"
                                                                    FontSize="12"/>
                                                     </Border>
                                                     <TextBlock Text="{Binding MutualFriendsText}"
-                                                               Foreground="{DynamicResource textSecondary}"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                                                FontSize="14"
                                                                VerticalAlignment="Center"
                                                                FontStyle="Italic"/>
@@ -1453,7 +1474,7 @@
 
                                         <StackPanel Margin="0,0,0,30">
                                             <TextBlock Text="ATIVIDADE RECENTE"
-                                                       Foreground="{DynamicResource textSecondary}"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        FontSize="12"
                                                        FontWeight="Bold"
                                                        Margin="0,0,0,10"/>
@@ -1566,7 +1587,7 @@
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0"
                                                  EndPoint="1,0">
-                                <GradientStop Color="#EE0E0E0E"
+                                <GradientStop Color="#E71A1A1A"
                                               Offset="0.0"/>
                                 <GradientStop Color="#CC0E0E0E"
                                               Offset="0.4"/>
@@ -1591,7 +1612,7 @@
                                        Text="Nome do Jogo"
                                        FontSize="56"
                                        FontWeight="Bold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Foreground="{DynamicResource HeroTitleBrush}"
                                        TextWrapping="Wrap"
                                        Margin="0,0,0,15"
                                        LineHeight="60">
@@ -1616,17 +1637,17 @@
                                 </Border>
                                 <TextBlock x:Name="Info_Playtime"
                                            Text="120 hrs"
-                                           Foreground="LightGray"
+                                           Foreground="{DynamicResource InfoPrimaryBrush}"
                                            VerticalAlignment="Center"
                                            FontSize="16"/>
                                 <TextBlock Text=" • "
-                                           Foreground="{DynamicResource textSecondary}"
+                                           Foreground="{DynamicResource InfoSecondaryBrush}"
                                            VerticalAlignment="Center"
                                            Margin="10,0"
                                            FontSize="16"/>
                                 <TextBlock x:Name="Info_LastPlayed"
                                            Text="Jogado há 2 dias"
-                                           Foreground="LightGray"
+                                           Foreground="{DynamicResource InfoPrimaryBrush}"
                                            VerticalAlignment="Center"
                                            FontSize="16"/>
                             </StackPanel>
@@ -2316,24 +2337,78 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,5">
-                                    <Border Background="{Binding BubbleColor}"
-                                            CornerRadius="8"
-                                            Padding="10,8"
-                                            HorizontalAlignment="{Binding Alignment}"
-                                            MaxWidth="350">
+                                    <Border x:Name="Bubble"
+                                            MaxWidth="350"
+                                            Padding="12,10">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Message}"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                                       TextWrapping="Wrap"
-                                                       FontSize="14"/>
-                                            <TextBlock Text="{Binding Time}"
-                                                       Foreground="#AAFFFFFF"
+                                            <TextBlock x:Name="SenderText"
+                                                       Text="{Binding SenderName}"
                                                        FontSize="10"
+                                                       Opacity="0.7"
+                                                       Margin="0,0,0,2"
+                                                       FontWeight="Bold"/>
+
+                                            <TextBlock x:Name="MessageText"
+                                                       Text="{Binding Message}"
+                                                       TextWrapping="Wrap"
+                                                       FontSize="14"
+                                                       LineHeight="20"/>
+
+                                            <TextBlock x:Name="TimeText"
+                                                       Text="{Binding Time}"
+                                                       FontSize="9"
                                                        HorizontalAlignment="Right"
+                                                       Opacity="0.6"
                                                        Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
+
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsMe}"
+                                            Value="True">
+                                        <Setter TargetName="Bubble"
+                                                Property="HorizontalAlignment"
+                                                Value="Right"/>
+                                        <Setter TargetName="Bubble"
+                                                Property="Background"
+                                                Value="{DynamicResource AccentBrush}"/>
+                                        <Setter TargetName="Bubble"
+                                                Property="CornerRadius"
+                                                Value="15,15,2,15"/>
+                                        <Setter TargetName="MessageText"
+                                                Property="Foreground"
+                                                Value="{DynamicResource ButtonTextHoverBrush}"/>
+                                        <Setter TargetName="TimeText"
+                                                Property="Foreground"
+                                                Value="{DynamicResource ButtonTextHoverBrush}"/>
+                                        <Setter TargetName="SenderText"
+                                                Property="Visibility"
+                                                Value="Collapsed"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsMe}"
+                                            Value="False">
+                                        <Setter TargetName="Bubble"
+                                                Property="HorizontalAlignment"
+                                                Value="Left"/>
+                                        <Setter TargetName="Bubble"
+                                                Property="Background"
+                                                Value="#333333"/>
+                                        <Setter TargetName="Bubble"
+                                                Property="CornerRadius"
+                                                Value="15,15,15,2"/>
+                                        <Setter TargetName="MessageText"
+                                                Property="Foreground"
+                                                Value="{DynamicResource ChatBrush}"/>
+                                        <Setter TargetName="TimeText"
+                                                Property="Foreground"
+                                                Value="Gray"/>
+                                        <Setter TargetName="SenderText"
+                                                Property="Foreground"
+                                                Value="{DynamicResource AccentBrush}"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

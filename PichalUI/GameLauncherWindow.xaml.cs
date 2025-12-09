@@ -87,6 +87,7 @@ namespace PichalUI
         public string Time { get; set; } = "";
         public HorizontalAlignment Alignment { get; set; }
         public SolidColorBrush BubbleColor { get; set; } = Brushes.Gray;
+        public bool IsMe { get; set; }
     }
 
     public class GameNewsItem
@@ -3302,86 +3303,167 @@ namespace PichalUI
         }
 
         // --- TEMAS / BACKGROUND ---
-        void ApplyThemeColors(Color accent, Color textSecondary, Color bgStart, Color bgEnd, Color panelBg, Color textPrimary)
+        void ApplyThemeColors(Color[] c, int gradType)
         {
-            // 1. Atualiza o Background (Gradiente)
-            var brush = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
-            brush.GradientStops.Add(new GradientStop(bgStart, 0.0));
-            brush.GradientStops.Add(new GradientStop(bgEnd, 0.8));
-            MainBackground.Background = brush;
+            // A. BACKGROUND
+            Brush bgBrush;
+            if (gradType == 1)
+            {
+                var r = new RadialGradientBrush { GradientOrigin = new Point(0.5, 0.3), Center = new Point(0.5, 0.5), RadiusX = 1.0, RadiusY = 1.0 };
+                r.GradientStops.Add(new GradientStop(c[2], 0.0)); r.GradientStops.Add(new GradientStop(c[3], 1.0)); bgBrush = r;
+            }
+            else
+            {
+                var l = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1) };
+                l.GradientStops.Add(new GradientStop(c[2], 0.0)); l.GradientStops.Add(new GradientStop(c[3], 0.8)); bgBrush = l;
+            }
+            MainBackground.Background = bgBrush;
 
-            // 2. Remove recursos antigos para forçar atualização
-            this.Resources.Remove("AccentBrush");
-            this.Resources.Remove("PanelBackgroundBrush");
-            this.Resources.Remove("textSecondary"); // Atenção ao nome (case sensitive no XAML?)
-            this.Resources.Remove("TextPrimaryBrush"); // O novo recurso
+            // B. RECURSOS
+            SetRes("AccentBrush", new SolidColorBrush(c[0]));
+            SetRes("textSecondary", new SolidColorBrush(c[1]));
+            SetRes("PanelBackgroundBrush", new SolidColorBrush(c[4]));
+            SetRes("TextPrimaryBrush", new SolidColorBrush(c[5]));
+            SetRes("HeroTitleBrush", new SolidColorBrush(c[6]));
+            SetRes("ChatBrush", new SolidColorBrush(c[7]));
+            SetRes("TertiaryBrush", new SolidColorBrush(c[8]));
 
-            // 3. Adiciona os novos
-            this.Resources.Add("AccentBrush", new SolidColorBrush(accent));
-            this.Resources.Add("PanelBackgroundBrush", new SolidColorBrush(panelBg));
-
-            // Corrigi o nome para 'TextSecondaryBrush' se usares esse padrão no XAML, 
-            // mas mantive 'textSecondary' se for o que já usas.
-            this.Resources.Add("textSecondary", new SolidColorBrush(textSecondary));
-
-            // O novo Texto Principal
-            this.Resources.Add("TextPrimaryBrush", new SolidColorBrush(textPrimary));
+            // NOVOS RECURSOS
+            SetRes("InfoPrimaryBrush", new SolidColorBrush(c[9]));
+            SetRes("InfoSecondaryBrush", new SolidColorBrush(c[10]));
+            SetRes("FriendNameBrush", new SolidColorBrush(c[11]));
+            SetRes("FriendStatusBrush", new SolidColorBrush(c[12]));
+            SetRes("ButtonTextNormalBrush", new SolidColorBrush(c[13]));
+            SetRes("ButtonTextHoverBrush", new SolidColorBrush(c[14]));
         }
-
+        void SetRes(string k, Brush b) { if (Resources.Contains(k)) Resources.Remove(k); Resources.Add(k, b); }
         private void BtnThemeRed_Click(object sender, RoutedEventArgs e)
         {
-            // DEFAULT/ORIGINAL (Igual ao XAML inicial)
+            // 1. Definir as Cores Base
             var accent = (Color)ColorConverter.ConvertFromString("#FF4758");
-            var bgStart = (Color)ColorConverter.ConvertFromString("#1A0A0D"); // Cor escura do topo
-            var bgEnd = (Color)ColorConverter.ConvertFromString("#A81826");   // Cor viva do fundo
+            var bgStart = (Color)ColorConverter.ConvertFromString("#1A0A0D");
+            var bgEnd = (Color)ColorConverter.ConvertFromString("#A81826");
             var pnl = (Color)ColorConverter.ConvertFromString("#D9101010");
+            var sec = Colors.Gray;
+            var pri = Colors.White;
 
-            ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl, Colors.White);
+            // 2. Construir o Array de 15 Cores
+            Color[] c = new Color[15];
+            c[0] = accent;
+            c[1] = sec;
+            c[2] = bgStart;
+            c[3] = bgEnd;
+            c[4] = pnl;
+            c[5] = pri;          // Global Primary
+            c[6] = pri;          // Hero Title
+            c[7] = sec;          // Chat
+            c[8] = Color.FromArgb(50, 255, 71, 88); // Terciária (Vermelho subtil)
+
+            // --- NOVAS ---
+            c[9] = pri;          // Info Primary
+            c[10] = sec;         // Info Secondary
+            c[11] = pri;         // Friend Name
+            c[12] = sec;         // Friend Status
+            c[13] = pri;         // Btn Text Normal
+            c[14] = Colors.Black;// Btn Text Hover (Preto contrasta bem com o Vermelho)
+
+            ApplyThemeColors(c, 0); // 0 = Linear Gradient
             SaveTheme("Red");
         }
 
         private void BtnThemeBlue_Click(object sender, RoutedEventArgs e)
         {
-            // DEEP BLUE (PlayStation Vibes)
             var accent = (Color)ColorConverter.ConvertFromString("#00A8E8");
             var bgStart = (Color)ColorConverter.ConvertFromString("#000814");
             var bgEnd = (Color)ColorConverter.ConvertFromString("#003566");
             var pnl = (Color)ColorConverter.ConvertFromString("#D9051020");
+            var sec = Colors.LightBlue; // Texto secundário azulado
+            var pri = Colors.White;
 
-            ApplyThemeColors(accent, Colors.Gray, bgStart, bgEnd, pnl, Colors.White);
+            Color[] c = new Color[15];
+            c[0] = accent;
+            c[1] = sec;
+            c[2] = bgStart;
+            c[3] = bgEnd;
+            c[4] = pnl;
+            c[5] = pri;
+            c[6] = pri;
+            c[7] = sec;
+            c[8] = Color.FromArgb(50, 0, 168, 232); // Terciária Azulada
+
+            // --- NOVAS ---
+            c[9] = pri;
+            c[10] = sec;
+            c[11] = pri;
+            c[12] = sec;
+            c[13] = pri;
+            c[14] = Colors.Black; // Texto preto no botão Ciano
+
+            ApplyThemeColors(c, 0);
             SaveTheme("Blue");
         }
 
         private void BtnThemeDark_Click(object sender, RoutedEventArgs e)
         {
-            // OLED BLACK
-            var accent = Colors.White;
+            var accent = Colors.White; // B&W Theme
             var bgStart = Colors.Black;
             var bgEnd = (Color)ColorConverter.ConvertFromString("#111111");
             var pnl = (Color)ColorConverter.ConvertFromString("#E6000000");
+            var sec = Colors.DarkGray;
+            var pri = Colors.White;
 
-            ApplyThemeColors(accent, Colors.DarkGray, bgStart, bgEnd, pnl, Colors.White);
+            Color[] c = new Color[15];
+            c[0] = accent;
+            c[1] = sec;
+            c[2] = bgStart;
+            c[3] = bgEnd;
+            c[4] = pnl;
+            c[5] = pri;
+            c[6] = pri;
+            c[7] = sec;
+            c[8] = Color.FromArgb(50, 255, 255, 255); // Terciária Branca translúcida
+
+            // --- NOVAS ---
+            c[9] = pri;
+            c[10] = sec;
+            c[11] = pri;
+            c[12] = sec;
+            c[13] = pri;
+            c[14] = Colors.Black; // Texto preto no botão Branco
+
+            ApplyThemeColors(c, 0);
             SaveTheme("Dark");
         }
 
         private void BtnThemePichal_Click(object sender, RoutedEventArgs e)
         {
-            var accent = (Color)ColorConverter.ConvertFromString("#FFFFC20E");
+            var accent = (Color)ColorConverter.ConvertFromString("#FFFFC20E"); // Amarelo Ouro
+            var bgStart = (Color)ColorConverter.ConvertFromString("#FF004D25"); // Verde Topo
+            var bgEnd = (Color)ColorConverter.ConvertFromString("#FF020F05");   // Verde Fundo
+            var pnl = (Color)ColorConverter.ConvertFromString("#E60A2610");     // Painel Verde
+            var sec = (Color)ColorConverter.ConvertFromString("#FFD4AF37");     // Texto Dourado
+            var pri = Colors.White;
 
-            // Preto com tom esverdeado (Fundo Topo)
-            var bgStart = (Color)ColorConverter.ConvertFromString("#FF004D25");
+            Color[] c = new Color[15];
+            c[0] = accent;
+            c[1] = sec;
+            c[2] = bgStart;
+            c[3] = bgEnd;
+            c[4] = pnl;
+            c[5] = pri;
+            c[6] = pri;
+            c[7] = sec;
+            c[8] = Color.FromArgb(60, 255, 255, 255); // Terciária
 
-            // Amarelo/Dourado Escuro (Fundo Base)
-            var bgEnd = (Color)ColorConverter.ConvertFromString("#FF020F05");
+            // --- NOVAS ---
+            c[9] = pri;          // Info Pri
+            c[10] = sec;         // Info Sec (Dourado)
+            c[11] = pri;         // Friend Name
+            c[12] = sec;         // Friend Status (Dourado)
+            c[13] = pri;         // Botão Texto Normal (Branco)
+            c[14] = Colors.Black;// Botão Texto Hover (Preto em fundo Amarelo)
 
-            // Painel Verde Tropa escuro (Semi-transparente)
-            var pnl = (Color)ColorConverter.ConvertFromString("#E60A2610");
-
-            // Se a tua função ApplyThemeColors pede 5 argumentos (como no teu código colado):
-            // Usei uma cor de texto secundária amarela/dourada clara.
-            var textSecondary = (Color)ColorConverter.ConvertFromString("#FFD4AF37");
-
-            ApplyThemeColors(accent, textSecondary, bgStart, bgEnd, pnl, Colors.White);
+            ApplyThemeColors(c, 0);
             SaveTheme("Pichal");
         }
 
@@ -3750,7 +3832,8 @@ namespace PichalUI
                     Message = text,
                     Time = DateTime.Now.ToShortTimeString(),
                     Alignment = HorizontalAlignment.Right,
-                    BubbleColor = (SolidColorBrush)FindResource("AccentBrush") // Usa a cor do tema
+                    BubbleColor = (SolidColorBrush)FindResource("AccentBrush"), // Usa a cor do tema
+                    IsMe = true
                 });
 
                 SaveChatMessage(_currentChatFriend.Id.ToString(), "Eu", text);
@@ -3779,7 +3862,8 @@ namespace PichalUI
                         Message = cleanMessage,
                         Time = DateTime.Now.ToShortTimeString(),
                         Alignment = HorizontalAlignment.Left, // Lado Esquerdo = Amigo
-                        BubbleColor = Brushes.Gray
+                        BubbleColor = Brushes.Gray,
+                        IsMe = false
                     };
                     _chatMessages.Add(msg);
                     ChatList.ScrollIntoView(_chatMessages.Last());
@@ -3881,7 +3965,8 @@ namespace PichalUI
                                     Message = e.Message,
                                     Time = e.Timestamp.ToShortTimeString(),
                                     Alignment = e.Sender == "Eu" ? HorizontalAlignment.Right : HorizontalAlignment.Left,
-                                    BubbleColor = e.Sender == "Eu" ? (SolidColorBrush)FindResource("AccentBrush") : Brushes.Gray
+                                    BubbleColor = e.Sender == "Eu" ? (SolidColorBrush)FindResource("AccentBrush") : Brushes.Gray,
+                                    IsMe = (e.Sender == "Eu")
                                 });
                             }
                         if (_chatMessages.Count > 0) ChatList.ScrollIntoView(_chatMessages.Last());
@@ -3973,6 +4058,9 @@ namespace PichalUI
                     case "Dark": BtnThemeDark_Click(null, null); break;
                     case "Pichal": BtnThemePichal_Click(null, null); break;
                     case "Red": BtnThemeRed_Click(null, null); break;
+                    case "Neon_Blue": ThemeEditor("FF00F3FF,FFA0E0E0,FF050A14,FF001524,CC000810,FFFFFFFF,FFFFFFFF,FFA0E0E0,3300F3FF,FFFFFFFF,FFA0E0E0,FFFFFFFF,FFA0E0E0,FFFFFFFF,FF000000,0"); break;
+                    case "Hackerman": ThemeEditor("FF00FF41,FF008F11,FF000000,FF0D0D0D,E60A0A0A,FFE0FFE0,FF00FF41,FFE0FFE0,3300FF41,FFE0FFE0,FF008F11,FFE0FFE0,FF008F11,FFE0FFE0,FF000000,0"); break;
+                    case "Utopia": ThemeEditor("FFFF4600,FF696969,FFFFFFFF,FFE0E0E0,CCFFFFFF,FF111111,FF111111,FF696969,40000000,FF111111,FF696969,FF111111,FF696969,FF111111,FFFFFFFF,0"); break;
                     case "Test": Test_Click(); break;
                 }
             }
@@ -4821,33 +4909,53 @@ namespace PichalUI
 
         public void ThemeEditor(string themeCode)
         {
-            string[] splitCodeByClass = themeCode.Split(',');
-
-            // Agora suportamos até 6 cores (a 6ª é o Texto Principal)
-            int count = splitCodeByClass.Length;
+            string[] parts = themeCode.Split(',');
+            int count = parts.Length;
             if (count < 5) return;
 
-            Color[] newTheme = new Color[6]; // Aumentámos para 6 slots
+            // AGORA SÃO 15 CORES
+            Color[] c = new Color[15];
+            int gradType = 0;
 
+            int colorIndex = 0;
             for (int i = 0; i < count; i++)
             {
-                string hex = splitCodeByClass[i].Trim();
-                if (hex.Length == 8)
-                {
-                    byte a = Convert.ToByte(hex.Substring(0, 2), 16);
-                    byte r = Convert.ToByte(hex.Substring(2, 2), 16);
-                    byte g = Convert.ToByte(hex.Substring(4, 2), 16);
-                    byte b = Convert.ToByte(hex.Substring(6, 2), 16);
+                string part = parts[i].Trim();
+                // Verifica gradiente (último item curto)
+                if (i == count - 1 && part.Length < 3 && int.TryParse(part, out int type)) { gradType = type; continue; }
 
-                    // Garante que não passamos do limite do array
-                    if (i < 6) newTheme[i] = Color.FromArgb(a, r, g, b);
+                if (part.Length == 8 && colorIndex < 15)
+                {
+                    byte a = Convert.ToByte(part.Substring(0, 2), 16);
+                    byte r = Convert.ToByte(part.Substring(2, 2), 16);
+                    byte g = Convert.ToByte(part.Substring(4, 2), 16);
+                    byte b = Convert.ToByte(part.Substring(6, 2), 16);
+                    c[colorIndex] = Color.FromArgb(a, r, g, b);
+                    colorIndex++;
                 }
             }
 
-            // Se o tema for antigo (só 5 cores), define Branco para o texto principal
-            if (count < 6) newTheme[5] = Colors.White;
+            // --- LÓGICA DE FALLBACK INTELIGENTE ---
+            // Se o tema for antigo (não tem estas cores), usamos as globais
 
-            ApplyThemeColors(newTheme[0], newTheme[1], newTheme[2], newTheme[3], newTheme[4], newTheme[5]);
+            // Defaults Básicos
+            if (c[5] == default) c[5] = Colors.White; // Global Primary
+            if (c[6] == default) c[6] = c[5];         // Hero Title
+            if (c[7] == default) c[7] = c[1];         // Chat
+            if (c[8] == default) c[8] = Color.FromArgb(50, 128, 128, 128); // Tertiary
+
+            // Novos Defaults (Baseados no pedido)
+            if (c[9] == default) c[9] = c[5];   // Info Primary -> Global Primary
+            if (c[10] == default) c[10] = c[1]; // Info Secondary -> Global Secondary
+
+            if (c[11] == default) c[11] = c[5]; // Friend Name -> Global Primary
+            if (c[12] == default) c[12] = c[1]; // Friend Status -> Global Secondary (ou outra cor de destaque se preferires)
+
+            if (c[13] == default) c[13] = c[5]; // Button Normal -> Global Primary
+            if (c[14] == default) c[14] = c[5]; // Button Hover -> Global Primary (Normalmente inverte com o fundo, mas começamos com Branco)
+
+            // Chama o aplicador com o array completo
+            ApplyThemeColors(c, gradType);
         }
 
         string ColorToHexConverter(int a, int r, int g, int b)
@@ -4892,37 +5000,36 @@ namespace PichalUI
             creator.ShowDialog(); // ShowDialog impede que mexas no launcher enquanto crias o tema
         }
 
-        public void UpdateSingleThemeColor(int slotIndex, Color newColor)
+        public void UpdateSingleThemeColor(int slot, Color color, int gradType = -1)
         {
             try
             {
-                if (slotIndex == 0) this.Resources["AccentBrush"] = new SolidColorBrush(newColor);
+                if (gradType != -1) return; // Se mudar gradiente, espera pelo refresh total
 
-                else if (slotIndex == 1)
-                {
-                    // Garante que o nome bate certo com o teu XAML (textSecondary vs TextSecondaryBrush)
-                    this.Resources["textSecondary"] = new SolidColorBrush(newColor);
-                }
+                if (slot == 0) SetRes("AccentBrush", new SolidColorBrush(color));
+                else if (slot == 1) SetRes("textSecondary", new SolidColorBrush(color));
+                else if (slot == 2) UpdateBackgroundStop(0, color);
+                else if (slot == 3) UpdateBackgroundStop(1, color);
+                else if (slot == 4) SetRes("PanelBackgroundBrush", new SolidColorBrush(color));
+                else if (slot == 5) SetRes("TextPrimaryBrush", new SolidColorBrush(color));
+                else if (slot == 6) SetRes("HeroTitleBrush", new SolidColorBrush(color));
+                else if (slot == 7) SetRes("ChatBrush", new SolidColorBrush(color));
+                else if (slot == 8) SetRes("TertiaryBrush", new SolidColorBrush(color));
 
-                else if (slotIndex == 2)
-                {
-                    EnsureGradientBackground();
-                    if (MainBackground.Background is LinearGradientBrush g) g.GradientStops[0].Color = newColor;
-                }
-
-                else if (slotIndex == 3)
-                {
-                    EnsureGradientBackground();
-                    if (MainBackground.Background is LinearGradientBrush g && g.GradientStops.Count > 1)
-                        g.GradientStops[1].Color = newColor;
-                }
-
-                else if (slotIndex == 4) this.Resources["PanelBackgroundBrush"] = new SolidColorBrush(newColor);
-
-                // --- NOVO SLOT 5: Texto Principal ---
-                else if (slotIndex == 5) this.Resources["TextPrimaryBrush"] = new SolidColorBrush(newColor);
+                // NOVOS SLOTS
+                else if (slot == 9) SetRes("InfoPrimaryBrush", new SolidColorBrush(color));
+                else if (slot == 10) SetRes("InfoSecondaryBrush", new SolidColorBrush(color));
+                else if (slot == 11) SetRes("FriendNameBrush", new SolidColorBrush(color));
+                else if (slot == 12) SetRes("FriendStatusBrush", new SolidColorBrush(color));
+                else if (slot == 13) SetRes("ButtonTextNormalBrush", new SolidColorBrush(color));
+                else if (slot == 14) SetRes("ButtonTextHoverBrush", new SolidColorBrush(color));
             }
             catch { }
+        }
+
+        void UpdateBackgroundStop(int index, Color c)
+        {
+            if (MainBackground.Background is GradientBrush g && g.GradientStops.Count > index) g.GradientStops[index].Color = c;
         }
 
         // Helper para evitar crashes se o fundo não for Gradiente
