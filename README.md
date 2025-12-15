@@ -92,19 +92,19 @@ The **UAAI** is a proprietary, **non-AI upscaling engine** built entirely in **H
 ### Core Architecture
 The engine operates in three distinct stages per frame:
 
-1. **CORTEX (Analysis Module)**
+1. #### **CORTEX (Analysis Module)**
 The "brain" of the shader. Before drawing a pixel, Cortex samples the 3x3 neighborhood to calculate Luma Variance and Covariance.
 - **Variance Analysis**: Determines if a region is a flat gradient (e.g., sky, skin) or a high-frequency texture (e.g., foliage, text).
 - **Covariance Analysis (NEDI)**: Analyzes diagonal correlations to detect the orientation of edges, allowing for geometric reconstruction of lines.
 
-2. **FUSION (Synthesis Module)**
+2. #### **FUSION (Synthesis Module)**
 Based on Cortex's data, Fusion dynamically blends between four distinct resampling engines:
 - **Safe Bilinear**: Used for low-variance areas to ensure smooth, noise-free gradients.
 - **Bicubic (Catmull-Rom)**: Used for general image balancing.
 - **Lanczos-2**: A mathematically precise filter using Sinc functions to preserve high-frequency details and sharpness in textures.
 - **Real NEDI (New Edge-Directed Interpolation)**: The flagship feature of v5.0. It reconstructs geometry by interpolating along edges rather than across them, effectively eliminating "stair-stepping" (aliasing) on diagonal lines.
 
-3. **RAZOR (Post-Processing)**
+3. #### **RAZOR (Post-Processing)**
 A modified RCAS (Robust Contrast Adaptive Sharpening) pass. Unlike standard sharpeners that create white halos, Razor is context-aware: it applies sharpening strength proportionally to the detail level detected by Cortex, leaving flat areas untouched to prevent grain.
 
 
@@ -131,7 +131,7 @@ graph TD
     BILINEAR -. "Dynamic Blending" .- LANCZOS
     LANCZOS -. "Geometric Override" .- NEDI
     
-    NEDI --> RAZOR[RAZOR (RCAS)]
+    NEDI --> RAZOR["RAZOR (RCAS)"]
     RAZOR --> Output[Final Display]
 ```
 
