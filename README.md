@@ -116,7 +116,7 @@ Mode | Engine Used | Description
 Performance | Bilinear + Razor | "Minimal cost. Smooths out the image, ideal for low-end hardware."
 Balanced | Bicubic Catmull-Rom | Standard upscaling with better sharpness than linear methods.
 Quality | Adaptive Hybrid | Dynamically mixes Bilinear (for gradients) and Lanczos-2 (for edges) per pixel. Best visual balance.
-Ultra | Geometric (NEDI),Uses covariance math to mathematically reconstruct edges | Best for 3D geometry and text clarity.
+Ultra | Geometric (NEDI) | Uses covariance math to mathematically reconstruct edges. Best for 3D geometry and text clarity.
 
 
 ### Technical Workflow
