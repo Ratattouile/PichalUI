@@ -2,4 +2,5 @@ publish/
 *.exe
 bin/
 obj/
+Tools/
 *.rar

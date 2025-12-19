@@ -23,12 +23,16 @@ PichalUI is a windows game launcher developed in WPF (.NET 9.0), designed to pro
 
 - **User Selection**: You can put as many users as you want and you can easily change qhat profilw are you using.
 
+- **UAAI (Upscaler de Auto-Ajustamento Indireto)**: The UAAI (Upscaler de Auto-Ajustamento Indereto) or Indirect Self-Adjusting Upscaler in english is the non-AI "inteligent" integrated Upscaler.
+
 - **Future Features**: Some key features will be added in the future like:
     - **Epic Games and other Stores Integration**
     - **Windows Optimization**
     - **Native Discord Implementation**
     - **Native Spotify Implementation**
     - **And much more to come...** 
+
+
 
 ## System Minimum
 - **Operating System**: Windows 10 or 11 (x64).
@@ -79,6 +83,57 @@ Option (Dualsense) / Start (XInput) | Rescan Library
 - **LibreHardwareMonitor**: Hardware ...
 - **System.Net.Http**: Comunication with Web API (fallback).
 - **Steam Web API**
+
+## UAAI - Upscaler de Auto-Ajustamento Indireto
+**Current Version**: v5.0 "GEOMETRIC"
+
+The **UAAI** is a proprietary, **non-AI upscaling engine** built entirely in **HLSL** (High-Level Shading Language) and **DirectX 11**. Unlike traditional upscalers that apply a single algorithm to the entire screen, UAAI uses a Hybrid Adaptive Architecture. It analyzes the local complexity of every pixel in real-time to decide the best reconstruction method, bridging the gap between performance and visual fidelity without the need for tensor cores or motion vectors.
+
+### Core Architecture
+The engine operates in three distinct stages per frame:
+
+#### CORTEX (Analysis Module)
+The "brain" of the shader. Before drawing a pixel, Cortex samples the 3x3 neighborhood to calculate Luma Variance and Covariance.
+- **Variance Analysis**: Determines if a region is a flat gradient (e.g., sky, skin) or a high-frequency texture (e.g., foliage, text).
+- **Covariance Analysis (NEDI)**: Analyzes diagonal correlations to detect the orientation of edges, allowing for geometric reconstruction of lines.
+
+#### FUSION (Synthesis Module)
+Based on Cortex's data, Fusion dynamically blends between four distinct resampling engines:
+- **Safe Bilinear**: Used for low-variance areas to ensure smooth, noise-free gradients.
+- **Bicubic (Catmull-Rom)**: Used for general image balancing.
+- **Lanczos-2**: A mathematically precise filter using Sinc functions to preserve high-frequency details and sharpness in textures.
+- **Real NEDI (New Edge-Directed Interpolation)**: The flagship feature of v5.0. It reconstructs geometry by interpolating along edges rather than across them, effectively eliminating "stair-stepping" (aliasing) on diagonal lines.
+
+#### RAZOR (Post-Processing)
+A modified RCAS (Robust Contrast Adaptive Sharpening) pass. Unlike standard sharpeners that create white halos, Razor is context-aware: it applies sharpening strength proportionally to the detail level detected by Cortex, leaving flat areas untouched to prevent grain.
+
+
+### Quality Modes
+Users can select the processing power allocated to the upscaler:
+
+Mode | Engine Used | Description
+---- | ----------- | -----------
+Performance | Bilinear + Razor | "Minimal cost. Smooths out the image, ideal for low-end hardware."
+Balanced | Bicubic Catmull-Rom | Standard upscaling with better sharpness than linear methods.
+Quality | Adaptive Hybrid | Dynamically mixes Bilinear (for gradients) and Lanczos-2 (for edges) per pixel. Best visual balance.
+Ultra | Geometric (NEDI),Uses covariance math to mathematically reconstruct edges | Best for 3D geometry and text clarity.
+
+
+### Technical Workflow
+```mermaid
+graph TD
+    Input[Input Frame] --> CORTEX{CORTEX Analysis}
+    
+    CORTEX -- "Flat Area (Low Variance)" --> BILINEAR[Safe Bilinear]
+    CORTEX -- "Texture (High Variance)" --> LANCZOS[Lanczos-2]
+    CORTEX -- "Edge Geometry (Covariance)" --> NEDI[Real NEDI]
+    
+    BILINEAR -. "Dynamic Blending" .- LANCZOS
+    LANCZOS -. "Geometric Override" .- NEDI
+    
+    NEDI --> RAZOR["RAZOR (RCAS)"]
+    RAZOR --> Output[Final Display]
+```
 
 ## Developed by 
 Ratatouille (@Ratattouile), @joaomgleitao, @Echo4Cells

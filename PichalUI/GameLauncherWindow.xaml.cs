@@ -31,6 +31,8 @@ using SteamKit2;
 using System.Reactive;
 using System.Windows.Media.Effects;
 using System.Configuration;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 
 namespace PichalUI
@@ -885,7 +887,7 @@ namespace PichalUI
 
         // ---- Sistema de Recomendação Inteligente ----
         GameEntry? _recommendedGame;
-
+        private object _chatLock = new object();
 
         public GameLauncherWindow()
         {
@@ -905,7 +907,7 @@ namespace PichalUI
             currentInputHandler = gamesInputHandler;
 
             BtnConnectSteam.Click += (s, e) => _ = Task.Run(() => ConnectSteamFlowAsync());
-            StartBtn.Click += (s, e) => LaunchSelected();
+            StartBtn.Click += async (s, e) => await LaunchSelected();
 
             var xinputTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
             xinputTimer.Tick += XinputTimer_Tick;
@@ -924,6 +926,8 @@ namespace PichalUI
             snowTimer.Tick += SnowTimer_Tick;
 
             CheckChristmasSeason();
+
+            System.Windows.Data.BindingOperations.EnableCollectionSynchronization(_chatMessages, _chatLock);
         }
 
         // --- NAVEGAÇÃO ENTRE VISTAS ---
@@ -1166,56 +1170,67 @@ namespace PichalUI
             element.BeginAnimation(UIElement.OpacityProperty, fadeIn);
         }
 
-        public void LaunchSelected()
+
+        // Muda de 'async void' para 'async Task<Process?>'
+        public async Task<Process?> LaunchSelected()
         {
             var currentList = isShowingStoreView ? storeGames : games;
-            if (selectedIndex < 0 || selectedIndex >= currentList.Count) return;
+            if (selectedIndex < 0 || selectedIndex >= currentList.Count) return null;
 
             var g = currentList[selectedIndex];
 
+            // --- Lógica de Loja / Instalação (Retorna null porque não há jogo para jogar) ---
             if (!isShowingStoreView && g.Source == "System" && g.Title == "Loja")
             {
                 _ = Task.Run(async () => await LoadStoreNotInstalledAsync());
-                return;
+                return null;
             }
 
             if (g.IsStoreItem)
             {
                 try
                 {
-                    // Abre na Steam instalada (Melhor experiência)
                     Process.Start(new ProcessStartInfo($"steam://store/{g.SteamAppId}") { UseShellExecute = true });
                 }
                 catch
                 {
-                    // Fallback para Browser
                     Process.Start(new ProcessStartInfo($"https://store.steampowered.com/app/{g.SteamAppId}/") { UseShellExecute = true });
                 }
-                return;
+                return null;
             }
 
             if (!g.IsInstalled && !string.IsNullOrEmpty(g.SteamAppId))
             {
                 if (MessageBox.Show($"Este jogo não está instalado.\nQueres instalar '{g.Title}'?", "Instalar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo($"steam://install/{g.SteamAppId}") { UseShellExecute = true });
-                    }
-                    catch { }
+                    try { Process.Start(new ProcessStartInfo($"steam://install/{g.SteamAppId}") { UseShellExecute = true }); } catch { }
                 }
-                return;
+                return null;
             }
+
+            // --- LÓGICA DE LANÇAMENTO ---
+            Process? gameProcess = null;
 
             try
             {
+                // CASO 1: JOGO STEAM
                 if (g.Source == "Steam" && !string.IsNullOrEmpty(g.SteamAppId))
                 {
+                    // A. Manda a Steam abrir o jogo
                     Process.Start(new ProcessStartInfo($"steam://run/{g.SteamAppId}") { UseShellExecute = true });
+
+                    // B. Mostra aviso e espera que o jogo apareça
+                    SetLoading(true, "A aguardar arranque do jogo Steam...");
+
+                    // C. Usa a função auxiliar para encontrar o processo do jogo
+                    gameProcess = await WaitForSteamGameLaunch(g.SteamAppId);
+
+                    SetLoading(false);
                 }
+                // CASO 2: JOGO NORMAL (.EXE)
                 else if (!string.IsNullOrEmpty(g.ExePath) && File.Exists(g.ExePath))
                 {
-                    Process.Start(new ProcessStartInfo
+                    gameProcess = Process.Start(new ProcessStartInfo
                     {
                         FileName = g.ExePath,
                         WorkingDirectory = g.WorkingDirectory ?? Path.GetDirectoryName(g.ExePath),
@@ -1227,7 +1242,71 @@ namespace PichalUI
                     MessageBox.Show("Executável não encontrado.", "Erro");
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Erro ao lançar: " + ex.Message); }
+            catch (Exception ex)
+            {
+                SetLoading(false);
+                MessageBox.Show("Erro ao lançar: " + ex.Message);
+            }
+
+            // Se encontrámos o processo, iniciamos o Upscaler
+            if (gameProcess != null)
+            {
+                await EnterGameModeAsync(gameProcess);
+            }
+
+            return gameProcess;
+        }
+
+        private async Task<Process?> WaitForSteamGameLaunch(string steamAppId)
+        {
+            // Timeout de 60 segundos para o jogo abrir
+            int timeout = 60;
+
+            // 1. Espera que a Steam atualize o registo a dizer "Estou a correr a App X"
+            while (timeout > 0)
+            {
+                if (IsSteamAppRunning(steamAppId))
+                {
+                    // O jogo arrancou tecnicamente! Agora esperamos pela janela.
+                    break;
+                }
+                await Task.Delay(1000);
+                timeout--;
+            }
+
+            if (timeout <= 0) return null; // Jogo não abriu a tempo
+
+            // 2. Agora procuramos o processo que tem a janela ativa (Foco)
+            // Esperamos até 30 segundos pela janela visual
+            timeout = 30;
+            while (timeout > 0)
+            {
+                IntPtr foregroundWin = NativeUtils.GetForegroundWindow();
+
+                if (foregroundWin != IntPtr.Zero)
+                {
+                    NativeUtils.GetWindowThreadProcessId(foregroundWin, out uint processId);
+                    try
+                    {
+                        Process p = Process.GetProcessById((int)processId);
+
+                        // Ignora janelas do Sistema, da própria Steam ou do nosso Launcher
+                        if (p.ProcessName.ToLower() != "steam" &&
+                            p.ProcessName.ToLower() != "steamwebhelper" &&
+                            p.ProcessName.ToLower() != "explorer" &&
+                            p.Id != Process.GetCurrentProcess().Id)
+                        {
+                            // Achámos o jogo!
+                            return p;
+                        }
+                    }
+                    catch { }
+                }
+                await Task.Delay(500); // Verifica a cada meio segundo
+                timeout--;
+            }
+
+            return null;
         }
 
         void PopulateGamesPanel()
@@ -2422,20 +2501,32 @@ namespace PichalUI
             return "";
         }
 
-        ImageSource LoadBitmapImageFromFile(string path)
+        ImageSource LoadBitmapImageFromFile(string path, int decodeWidth = 300)
         {
-            var bmp = new BitmapImage();
-            using (var fs = File.OpenRead(path))
+            try
             {
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.StreamSource = new MemoryStream();
-                fs.CopyTo(bmp.StreamSource);
-                bmp.StreamSource.Position = 0;
-                bmp.EndInit();
-                bmp.Freeze();
+                if (!File.Exists(path)) return null;
+
+                var bmp = new BitmapImage();
+                using (var fs = File.OpenRead(path))
+                {
+                    bmp.BeginInit();
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.StreamSource = fs;
+
+                    // O SEGREDO: Carregar em baixa resolução para a lista
+                    bmp.DecodePixelWidth = decodeWidth;
+
+                    bmp.EndInit();
+                    bmp.Freeze(); // Liberta a memória da stream e torna read-only
+                }
+                return bmp;
             }
-            return bmp;
+            catch
+            {
+                try { File.Delete(path); } catch { } // Apaga se estiver corrompido
+                return null;
+            }
         }
 
         void SaveBitmapImageToFile(ImageSource src, string path)
@@ -2475,14 +2566,29 @@ namespace PichalUI
             return null;
         }
 
-        ImageSource LoadBitmapImageFromStream(Stream st)
+        ImageSource LoadBitmapImageFromStream(Stream st, int decodeWidth = 300) // Adiciona o parametro
         {
-            var bmp = new BitmapImage();
-            var ms = new MemoryStream(); st.CopyTo(ms); ms.Position = 0;
-            bmp.BeginInit(); bmp.CacheOption = BitmapCacheOption.OnLoad; bmp.StreamSource = ms; bmp.EndInit(); bmp.Freeze();
-            return bmp;
-        }
+            try
+            {
+                var bmp = new BitmapImage();
+                var ms = new MemoryStream();
+                st.CopyTo(ms);
+                ms.Position = 0;
 
+                bmp.BeginInit();
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.StreamSource = ms;
+
+                // --- O SEGREDO TAMBÉM AQUI ---
+                bmp.DecodePixelWidth = decodeWidth;
+                // -----------------------------
+
+                bmp.EndInit();
+                bmp.Freeze();
+                return bmp;
+            }
+            catch { return null; }
+        }
         void StartSteamInstall(int appid)
         {
             try { Process.Start(new ProcessStartInfo($"steam://install/{appid}") { UseShellExecute = true }); }
@@ -2655,214 +2761,315 @@ namespace PichalUI
         {
             LoadSavedTheme();
 
-            // INÍCIO DO PROCESSO DE CARREGAMENTO
             _ = Task.Run(async () =>
             {
+                // 1. LIMPEZA INICIAL
+                var helpers = Process.GetProcessesByName("steamwebhelper");
+                if (helpers.Length > 0)
+                {
+                    await Dispatcher.InvokeAsync(() => StatusLabel.Text = "A reiniciar Steam...");
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo("taskkill", "/F /IM steam.exe") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                        Process.Start(new ProcessStartInfo("taskkill", "/F /IM steamwebhelper.exe") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                    }
+                    catch { }
+                    await Task.Delay(2000);
+                }
+
+                // 2. VERIFICAR LOGIN AUTOMÁTICO
                 string usernameFile = Path.Combine(CurrentUserDir, "steam_username.dat");
                 if (File.Exists(usernameFile))
                 {
                     string steamLogin = File.ReadAllText(usernameFile).Trim();
                     if (!string.IsNullOrEmpty(steamLogin))
-                        await SwitchSteamAccountAsync(steamLogin);
-                }
-
-                // 1. Carregar Credenciais
-                LoadSteamApiKey();
-                var savedId = LoadConnectedSteamId();
-
-                // Atualiza o Header se tivermos ID (para a foto aparecer logo)
-                if (!string.IsNullOrEmpty(savedId))
-                {
-                    connectedSteamId = savedId;
-                    await UpdateHeaderUI();
-                }
-
-                bool success = false;
-
-                // 1. Se já estiver ligada, não fazemos Init de novo (evita o crash)
-                if (Steamworks.SteamClient.IsValid)
-                {
-                    success = true;
-                }
-                else
-                {
-                    // 2. Se não estiver, tentamos ligar (com retries caso a Steam esteja a abrir)
-                    for (int i = 0; i < 5; i++) // Tenta durante 5 segundos
                     {
-                        try
-                        {
-                            Steamworks.SteamClient.Init(480);
-                            if (Steamworks.SteamClient.IsValid)
-                            {
-                                success = true;
-                                break;
-                            }
-                        }
-                        catch
-                        {
-                            await Task.Delay(1000); // Espera 1s antes de tentar de novo
-                        }
+                        // Usa o novo método robusto para garantir que entra nessa conta
+                        await SwitchSteamAccountAsync(steamLogin);
+                        return;
                     }
                 }
 
-                if (success)
+                // 3. SE NÃO HOUVER USERNAME GUARDADO, ABRE NORMAL
+                string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+                if (!string.IsNullOrEmpty(steamPath))
                 {
-                    // 3. Configura o Chat (Remove primeiro para não duplicar eventos)
-                    Steamworks.SteamFriends.OnChatMessage -= OnSteamChatMessage;
-                    Steamworks.SteamFriends.OnChatMessage += OnSteamChatMessage;
-                    Steamworks.SteamFriends.ListenForFriendsMessages = true;
+                    string exe = Path.Combine(steamPath, "steam.exe");
+                    Process.Start(new ProcessStartInfo(exe, "+open steam://open/minigameslist") { UseShellExecute = true });
+                    await Task.Delay(5000);
+                }
 
-                    // 4. Atualiza a UI
+                ContinueLoading();
+            });
+        }
+
+        // Método auxiliar para continuar o carregamento se não houver troca de conta
+        private async void ContinueLoading()
+        {
+            LoadSteamApiKey();
+            var savedId = LoadConnectedSteamId();
+            if (!string.IsNullOrEmpty(savedId))
+            {
+                connectedSteamId = savedId;
+                await UpdateHeaderUI();
+            }
+
+            // Inicializar Steamworks com retry
+            bool success = false;
+            for (int i = 0; i < 15; i++)
+            {
+                try
+                {
+                    Steamworks.SteamClient.Init(480);
+                    if (Steamworks.SteamClient.IsValid) { success = true; break; }
+                }
+                catch { }
+                await Task.Delay(1000);
+            }
+
+            if (success)
+            {
+                await Dispatcher.InvokeAsync(() => SetupSteamEvents());
+                KillSteamBloat();
+
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ProfileName.Text = Steamworks.SteamClient.Name;
+                    StatusLabel.Text = $"Steam: {Steamworks.SteamClient.Name}";
+                    connectedSteamId = Steamworks.SteamClient.SteamId.ToString();
+                });
+            }
+
+            await RescanGamesAsync();
+
+            await FetchBasicStatsAsync();
+
+            // UI Updates
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (games.Count > 0)
+                {
+                    PopulateGamesPanel();
+                    GenerateRecommendation();
+                }
+            });
+
+            if (!string.IsNullOrEmpty(connectedSteamId))
+            {
+                if (_cachedFriendsList.Count == 0) await FetchAndShowFriendsAsync();
+                await FetchSteamDataForAllGamesAsync();
+            }
+        }
+
+        private async Task SwitchSteamAccountAsync(string targetUsername)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+                LoadingText.Text = $"A trocar para: {targetUsername}...";
+            });
+
+            string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+            if (string.IsNullOrEmpty(steamPath)) { ResumeInternalLogic(); return; }
+
+            string exePath = Path.Combine(steamPath, "steam.exe");
+            string vdfPath = Path.Combine(steamPath, "config", "loginusers.vdf");
+
+            // 1. MATAR A STEAM (NUCLEAR)
+            await Task.Run(() =>
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo("taskkill", "/F /IM steam.exe") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                    Process.Start(new ProcessStartInfo("taskkill", "/F /IM steamwebhelper.exe") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                }
+                catch { }
+            });
+
+            await Task.Delay(3000); // O disco precisa deste tempo para libertar o ficheiro
+
+            // 2. CONFIGURAÇÃO SILENCIOSA (Registo + VDF)
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // A) REGISTO: Define quem é o utilizador "Predefinido"
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "AutoLoginUser", targetUsername);
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "RememberPassword", 1);
+
+                    // Apaga chave que indica "crash anterior" para evitar Safe Mode
+                    try { Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam", true)?.DeleteValue("ActiveProcess", false); } catch { }
+
+                    // B) VDF: Diz à Steam que este utilizador foi o último a sair
+                    if (File.Exists(vdfPath))
+                    {
+                        string[] lines = File.ReadAllLines(vdfPath);
+                        var newLines = new List<string>();
+                        string currentBlockUser = "";
+
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            string line = lines[i];
+                            string trim = line.Trim();
+
+                            // Identifica o user do bloco
+                            if (trim.StartsWith("\"AccountName\"", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var parts = trim.Split('"');
+                                if (parts.Length >= 4) currentBlockUser = parts[3];
+                            }
+
+                            // Força MostRecent = 1 APENAS no alvo
+                            if (trim.StartsWith("\"MostRecent\"", StringComparison.OrdinalIgnoreCase))
+                            {
+                                string prefix = line.Substring(0, line.IndexOf("\""));
+                                if (currentBlockUser.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    newLines.Add($"{prefix}\"MostRecent\"\t\t\"1\"");
+                                }
+                                else
+                                {
+                                    newLines.Add($"{prefix}\"MostRecent\"\t\t\"0\"");
+                                }
+                                continue;
+                            }
+
+                            // Força Timestamp atual no alvo (para desempatar)
+                            if (trim.StartsWith("\"Timestamp\"", StringComparison.OrdinalIgnoreCase) &&
+                                currentBlockUser.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+                            {
+                                string prefix = line.Substring(0, line.IndexOf("\""));
+                                long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                                newLines.Add($"{prefix}\"Timestamp\"\t\t\"{now}\"");
+                                continue;
+                            }
+
+                            // Garante que não quer entrar offline
+                            if (trim.StartsWith("\"WantsOfflineMode\"", StringComparison.OrdinalIgnoreCase) &&
+                                currentBlockUser.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+                            {
+                                string prefix = line.Substring(0, line.IndexOf("\""));
+                                newLines.Add($"{prefix}\"WantsOfflineMode\"\t\t\"0\"");
+                                continue;
+                            }
+
+                            newLines.Add(line);
+                        }
+                        File.WriteAllLines(vdfPath, newLines);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Erro Config: " + ex.Message);
+                }
+            });
+
+            // 3. LANÇAR A STEAM (SEM ARGUMENTOS DE LOGIN)
+            // REMOVEMOS "-login". Isto é crucial. 
+            // Como o registo já diz "AutoLoginUser = Pedro", a Steam vai ler isso e entrar sozinha.
+            // Usar "-login" aqui estava a provocar o pedido de password.
+            try
+            {
+                Process.Start(new ProcessStartInfo(exePath, "-silent +open steam://open/minigameslist") { UseShellExecute = true });
+            }
+            catch { }
+
+            // 4. ESPERAR
+            try { Steamworks.SteamClient.Shutdown(); } catch { }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(exePath, "+open steam://open/minigameslist") { UseShellExecute = true });
+            }
+            catch { }
+
+            // 5. ESPERAR INICIALIZAÇÃO E RE-LIGAR CHAT
+            await Dispatcher.InvokeAsync(() => LoadingText.Text = "A restabelecer ligação Steamworks...");
+
+            await Task.Run(async () =>
+            {
+                int timeout = 0;
+                bool connected = false;
+
+                while (timeout < 60) // Dá tempo (60s) porque a Steam tem de fazer login na nuvem
+                {
+                    await Task.Delay(1000);
+                    try
+                    {
+                        // Tenta reiniciar a ligação à API
+                        Steamworks.SteamClient.Init(480); // 480 = Spacewar (Universal)
+
+                        if (Steamworks.SteamClient.IsValid)
+                        {
+                            connected = true;
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        // Falha normal enquanto a Steam ainda está a abrir
+                    }
+                    timeout++;
+                }
+
+                if (connected)
+                {
+                    // AQUI ESTÁ O SEGREDO: Re-ligar os eventos de chat agora que a conexão é nova
                     await Dispatcher.InvokeAsync(() =>
                     {
+                        SetupSteamEvents();
+
+                        // Atualiza a UI com o novo nome
                         ProfileName.Text = Steamworks.SteamClient.Name;
                         StatusLabel.Text = $"Steam: {Steamworks.SteamClient.Name}";
                         connectedSteamId = Steamworks.SteamClient.SteamId.ToString();
                     });
                 }
-                else
-                {
-                    await Dispatcher.InvokeAsync(() => StatusLabel.Text = "Steam: Offline / Web Mode");
-                }
-
-                // 2. SCAN AOS JOGOS (CRÍTICO: Isto tem de acontecer ANTES de pedir dados à Steam)
-                await RescanGamesAsync();
-
-                // 3. CARREGA ESTATÍSTICAS BÁSICAS (Rápido - 1 Pedido)
-                if (!string.IsNullOrEmpty(connectedSteamId))
-                {
-                    await FetchBasicStatsAsync();
-                }
-
-                // 4. MOSTRA O WELCOME SCREEN IMEDIATAMENTE! 🚀
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    if (games.Count > 0)
-                    {
-                        PopulateGamesPanel();
-                        GenerateRecommendation();
-                    }
-                });
-
-                // 5. Se tivermos login, vamos buscar os dados EXTRA (Playtime, Amigos, etc.)
-                if (!string.IsNullOrEmpty(connectedSteamId))
-                {
-                    if (_cachedFriendsList.Count == 0) await FetchAndShowFriendsAsync();
-
-                    // Carrega detalhes pesados (Reviews, Géneros, etc)
-                    await FetchSteamDataForAllGamesAsync();
-                }
             });
+
+            await Dispatcher.InvokeAsync(() => LoadingOverlay.Visibility = Visibility.Collapsed);
+            ContinueLoading();
         }
 
-        async Task SwitchSteamAccountAsync(string steamLoginName)
+        private void SetupSteamEvents()
         {
-            await Dispatcher.InvokeAsync(() =>
+            try
             {
-                LoadingOverlay.Visibility = Visibility.Visible;
-                LoadingText.Text = $"A preparar Steam para: {steamLoginName}...";
-            });
+                // 1. Desliga primeiro (para evitar duplicados se chamarmos isto várias vezes)
+                Steamworks.SteamFriends.OnChatMessage -= OnSteamChatMessage;
 
-            await Task.Run(async () =>
+                // 2. Liga novamente
+                Steamworks.SteamFriends.OnChatMessage += OnSteamChatMessage;
+
+                // 3. Ativa a escuta
+                Steamworks.SteamFriends.ListenForFriendsMessages = true;
+
+                Console.WriteLine("Eventos de Chat Steam configurados com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao ligar Chat: " + ex.Message);
+            }
+        }
+
+        void KillSteamBloat()
+        {
+            Task.Run(() =>
             {
                 try
                 {
-                    string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
-                    if (string.IsNullOrEmpty(steamPath)) throw new Exception("Steam não encontrada.");
-
-                    string vdfPath = Path.Combine(steamPath, "config", "loginusers.vdf");
-                    string exePath = Path.Combine(steamPath, "steam.exe");
-
-                    var procs = Process.GetProcessesByName("steam");
-                    if (procs.Length > 0)
-                    {
-                        foreach (var p in procs)
-                        {
-                            try
-                            {
-                                p.Kill();
-                            }
-                            catch { }
-                        }
-
-                        foreach (var p in Process.GetProcessesByName("steamwebhelper"))
-                        {
-                            try
-                            {
-                                p.Kill();
-                            }
-                            catch { }
-                        }
-
-                        await Task.Delay(2000);
-                    }
-
-                    if (File.Exists(vdfPath))
+                    var processes = Process.GetProcessesByName("steamwebhelper");
+                    foreach (var p in processes)
                     {
                         try
                         {
-                            var vdf = KeyValue.LoadAsText(vdfPath);
-                            bool userFound = false;
-
-                            foreach (var child in vdf.Children)
-                            {
-                                string accName = child["AccountName"].Value;
-
-                                if (accName.Equals(steamLoginName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    child["MostRecent"].Value = "1";
-                                    child["AllowAutoLogin"].Value = "1";
-                                    child["RememberPassword"].Value = "1";
-                                    child["WantsOfflineMode"].Value = "0";
-                                    child["SkipOfflineModeWarning"].Value = "1";
-                                    child["Timestamp"].Value = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-                                    userFound = true;
-                                }
-                                else
-                                {
-                                    child["MostRecent"].Value = "0";
-                                    child["AllowAutoLogin"].Value = "0"; // Impeque que outros tentem entrar (opcional)
-                                }
-                            }
-
-                            if (userFound)
-                            {
-                                vdf.SaveToFile(vdfPath, false);
-                            }
+                            p.Kill();
                         }
-                        catch (Exception ex)
-                        {
-                            await Dispatcher.InvokeAsync(() => MessageBox.Show($"Aviso VDF: {ex.Message}"));
-                        }
-                    }
-
-                    Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "AutoLoginUser", steamLoginName);
-                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "RememberPassword", 1);
-                    try { Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam", true)?.DeleteValue("ActiveProcess", false); } catch { }
-
-                    if (File.Exists(exePath))
-                    {
-                        Process.Start(new ProcessStartInfo(exePath, $"-silent -login {steamLoginName}") { UseShellExecute = true });
-                    }
-
-                    await Dispatcher.InvokeAsync(() => LoadingText.Text = "À espera da Steam...");
-                    int retries = 0;
-                    while (retries < 60)
-                    {
-                        await Task.Delay(1000);
-                        if (await Task.Run(() => { try { Steamworks.SteamClient.Init(480); return Steamworks.SteamClient.IsValid; } catch { return false; } }))
-                        {
-                            break;
-                        }
-                        retries++;
+                        catch { } // Ignora erros de permissão
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Erro ao trocar conta Steam: " + ex.Message);
-                }
+                catch { }
             });
-            await Dispatcher.InvokeAsync(() => LoadingOverlay.Visibility = Visibility.Collapsed);
         }
 
         async Task RegisterNewSteamAccountAsync(string username)
@@ -2875,75 +3082,53 @@ namespace PichalUI
 
             await Task.Run(async () =>
             {
+                // Matar Steam
                 try
                 {
-                    var procs = Process.GetProcessesByName("steam");
-                    if (procs.Length > 0)
+                    Process.Start(new ProcessStartInfo("taskkill", "/F /IM steam.exe") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                }
+                catch { }
+                await Task.Delay(2000);
+
+                string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+                if (string.IsNullOrEmpty(steamPath)) return;
+                string exePath = Path.Combine(steamPath, "steam.exe");
+
+                // CORREÇÃO CRÍTICA: O sinal de exclamação (!) faltava aqui
+                if (!File.Exists(exePath))
+                {
+                    throw new Exception($"Steam não encontrada em: {steamPath}");
+                }
+
+                // Lançar Steam PARA LOGIN (Sem silent!)
+                // Precisas de ver a janela para meter a pass ou ler o QR Code
+                Process.Start(new ProcessStartInfo(exePath, $"-login \"{username}\" +open steam://open/minigameslist") { UseShellExecute = true });
+
+                await Dispatcher.InvokeAsync(() => LoadingText.Text = "Faz login na janela da Steam (Lembrar-me ATIVO!)...");
+
+                // Esperar login
+                bool loggedIn = false;
+                for (int i = 0; i < 300; i++) // 5 minutos para fazeres login
+                {
+                    await Task.Delay(1000);
+                    try
                     {
-                        try { Process.Start(new ProcessStartInfo("steam://exit") { UseShellExecute = true }); } catch { }
-                        await Task.Delay(3000); // Dá tempo para sincronizar nuvem e fechar
-
-                        // Se ainda estiver aberta, força o fecho
-                        foreach (var p in Process.GetProcessesByName("steam")) { try { p.Kill(); } catch { } }
-                        foreach (var p in Process.GetProcessesByName("steamwebhelper")) { try { p.Kill(); } catch { } }
-                        await Task.Delay(2000);
-                    }
-
-                    string steamPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
-                    if (string.IsNullOrEmpty(steamPath)) throw new Exception("Steam não encontrada.");
-                    string exePath = Path.Combine(steamPath, "steam.exe");
-
-                    //ToggleFullscreen();
-
-                    if (File.Exists(exePath))
-                    {
-                        throw new Exception($"Steam não encontrada em: {steamPath}");
-                    }
-
-                    Process.Start(new ProcessStartInfo(exePath, $"-silent -login \"{username}\"") { UseShellExecute = true });
-
-                    await Dispatcher.InvokeAsync(() => LoadingText.Text = "Por favor, faz login na janela da Steam (QR/Senha).");
-
-                    bool loggedIn = false;
-
-                    for (int i = 0; i < 300; i++)
-                    {
-                        await Task.Delay(1000);
-
-                        bool isRunning = await Task.Run(() =>
-                        {
-                            try
-                            {
-                                Steamworks.SteamClient.Init(480);
-                                return Steamworks.SteamClient.IsValid;
-                            }
-                            catch { return false; }
-                        });
-
-                        if (isRunning)
+                        Steamworks.SteamClient.Init(480);
+                        if (Steamworks.SteamClient.IsValid)
                         {
                             loggedIn = true;
                             break;
                         }
                     }
-
-                    if (loggedIn)
-                        ToggleFullscreen();
-
-                    if (!loggedIn)
-                    {
-                        throw new Exception("Tempo Esgotado. Não foi detetado login.");
-                    }
+                    catch { }
                 }
-                catch (Exception ex)
-                {
-                    await Dispatcher.InvokeAsync(() => MessageBox.Show("Erro ao registar conta: " + ex.Message));
-                }
+
+                if (!loggedIn) throw new Exception("Tempo esgotado.");
             });
 
             await Dispatcher.InvokeAsync(() => LoadingOverlay.Visibility = Visibility.Collapsed);
+            ContinueLoading();
         }
-
         private void Window_Closed(object sender, EventArgs e) { _controller?.Stop(); hwMonitor?.Close(); Steamworks.SteamClient.Shutdown(); }
 
         private void Controller_StateChanged(DualSenseInputState state)
@@ -3958,17 +4143,17 @@ namespace PichalUI
                     {
                         var list = JsonSerializer.Deserialize<List<ChatLogEntry>>(File.ReadAllText(f));
                         if (list != null) foreach (var e in list)
+                        {
+                            _chatMessages.Add(new ChatMessage
                             {
-                                _chatMessages.Add(new ChatMessage
-                                {
-                                    SenderName = e.Sender,
-                                    Message = e.Message,
-                                    Time = e.Timestamp.ToShortTimeString(),
-                                    Alignment = e.Sender == "Eu" ? HorizontalAlignment.Right : HorizontalAlignment.Left,
-                                    BubbleColor = e.Sender == "Eu" ? (SolidColorBrush)FindResource("AccentBrush") : Brushes.Gray,
-                                    IsMe = (e.Sender == "Eu")
-                                });
-                            }
+                                SenderName = e.Sender,
+                                Message = e.Message,
+                                Time = e.Timestamp.ToShortTimeString(),
+                                Alignment = e.Sender == "Eu" ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+                                BubbleColor = e.Sender == "Eu" ? (SolidColorBrush)FindResource("AccentBrush") : Brushes.Gray,
+                                IsMe = (e.Sender == "Eu")
+                            });
+                        }
                         if (_chatMessages.Count > 0) ChatList.ScrollIntoView(_chatMessages.Last());
                     }
                 }
@@ -4450,6 +4635,8 @@ namespace PichalUI
 
         void SnowTimer_Tick(object? sender, EventArgs e)
         {
+            activeSnowFlakes.RemoveAll(f => !SnowCanvas.Children.Contains(f));
+
             if (activeSnowFlakes.Count > 300) return;
 
             double size = rng.NextDouble() * 4 + 2; // 2 a 6px
@@ -4603,7 +4790,7 @@ namespace PichalUI
                     filtered = _allGamesMasterList.OrderByDescending(g => g.PlaytimeHours).ToList();
                     break;
                 case "NeverPlayed":
-                    filtered = _allGamesMasterList.Where(g => g.PlaytimeHours < 0.2 && g.LastPlayed == null).OrderBy(g => g.Title).ToList();
+                    filtered = _allGamesMasterList.Where(g => g.PlaytimeHours <= 0).OrderBy(g => g.Title).ToList();
                     break;
                 case "NotInstalled":
                     filtered = _allGamesMasterList.OrderBy(g => g.Title).Where(g => g.IsInstalled == false).ToList();
@@ -4921,16 +5108,26 @@ namespace PichalUI
             for (int i = 0; i < count; i++)
             {
                 string part = parts[i].Trim();
-                // Verifica gradiente (último item curto)
+
+                // Gradiente Check
                 if (i == count - 1 && part.Length < 3 && int.TryParse(part, out int type)) { gradType = type; continue; }
 
                 if (part.Length == 8 && colorIndex < 15)
                 {
-                    byte a = Convert.ToByte(part.Substring(0, 2), 16);
-                    byte r = Convert.ToByte(part.Substring(2, 2), 16);
-                    byte g = Convert.ToByte(part.Substring(4, 2), 16);
-                    byte b = Convert.ToByte(part.Substring(6, 2), 16);
-                    c[colorIndex] = Color.FromArgb(a, r, g, b);
+                    try
+                    {
+                        // Tenta converter. Se falhar (ex: letras Z), vai para o catch e não crasha.
+                        byte a = Convert.ToByte(part.Substring(0, 2), 16);
+                        byte r = Convert.ToByte(part.Substring(2, 2), 16);
+                        byte g = Convert.ToByte(part.Substring(4, 2), 16);
+                        byte b = Convert.ToByte(part.Substring(6, 2), 16);
+                        c[colorIndex] = Color.FromArgb(a, r, g, b);
+                    }
+                    catch
+                    {
+                        // Se a cor estiver estragada, define uma cor de "Erro" (ex: Magenta) ou ignora
+                        c[colorIndex] = Colors.Magenta;
+                    }
                     colorIndex++;
                 }
             }
@@ -5043,6 +5240,130 @@ namespace PichalUI
                 brush.GradientStops.Add(new GradientStop(Colors.Black, 0.8));
                 MainBackground.Background = brush;
             }
+        }
+
+        bool IsSteamAppRunning(string targetAppId)
+        {
+            try
+            {
+                // Lê a chave que a Steam atualiza em tempo real
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam"))
+                {
+                    if (key != null)
+                    {
+                        var val = key.GetValue("RunningAppID");
+                        if (val != null && val.ToString() == targetAppId)
+                            return true;
+                    }
+                }
+                return false;
+            }
+            catch { return false; }
+        }
+
+        private UAAISession _uaaiSession;
+
+        // Agora recebe o Processo como argumento!
+        private async Task EnterGameModeAsync(Process gameProcess)
+        {
+            if (gameProcess == null) return;
+
+            // DEBUG
+            // MessageBox.Show("Launcher: Entrando em Game Mode...");
+
+            PauseInternalLogic();
+
+            bool useUAAI = true;
+
+            if (useUAAI)
+            {
+                _uaaiSession = new UAAISession();
+            }
+
+            // AQUI ESTAVA O ERRO: Removemos o 'LaunchSelected' daqui.
+            // Já temos o gameProcess passado por argumento!
+
+            if (useUAAI && gameProcess != null)
+            {
+                // Passamos os dados vitais para o motor de captura
+                // Isto é CRÍTICO para o passo que fizemos antes (ignorar notepad)
+                if (_uaaiSession != null)
+                {
+                    // Precisamos de garantir que o handle existe
+                    while (gameProcess.MainWindowHandle == IntPtr.Zero)
+                    {
+                        await Task.Delay(500);
+                        gameProcess.Refresh();
+                        if (gameProcess.HasExited)
+                        {
+                            ResumeInternalLogic();
+                            return;
+                        }
+                    }
+
+                    // Inicia o Upscaler
+                    await _uaaiSession.Start(gameProcess);
+                }
+            }
+            else
+            {
+                ResumeInternalLogic();
+            }
+
+            // Otimizador de sistema (opcional)
+
+        }
+
+        private void PauseInternalLogic()
+        {
+            // 1. Desliga a Aceleração de Hardware (LIBERTA A GPU PARA O JOGO)
+            // Isto é o que vai dar FPS reais se o jogo for pesado na gráfica.
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+
+            // 2. Para o render loop
+            CompositionTarget.Rendering -= UpdateSteamCallbacks;
+            if (isSnowing) CompositionTarget.Rendering -= CheckInactivityForSnow;
+
+            // 3. Para timers
+            snowTimer?.Stop();
+            xinputTimer?.Stop();
+
+            // 4. Colapsa a janela (liberta recursos de composição do Windows DWM)
+            this.Visibility = Visibility.Collapsed;
+        }
+
+        private void ResumeInternalLogic()
+        {
+            // 1. Reativa Aceleração de Hardware (Para a UI ficar fluida outra vez)
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.Default;
+
+            this.Visibility = Visibility.Visible;
+            xinputTimer?.Start();
+            CompositionTarget.Rendering += UpdateSteamCallbacks;
+            CheckChristmasSeason();
+
+            this.Activate();
+            this.Focus();
+            if (GamesListBox.Visibility == Visibility.Visible) GamesListBox.Focus();
+        }
+
+        void RestoreWindowCorrectly()
+        {
+            this.Show();
+            this.Activate();
+
+            // Força o redesenho do estilo da janela
+            this.WindowStyle = WindowStyle.SingleBorderWindow; // Muda para forçar refresh
+            this.WindowStyle = WindowStyle.None;               // Volta a sem bordas
+            this.WindowState = WindowState.Normal;             // Restaura
+            this.WindowState = WindowState.Maximized;          // Maximiza
+
+            // Garante que fica em cima (mas não preso lá para sempre)
+            this.Topmost = true;
+            this.Topmost = false;
+
+            // Foca o comando no sítio certo
+            if (GamesListBox.Visibility == Visibility.Visible) GamesListBox.Focus();
         }
 
 

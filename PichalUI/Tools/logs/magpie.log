@@ -1,0 +1,953 @@
+2025-12-10 17:54:00.172|info|main.cpp:76|wWinMain|程序启动
+	版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:54:00.250|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_3D_AA_Upscale_US.hlsl
+2025-12-10 17:54:00.251|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\ACNet.hlsl
+2025-12-10 17:54:00.251|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_3D_Upscale_US.hlsl
+2025-12-10 17:54:00.252|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Denoise_Bilateral_Mean.hlsl
+2025-12-10 17:54:00.252|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Denoise_Bilateral_Median.hlsl
+2025-12-10 17:54:00.252|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Denoise_Bilateral_Mode.hlsl
+2025-12-10 17:54:00.252|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_L.hlsl
+2025-12-10 17:54:00.252|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_M.hlsl
+2025-12-10 17:54:00.253|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_S.hlsl
+2025-12-10 17:54:00.254|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_Soft_L.hlsl
+2025-12-10 17:54:00.254|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_Soft_M.hlsl
+2025-12-10 17:54:00.255|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_Soft_S.hlsl
+2025-12-10 17:54:00.258|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_Soft_UL.hlsl
+2025-12-10 17:54:00.258|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_Soft_VL.hlsl
+2025-12-10 17:54:00.258|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_UL.hlsl
+2025-12-10 17:54:00.259|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Restore_VL.hlsl
+2025-12-10 17:54:00.259|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Thin_HQ.hlsl
+2025-12-10 17:54:00.266|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_Denoise_L.hlsl
+2025-12-10 17:54:00.266|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_Denoise_S.hlsl
+2025-12-10 17:54:00.267|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_Denoise_UL.hlsl
+2025-12-10 17:54:00.268|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_Denoise_VL.hlsl
+2025-12-10 17:54:00.269|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_GAN_x2_M.hlsl
+2025-12-10 17:54:00.271|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_GAN_x2_S.hlsl
+2025-12-10 17:54:00.271|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_GAN_x3_L.hlsl
+2025-12-10 17:54:00.272|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_L.hlsl
+2025-12-10 17:54:00.274|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_S.hlsl
+2025-12-10 17:54:00.276|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_UL.hlsl
+2025-12-10 17:54:00.276|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Anime4K\Anime4K_Upscale_VL.hlsl
+2025-12-10 17:54:00.276|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Bicubic.hlsl
+2025-12-10 17:54:00.276|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Bilinear.hlsl
+2025-12-10 17:54:00.277|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CAS\CAS.hlsl
+2025-12-10 17:54:00.280|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CAS\CAS_Scaling.hlsl
+2025-12-10 17:54:00.280|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CRT\CRT_Easymode.hlsl
+2025-12-10 17:54:00.282|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CRT\CRT_Geom.hlsl
+2025-12-10 17:54:00.282|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CRT\CRT_Hyllian.hlsl
+2025-12-10 17:54:00.283|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CRT\CRT_Lottes.hlsl
+2025-12-10 17:54:00.283|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CRT\GTU_v050.hlsl
+2025-12-10 17:54:00.283|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-16x16C-NVL-DN.hlsl
+2025-12-10 17:54:00.284|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-16x16C-NVL.hlsl
+2025-12-10 17:54:00.284|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-2x4C-NVL-DN.hlsl
+2025-12-10 17:54:00.284|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-2x4C-NVL.hlsl
+2025-12-10 17:54:00.287|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-3x4C-NVL-DN.hlsl
+2025-12-10 17:54:00.288|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-3x4C-NVL.hlsl
+2025-12-10 17:54:00.292|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-4x16C-NVL-DN.hlsl
+2025-12-10 17:54:00.295|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-4x16C-NVL.hlsl
+2025-12-10 17:54:00.295|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-4x4C-NVL-DN.hlsl
+2025-12-10 17:54:00.296|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-4x4C-NVL.hlsl
+2025-12-10 17:54:00.297|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-4x8C-NVL-DN.hlsl
+2025-12-10 17:54:00.297|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-4x8C-NVL.hlsl
+2025-12-10 17:54:00.298|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-6x8C-NVL-DN.hlsl
+2025-12-10 17:54:00.303|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-6x8C-NVL.hlsl
+2025-12-10 17:54:00.303|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-8x16C-NVL-DN.hlsl
+2025-12-10 17:54:00.303|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-8x16C-NVL.hlsl
+2025-12-10 17:54:00.303|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-8x4C-NVL-DN.hlsl
+2025-12-10 17:54:00.304|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-8x4C-NVL.hlsl
+2025-12-10 17:54:00.316|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-8x8C-NVL-DN.hlsl
+2025-12-10 17:54:00.316|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy\CuNNy-8x8C-NVL.hlsl
+2025-12-10 17:54:00.318|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-3x12-NVL.hlsl
+2025-12-10 17:54:00.319|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-4x12-NVL.hlsl
+2025-12-10 17:54:00.319|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-4x16-NVL.hlsl
+2025-12-10 17:54:00.319|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-4x24-NVL.hlsl
+2025-12-10 17:54:00.325|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-4x32-NVL.hlsl
+2025-12-10 17:54:00.325|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-8x32-NVL.hlsl
+2025-12-10 17:54:00.328|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-fast-NVL.hlsl
+2025-12-10 17:54:00.328|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-faster-NVL.hlsl
+2025-12-10 17:54:00.328|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\CuNNy2\CuNNy-veryfast-NVL.hlsl
+2025-12-10 17:54:00.328|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Deband.hlsl
+2025-12-10 17:54:00.332|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:54:00.334|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:54:00.334|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSRCNNX\FSRCNNX.hlsl
+2025-12-10 17:54:00.342|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSRCNNX\FSRCNNX_LineArt.hlsl
+2025-12-10 17:54:00.342|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FXAA\FXAA_High.hlsl
+2025-12-10 17:54:00.342|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FXAA\FXAA_Medium.hlsl
+2025-12-10 17:54:00.343|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FXAA\FXAA_Ultra.hlsl
+2025-12-10 17:54:00.345|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Jinc.hlsl
+2025-12-10 17:54:00.345|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\ImageAdjustment.hlsl
+2025-12-10 17:54:00.345|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Lanczos.hlsl
+2025-12-10 17:54:00.345|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NIS\NIS.hlsl
+2025-12-10 17:54:00.346|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Nearest.hlsl
+2025-12-10 17:54:00.352|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NIS\NVSharpen.hlsl
+2025-12-10 17:54:00.356|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns128_win8x4.hlsl
+2025-12-10 17:54:00.356|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns128_win8x6.hlsl
+2025-12-10 17:54:00.356|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns16_win8x4.hlsl
+2025-12-10 17:54:00.356|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns16_win8x6.hlsl
+2025-12-10 17:54:00.356|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns256_win8x4.hlsl
+2025-12-10 17:54:00.356|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns256_win8x6.hlsl
+2025-12-10 17:54:00.359|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns32_win8x4.hlsl
+2025-12-10 17:54:00.359|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns32_win8x6.hlsl
+2025-12-10 17:54:00.359|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns64_win8x4.hlsl
+2025-12-10 17:54:00.359|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\NNEDI3\NNEDI3_nns64_win8x6.hlsl
+2025-12-10 17:54:00.359|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Pixel Art\MMPX.hlsl
+2025-12-10 17:54:00.361|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Pixel Art\Pixellate.hlsl
+2025-12-10 17:54:00.361|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Pixel Art\SharpBilinear.hlsl
+2025-12-10 17:54:00.362|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_3x_R2.hlsl
+2025-12-10 17:54:00.362|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_3x_R2_RGB.hlsl
+2025-12-10 17:54:00.380|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_3x_R3.hlsl
+2025-12-10 17:54:00.381|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_3x_R3_RGB.hlsl
+2025-12-10 17:54:00.382|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_3x_R4.hlsl
+2025-12-10 17:54:00.382|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_3x_R4_RGB.hlsl
+2025-12-10 17:54:00.390|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Lite_AR_R2.hlsl
+2025-12-10 17:54:00.391|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Lite_AR_R3.hlsl
+2025-12-10 17:54:00.391|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Lite_AR_R4.hlsl
+2025-12-10 17:54:00.391|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Lite_R2.hlsl
+2025-12-10 17:54:00.391|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Lite_R3.hlsl
+2025-12-10 17:54:00.391|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Lite_R4.hlsl
+2025-12-10 17:54:00.400|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_R2.hlsl
+2025-12-10 17:54:00.400|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_R2_RGB.hlsl
+2025-12-10 17:54:00.400|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_R3.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_R3_RGB.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_R4.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_R4_RGB.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_AR_R2.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_AR_R2_RGB.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_AR_R3.hlsl
+2025-12-10 17:54:00.401|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_AR_R3_RGB.hlsl
+2025-12-10 17:54:00.411|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_R2.hlsl
+2025-12-10 17:54:00.412|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_R2_RGB.hlsl
+2025-12-10 17:54:00.412|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_R3.hlsl
+2025-12-10 17:54:00.412|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\RAVU\RAVU_Zoom_R3_RGB.hlsl
+2025-12-10 17:54:00.412|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Sharpen\AdaptiveSharpen.hlsl
+2025-12-10 17:54:00.412|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Sharpen\FineSharp.hlsl
+2025-12-10 17:54:00.412|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Sharpen\LCAS.hlsl
+2025-12-10 17:54:00.413|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\Sharpen\LumaSharpen.hlsl
+2025-12-10 17:54:00.413|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\SMAA\SMAA_High.hlsl
+2025-12-10 17:54:00.425|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\SMAA\SMAA_Low.hlsl
+2025-12-10 17:54:00.425|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\SMAA\SMAA_Medium.hlsl
+2025-12-10 17:54:00.431|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\SMAA\SMAA_Ultra.hlsl
+2025-12-10 17:54:00.431|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\SSimDownscaler.hlsl
+2025-12-10 17:54:00.431|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\xBRZ\xBRZ_2x.hlsl
+2025-12-10 17:54:00.431|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\xBRZ\xBRZ_3x.hlsl
+2025-12-10 17:54:00.431|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\xBRZ\xBRZ_4x.hlsl
+2025-12-10 17:54:00.431|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\xBRZ\xBRZ_5x.hlsl
+2025-12-10 17:54:00.434|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\xBRZ\xBRZ_6x.hlsl
+2025-12-10 17:54:00.440|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\xBRZ\xBRZ_Freescale.hlsl
+2025-12-10 17:54:00.779|info|AppSettings.cpp:213|Initialize|便携模式: 否
+2025-12-10 17:54:00.779|info|AppSettings.cpp:216|Initialize|不存在配置文件
+2025-12-10 17:54:00.779|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:54:11.771|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:54:11.820|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:54:53.470|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:55:33.130|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:55:33.130|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: false
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 10
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:55:33.130|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:55:33.138|info|ScalingWindow.cpp:40|LogRects|源矩形: 190,183,1154,864 (964x681)
+2025-12-10 17:55:33.138|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:55:33.138|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:55:33.138|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:55:33.140|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:55:33.177|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:55:33.177|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:55:33.177|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:55:33.209|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:55:33.209|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:55:33.209|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:55:33.227|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:55:33.227|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 964x681
+2025-12-10 17:55:33.227|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:55:33.227|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:55:33.329|info|Win32Helper.cpp:326|WriteFile|写入文件: cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:55:33.330|info|EffectCacheManager.cpp:305|Save|已保存缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:55:33.330|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 102.64001 毫秒
+2025-12-10 17:55:33.726|info|Win32Helper.cpp:326|WriteFile|写入文件: cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:55:33.726|info|EffectCacheManager.cpp:305|Save|已保存缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:55:33.726|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 499.33704 毫秒
+2025-12-10 17:55:33.726|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 499.39304 毫秒
+2025-12-10 17:55:33.750|info|Renderer.cpp:122|Initialize|目标矩形: 195,0,1724,1080 (1529x1080)
+2025-12-10 17:55:33.751|info|Win32Helper.cpp:299|ReadFile|读取文件: C:\Windows\Fonts\segoeui.ttf
+2025-12-10 17:55:33.757|info|Win32Helper.cpp:326|WriteFile|写入文件: cache\fonts_pt-br_96
+2025-12-10 17:55:36.124|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:55:36.125|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:55:36.134|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:55:36.387|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:55:36.387|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:55:52.646|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:55:54.325|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:55:54.325|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: false
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:55:54.325|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:55:54.333|info|ScalingWindow.cpp:40|LogRects|源矩形: 190,183,1154,864 (964x681)
+2025-12-10 17:55:54.333|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:55:54.333|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:55:54.334|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:55:54.335|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:55:54.368|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:55:54.368|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:55:54.368|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:55:54.398|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:55:54.398|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:55:54.398|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:55:54.410|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:55:54.410|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 964x681
+2025-12-10 17:55:54.410|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:55:54.410|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:55:54.410|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:55:54.410|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.216 毫秒
+2025-12-10 17:55:54.410|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:55:54.410|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.245 毫秒
+2025-12-10 17:55:54.410|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.25300002 毫秒
+2025-12-10 17:55:54.414|info|Renderer.cpp:122|Initialize|目标矩形: 195,0,1724,1080 (1529x1080)
+2025-12-10 17:55:56.918|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:55:56.919|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:55:56.928|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:55:57.066|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:55:57.066|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:56:07.574|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:56:23.879|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:56:23.879|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:56:23.879|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:56:23.886|info|ScalingWindow.cpp:40|LogRects|源矩形: 190,183,1154,864 (964x681)
+2025-12-10 17:56:23.886|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:56:23.886|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:56:23.886|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:56:23.888|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:56:23.919|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:56:23.919|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:56:23.919|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:56:23.949|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:56:23.949|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:56:23.949|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:56:23.965|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:56:23.965|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 964x681
+2025-12-10 17:56:23.965|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:56:23.965|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:56:23.965|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:56:23.965|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.19700001 毫秒
+2025-12-10 17:56:23.965|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:56:23.965|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.22100002 毫秒
+2025-12-10 17:56:23.965|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.22800002 毫秒
+2025-12-10 17:56:23.969|info|Renderer.cpp:122|Initialize|目标矩形: 195,0,1724,1080 (1529x1080)
+2025-12-10 17:56:25.249|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:56:25.251|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:56:25.260|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:56:25.446|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:56:25.455|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:56:28.796|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:56:30.162|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:56:31.706|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\Users\afons\AppData\Local\Magpie\config\v4\config.json
+2025-12-10 17:56:33.285|info|AppSettings.cpp:312|IsPortableMode|已开启便携模式
+2025-12-10 17:56:33.286|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:56:40.226|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:56:40.226|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:56:40.226|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:56:40.231|info|ScalingWindow.cpp:40|LogRects|源矩形: 258,160,1222,841 (964x681)
+2025-12-10 17:56:40.231|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:56:40.231|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:56:40.232|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:56:40.233|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:56:40.269|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:56:40.269|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:56:40.269|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:56:40.297|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:56:40.297|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:56:40.297|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:56:40.311|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:56:40.311|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 964x681
+2025-12-10 17:56:40.311|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:56:40.311|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:56:40.312|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:56:40.312|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.20400001 毫秒
+2025-12-10 17:56:40.312|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:56:40.312|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.23700002 毫秒
+2025-12-10 17:56:40.312|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.24400002 毫秒
+2025-12-10 17:56:40.315|info|Renderer.cpp:122|Initialize|目标矩形: 195,0,1724,1080 (1529x1080)
+2025-12-10 17:56:40.893|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:56:40.894|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:56:40.903|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:56:41.071|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:56:41.078|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:56:58.049|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:56:58.049|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:56:58.056|info|ScalingWindow.cpp:40|LogRects|源矩形: 258,160,1222,841 (964x681)
+2025-12-10 17:56:58.056|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:56:58.056|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:56:58.057|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:56:58.064|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:56:58.092|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:56:58.092|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:56:58.092|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:56:58.129|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:56:58.129|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:56:58.129|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:56:58.143|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:56:58.143|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 964x681
+2025-12-10 17:56:58.143|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:56:58.143|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:56:58.143|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:56:58.143|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.268 毫秒
+2025-12-10 17:56:58.143|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:56:58.143|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.554 毫秒
+2025-12-10 17:56:58.143|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.563 毫秒
+2025-12-10 17:56:58.147|info|Renderer.cpp:122|Initialize|目标矩形: 195,0,1724,1080 (1529x1080)
+2025-12-10 17:56:59.766|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:56:59.767|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:56:59.776|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:56:59.890|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:56:59.890|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:57:02.112|error|ScalingService.cpp:208|ShowError|缩放失败
+	错误码: 3
+2025-12-10 17:57:05.100|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:57:05.100|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:57:05.100|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:57:05.109|info|ScalingWindow.cpp:40|LogRects|源矩形: 258,160,1222,841 (964x681)
+2025-12-10 17:57:05.109|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:57:05.109|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1920,1080 (1920x1080)
+2025-12-10 17:57:05.109|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:57:05.115|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:57:05.146|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:57:05.146|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:57:05.146|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:57:05.188|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:57:05.188|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:57:05.188|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:57:05.205|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:57:05.205|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 964x681
+2025-12-10 17:57:05.205|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:57:05.205|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:57:05.206|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:57:05.206|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.16600001 毫秒
+2025-12-10 17:57:05.206|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:57:05.206|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.21900001 毫秒
+2025-12-10 17:57:05.206|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.22800002 毫秒
+2025-12-10 17:57:05.213|info|Renderer.cpp:122|Initialize|目标矩形: 195,0,1724,1080 (1529x1080)
+2025-12-10 17:57:06.602|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:57:06.603|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:57:06.612|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:57:06.725|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:57:06.725|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:57:28.714|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:59:06.652|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:59:06.691|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:59:06.691|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:59:06.716|info|ScalingWindow.cpp:40|LogRects|源矩形: 0,0,1010,680 (1010x680)
+2025-12-10 17:59:06.716|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:06.716|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:06.717|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:06.758|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:06.758|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:06.758|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:59:06.861|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:07.187|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:07.187|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:07.187|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:59:08.088|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:59:08.088|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 1010x680
+2025-12-10 17:59:08.088|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:59:08.088|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:59:08.088|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:59:08.088|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.20600002 毫秒
+2025-12-10 17:59:08.088|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:59:08.088|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.25800002 毫秒
+2025-12-10 17:59:08.088|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.26700002 毫秒
+2025-12-10 17:59:08.092|info|Renderer.cpp:122|Initialize|目标矩形: 105,0,1174,720 (1069x720)
+2025-12-10 17:59:09.772|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:59:09.779|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:59:09.789|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:59:10.557|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:59:10.558|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:59:10.918|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:59:10.918|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:59:10.918|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:59:10.928|info|ScalingWindow.cpp:40|LogRects|源矩形: 0,159,1010,959 (1010x800)
+2025-12-10 17:59:10.928|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:10.928|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:10.931|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:10.940|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:10.971|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:10.971|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:10.971|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:59:11.442|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:11.443|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:11.443|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:59:12.272|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:59:12.272|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 1010x800
+2025-12-10 17:59:12.272|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:59:12.273|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:59:12.273|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.26700002 毫秒
+2025-12-10 17:59:12.273|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:59:12.274|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:59:12.274|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.13000001 毫秒
+2025-12-10 17:59:12.274|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 1.0860001 毫秒
+2025-12-10 17:59:12.300|info|Renderer.cpp:122|Initialize|目标矩形: 185,0,1094,720 (909x720)
+2025-12-10 17:59:12.324|info|ScalingWindow.cpp:388|Render|源窗口状态改变
+2025-12-10 17:59:12.437|info|ScalingWindow.cpp:388|Render|源窗口状态改变
+2025-12-10 17:59:12.442|info|ScalingWindow.cpp:388|Render|源窗口状态改变
+2025-12-10 17:59:12.443|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:59:12.483|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:59:13.337|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:59:14.961|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:59:14.961|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:59:14.985|info|ScalingWindow.cpp:40|LogRects|源矩形: 0,0,1010,680 (1010x680)
+2025-12-10 17:59:14.985|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:14.985|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:14.986|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:14.989|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:15.030|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:15.030|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:15.030|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:59:15.595|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:15.595|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:15.595|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:59:16.504|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:59:16.504|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 1010x680
+2025-12-10 17:59:16.504|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:59:16.504|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:59:16.504|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:59:16.504|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.179 毫秒
+2025-12-10 17:59:16.504|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:59:16.504|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.17600001 毫秒
+2025-12-10 17:59:16.504|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.254 毫秒
+2025-12-10 17:59:16.525|info|Renderer.cpp:122|Initialize|目标矩形: 105,0,1174,720 (1069x720)
+2025-12-10 17:59:16.531|info|ScalingWindow.cpp:388|Render|源窗口状态改变
+2025-12-10 17:59:16.531|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:59:16.531|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:59:16.803|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:59:16.804|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 17:59:32.175|info|main.cpp:76|wWinMain|程序启动
+	版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:59:32.238|info|App.cpp:118|Initialize|已经有一个实例正在运行
+2025-12-10 17:59:34.162|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:59:34.163|info|ScalingOptions.cpp:40|Log|缩放选项
+	IsWindowedMode: false
+	IsDebugMode: false
+	IsBenchmarkMode: false
+	IsFP16Disabled: false
+	IsEffectCacheDisabled: false
+	IsFontCacheDisabled: false
+	IsSaveEffectSources: false
+	IsWarningsAreErrors: false
+	IsStatisticsForDynamicDetectionEnabled: false
+	IsInlineParams: false
+	IsTouchSupportEnabled: false
+	IsAllowScalingMaximized: false
+	IsSimulateExclusiveFullscreen: false
+	Is3DGameMode: true
+	IsCaptureTitleBar: false
+	IsAdjustCursorSpeed: true
+	IsDirectFlipDisabled: false
+	cropping: 0,0,0,0
+	graphicsCardId:
+		idx: -1
+		venderId: 0
+		deviceId: 0
+	minFrameRate: 5
+	maxFrameRate: 0
+	cursorScaling: 1
+	captureMethod: 0
+	multiMonitorUsage: 0
+	cursorInterpolationMode: 0
+	duplicateFrameDetectionMode: 1
+	fullscreenInitialToolbarState: 2
+	windowedInitialToolbarState: 2
+	screenshotsDir: C:\Users\afons\Pictures\Screenshots
+	effects: 
+		FSR\FSR_EASU
+			scalingType: 1
+			scale: 1,1
+			parameters: 无
+		FSR\FSR_RCAS
+			scalingType: 0
+			scale: 1,1
+			parameters: 
+				sharpness: 0.87
+2025-12-10 17:59:34.163|info|ScalingWindow.cpp:54|_StartImpl|缩放开始
+	程序版本: v0.12.1
+	OS 版本: 10.0.19045
+	管理员: 否
+2025-12-10 17:59:34.179|info|ScalingWindow.cpp:40|LogRects|源矩形: 112,105,869,640 (757x535)
+2025-12-10 17:59:34.179|info|ScalingWindow.cpp:44|LogRects|渲染矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:34.179|info|ScalingWindow.cpp:48|LogRects|缩放窗口矩形: 0,0,1280,720 (1280x720)
+2025-12-10 17:59:34.180|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:34.184|info|DeviceResources.cpp:32|Initialize|可变刷新率支持: 是
+2025-12-10 17:59:34.217|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:34.217|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:34.217|info|Renderer.cpp:61|LogAdapter|当前图形适配器: 
+	VendorId: 0x10de
+	DeviceId: 0x1f91
+	Description: NVIDIA GeForce GTX 1650
+2025-12-10 17:59:34.252|info|DeviceResources.cpp:220|_TryCreateD3DDevice|已创建 D3D 设备
+	功能级别: 11.1
+2025-12-10 17:59:34.252|info|DeviceResources.cpp:245|_TryCreateD3DDevice|FP16 支持: 是
+2025-12-10 17:59:34.252|info|Renderer.cpp:415|_InitFrameSource|当前捕获模式: Graphics Capture
+2025-12-10 17:59:34.374|info|GraphicsCaptureFrameSource.cpp:73|_Initialize|GraphicsCaptureFrameSource 初始化完成
+2025-12-10 17:59:34.374|info|Renderer.cpp:426|_InitFrameSource|捕获尺寸: 757x535
+2025-12-10 17:59:34.374|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_EASU.hlsl
+2025-12-10 17:59:34.374|info|Win32Helper.cpp:350|ReadTextFile|读取文本文件: effects\FSR\FSR_RCAS.hlsl
+2025-12-10 17:59:34.374|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_RCAS_0000_144a205358c53429
+2025-12-10 17:59:34.374|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_RCAS.hlsl 用时 0.23 毫秒
+2025-12-10 17:59:34.374|info|EffectCacheManager.cpp:146|_LoadFromMemCache|已读取缓存 cache\FSR#FSR_EASU_0000_6110c4251b164378
+2025-12-10 17:59:34.374|info|Renderer.cpp:463|CompileEffect|编译 FSR\FSR_EASU.hlsl 用时 0.24900001 毫秒
+2025-12-10 17:59:34.374|info|Renderer.cpp:504|_BuildEffects|编译着色器总计用时 0.257 毫秒
+2025-12-10 17:59:34.381|info|Renderer.cpp:122|Initialize|目标矩形: 130,0,1149,720 (1019x720)
+2025-12-10 17:59:35.279|info|ShortcutService.cpp:212|operator()|热键 Scale 激活（Keyboard Hook）
+2025-12-10 17:59:35.281|info|ScalingWindow.cpp:855|_MessageHandler|缩放结束
+2025-12-10 17:59:35.291|info|ScalingWindow.cpp:870|_MessageHandler|CursorManager 已析构
+2025-12-10 17:59:35.423|info|ScalingWindow.cpp:873|_MessageHandler|Renderer 已析构
+2025-12-10 17:59:35.423|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json
+2025-12-10 18:06:10.937|info|Win32Helper.cpp:372|WriteTextFile|写入文本文件: C:\ConsoleUI_Prototipe\ConsoleUI_WPF\PichalUI\Tools\config\config.json

@@ -2,10 +2,15 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,11 +21,28 @@
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4" />
     <PackageReference Include="SteamKit2" Version="3.3.1" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <Folder Include="Assets/"/>
-    <Resource Include="Assets/PichalLeafMask.png"/>
-    <Resource Include="Assets/PichalLogoFull.png"/>
-    <Resource Include="Assets/PichalLeaf.png"/>
-    <Resource Include="Assets/Fox.png"/>
+    <Folder Include="Assets/" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.1" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.21.0" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.1" /> 
+    <PackageReference Include="Vortice.Direct3D11" Version="3.6.2" />
+    <PackageReference Include="Vortice.DXGI" Version="3.6.2" />
+    <Resource Include="Assets/PichalLeafMask.png" />
+    <Resource Include="Assets/PichalLogoFull.png" />
+    <Resource Include="Assets/PichalLeaf.png" />
+    <Resource Include="Assets/Fox.png" />
+    <None Update="Tools\Magpie\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Shaders\UAAI.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="steam_api64.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
