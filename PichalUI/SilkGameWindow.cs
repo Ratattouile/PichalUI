@@ -30,10 +30,10 @@ namespace PichalUI.Graphics
         [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
         [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-        
+
         // --- A SALVAÇÃO: WDA_EXCLUDEFROMCAPTURE ---
         [DllImport("user32.dll")] static extern uint SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
-        
+
         const int GWL_STYLE = -16;
         const int WS_CAPTION = 0x00C00000;
         const int WS_THICKFRAME = 0x00040000;
@@ -49,7 +49,7 @@ namespace PichalUI.Graphics
             // VOLTAMOS AO FULLSCREEN (Obrigatório para o efeito final)
             var screen = System.Windows.Forms.Screen.PrimaryScreen.Bounds;
             options.Size = new Vector2D<int>(screen.Width, screen.Height);
-            
+
             options.Title = "UAAI - Overlay";
             options.VSync = false;
             options.TopMost = true; // Volta a ser TopMost
@@ -110,7 +110,7 @@ namespace PichalUI.Graphics
             _swapChain = factory.CreateSwapChain(_device, desc);
             CreateRenderTarget();
             UpdateViewport((int)_window.Size.X, (int)_window.Size.Y);
-            
+
             // Renderizador Estável v1
             _renderer = new SimpleRenderer(_device, _context);
         }
@@ -136,13 +136,13 @@ namespace PichalUI.Graphics
             _engine.Update();
 
             _context.OMSetRenderTargets(_renderView);
-            // Fundo preto (agora seguro porque temos proteção anti-espelho)
             _context.ClearRenderTargetView(_renderView, new Color4(0, 0, 0, 1));
 
             if (_engine.LatestTexture != null)
             {
                 try
                 {
+                    // (Código de cache SRV mantém-se igual...)
                     if (_engine.LatestTexture != _lastFrameTexture)
                     {
                         _cachedSRV?.Dispose();
@@ -152,9 +152,10 @@ namespace PichalUI.Graphics
 
                     if (_cachedSRV != null)
                     {
-                        // Desenha a imagem esticada para o ecrã todo
+                        // CORREÇÃO 3: Passar _engine.LatestTexture como 2º argumento
                         _renderer.Draw(
                           _cachedSRV,
+                          _engine.LatestTexture, // <--- O NOVO ARGUMENTO OBRIGATÓRIO
                           _engine.CurrentSourceRect,
                           (int)_engine.LatestTexture.Description.Width,
                           (int)_engine.LatestTexture.Description.Height
@@ -168,7 +169,7 @@ namespace PichalUI.Graphics
                     _lastFrameTexture = null;
                 }
             }
-            
+
             _swapChain.Present(0, PresentFlags.None);
         }
 
